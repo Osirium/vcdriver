@@ -26,48 +26,53 @@ class VirtualMachine(object):
         self.ip = None
 
     def create(self):
-        self.connection = get_connection()
-        spec = vim.vm.CloneSpec(
-            location=vim.vm.RelocateSpec(
-                datastore=get_object(
-                    self.connection, vim.Datastore, self.data_store
+        if not self.vm_object:
+            self.connection = get_connection()
+            spec = vim.vm.CloneSpec(
+                location=vim.vm.RelocateSpec(
+                    datastore=get_object(
+                        self.connection, vim.Datastore, self.data_store
+                    ),
+                    pool=get_object(
+                        self.connection, vim.ResourcePool, self.resource_pool
+                    )
                 ),
-                pool=get_object(
-                    self.connection, vim.ResourcePool, self.resource_pool
-                )
-            ),
-            powerOn=True,
-            template=False
-        )
-        self.vm_object = wait_for_task(
-            get_object(
-                self.connection, vim.VirtualMachine, self.template
-            ).CloneVM_Task(
-                folder=get_object(
-                    self.connection, vim.Datacenter, self.data_center
-                ).vmFolder,
-                name=self.name,
-                spec=spec
-            ),
-            "Create virtual machine '{}' from template '{}'".format(
-                self.name, self.template
+                powerOn=True,
+                template=False
             )
-        )
-        print("'{}' waiting on the DHCP server ".format(self.name), end='')
-        while not self.vm_object.summary.guest.ipAddress:
-            wait(1)
-        self.ip = self.vm_object.summary.guest.ipAddress
-        print(' {}'.format(self.ip))
+            self.vm_object = wait_for_task(
+                get_object(
+                    self.connection, vim.VirtualMachine, self.template
+                ).CloneVM_Task(
+                    folder=get_object(
+                        self.connection, vim.Datacenter, self.data_center
+                    ).vmFolder,
+                    name=self.name,
+                    spec=spec
+                ),
+                "Create virtual machine '{}' from template '{}'".format(
+                    self.name, self.template
+                )
+            )
+            print("'{}' waiting on the DHCP server ".format(self.name), end='')
+            while not self.vm_object.summary.guest.ipAddress:
+                wait(1)
+            self.ip = self.vm_object.summary.guest.ipAddress
+            print(' {}'.format(self.ip))
 
     def destroy(self):
-        wait_for_task(
-            self.vm_object.PowerOffVM_Task(),
-            "Power off virtual machine '{}'".format(self.name)
-        )
-        wait_for_task(
-            self.vm_object.Destroy_Task(),
-            "Destroy virtual machine '{}'".format(self.name)
-        )
+        if self.vm_object:
+            wait_for_task(
+                self.vm_object.PowerOffVM_Task(),
+                "Power off virtual machine '{}'".format(self.name)
+            )
+            wait_for_task(
+                self.vm_object.Destroy_Task(),
+                "Destroy virtual machine '{}'".format(self.name)
+            )
+            self.connection = None
+            self.vm_object = None
+            self.ip = None
 
     def ssh(self, command):
         with settings(
