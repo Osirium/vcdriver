@@ -1,6 +1,6 @@
 from __future__ import print_function
 from contextlib import contextmanager
-from fabric.api import sudo
+from fabric.api import sudo, run
 from fabric.context_managers import settings
 from pyVmomi import vim
 from uuid import uuid1
@@ -74,14 +74,17 @@ class VirtualMachine(object):
             self.vm_object = None
             self.ip = None
 
-    def ssh(self, command):
+    def ssh(self, command, use_sudo=False):
         with settings(
                 user=self.ssh_username,
                 password=self.ssh_password,
                 host_string="{}@{}".format(self.ssh_username, self.ip),
                 warn_only=True
         ):
-            result = sudo(command)
+            if use_sudo:
+                result = sudo(command)
+            else:
+                result = run(command)
             if result.failed:
                 raise RuntimeError(
                     "Command '{}' failed with exit code {}".format(
