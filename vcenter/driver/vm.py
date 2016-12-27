@@ -4,14 +4,21 @@ from fabric.api import sudo, run
 from fabric.context_managers import settings
 from pyVmomi import vim
 
+import config
 from auth import Session
 from helpers import get_object, wait_for_task, wait
 
 
 class VirtualMachine(object):
     def __init__(
-            self, template, data_center, data_store, resource_pool,
-            name=None, ssh_username=None, ssh_password=None
+            self,
+            template,
+            data_center=config.DATA_CENTER,
+            data_store=config.DATA_STORE,
+            resource_pool=config.RESOURCE_POOL,
+            name=None,
+            ssh_username=None,
+            ssh_password=None
     ):
         self.template = template
         self.data_center = data_center
@@ -109,6 +116,7 @@ def virtual_machines(vms):
         for vm in vms:
             vm.destroy()
     except:
+        print('An exception has been thrown, cleaning up virtual machines:')
         for vm in vms:
             vm.destroy()
         raise

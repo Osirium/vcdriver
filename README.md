@@ -1,36 +1,42 @@
-This is a vcenter driver, based on pyvmomi. Adding this extra layer helps you drive your vcenter instance easier and it makes it a useful testing tool. The ssh part is based on fabric.
+This is a vcenter driver, based on pyvmomi. 
+Adding this extra layer helps you drive your vcenter instance easier and it makes it a useful testing tool. 
+The ssh utility uses fabric, so it's obviously limited to what fabric and ssh can do.
 
 ### Installation
 `python setup.py install`
 
 ### Configuration
-In order to communicate with your Vcenter instance, you need to provide these environment variables:
-* VCENTER_HOST
-* VCENTER_PORT
-* VCENTER_USERNAME
-* VCENTER_PASSWORD
+* In order to communicate with your Vcenter instance, you need to provide the following environment variables.
+You will be prompted for them otherwise:
+    * VCENTER_HOST
+    * VCENTER_PORT
+    * VCENTER_USERNAME
+    * VCENTER_PASSWORD
+* Optionally, you can also specify defaults for most of the virtual machine creation parameters:
+    * VCENTER_DATA_CENTER
+    * VCENTER_DATA_STORE
+    * VCENTER_RESOURCE_POOL
 
-You will be prompted for them if you don't provide them.
 
 ### Usage in a nutshell
+Provided you have set all the environment variables from the previous section, you can try something like:
 ```python
 from vcenter.driver.vm import VirtualMachine, virtual_machines
 
-# This is a lazy instance, you need to explicitely call its create 
-# and destroy methods to actually create and destroy the box on Vcenter.
-vm = VirtualMachine(
-    name='The name of your virtual machine'  # Optional, a uuid will be generated for you as a default
-    template='Target template name'
-    data_center='Target data center name'
-    data_store='Target data store name'
-    resource_pool='Target resource pool name'
-    ssh_username='user'  # Optional, only if you want to run ssh commands
-    ssh_username='password'  # Optional, only if you want to run ssh commands
-)
+kwargs = {
+    'template': 'My Vcenter template',
+    'ssh_username': 'user',
+    'ssh_password': 'pass'
+}
+# These are lazy objects, you need to explicitely call their create 
+# and destroy methods to actually create and destroy the boxes on Vcenter.
+vm1 = VirtualMachine(**kwargs)
+vm2 = VirtualMachine(**kwargs)
 
-# This will call the create and destroy methods for you even if 
+# This context manager will call the create and destroy methods for you even if 
 # an exception is thrown internally, useful for testing
-with virtual_machines([vm]):
-    print('The ip is {}'.format(vm.ip))
-    vm.ssh('echo "Hello world"')
+with virtual_machines([vm1, vm2]):
+    vm1.ssh('echo "Hello from vm 1, my ip is {}"'.format(vm1.ip))
+    vm2.ssh('echo "Hello from vm 2, my ip is {}"'.format(vm2.ip))
+    raise KeyboardInterrupt
 ```

@@ -17,9 +17,10 @@ class Session(object):
             sslContext=context
         )
         self.id = self.connection.content.sessionManager.currentSession.key
-        print('Connected to Vcenter with session ID {}'.format(self.id))
+        print('Vcenter session opened with ID {}'.format(self.id))
         atexit.register(self.close)
 
     def close(self):
-        print('Closing session ID {}'.format(self.id))
         connect.Disconnect(self.connection)
+        print('Session ID {} closed'.format(self.id))
+
