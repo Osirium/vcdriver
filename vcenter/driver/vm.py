@@ -3,16 +3,15 @@ from contextlib import contextmanager
 from fabric.api import sudo, run
 from fabric.context_managers import settings
 from pyVmomi import vim
-from uuid import uuid1
 
-from auth import get_connection
+from auth import Session
 from helpers import get_object, wait_for_task, wait
 
 
 class VirtualMachine(object):
     def __init__(
             self, template, data_center, data_store, resource_pool,
-            name=str(uuid1()), ssh_username=None, ssh_password=None
+            name=None, ssh_username=None, ssh_password=None
     ):
         self.template = template
         self.data_center = data_center
@@ -21,20 +20,23 @@ class VirtualMachine(object):
         self.name = name
         self.ssh_username = ssh_username
         self.ssh_password = ssh_password
-        self.connection = None
+        self.session = None
         self.vm_object = None
         self.ip = None
 
     def create(self):
         if not self.vm_object:
-            self.connection = get_connection()
+            self.session = Session()
+            if not self.name:
+                self.name = self.session.id
+            connection = self.session.connection
             spec = vim.vm.CloneSpec(
                 location=vim.vm.RelocateSpec(
                     datastore=get_object(
-                        self.connection, vim.Datastore, self.data_store
+                        connection, vim.Datastore, self.data_store
                     ),
                     pool=get_object(
-                        self.connection, vim.ResourcePool, self.resource_pool
+                        connection, vim.ResourcePool, self.resource_pool
                     )
                 ),
                 powerOn=True,
@@ -42,10 +44,10 @@ class VirtualMachine(object):
             )
             self.vm_object = wait_for_task(
                 get_object(
-                    self.connection, vim.VirtualMachine, self.template
+                    connection, vim.VirtualMachine, self.template
                 ).CloneVM_Task(
                     folder=get_object(
-                        self.connection, vim.Datacenter, self.data_center
+                        connection, vim.Datacenter, self.data_center
                     ).vmFolder,
                     name=self.name,
                     spec=spec
@@ -54,7 +56,12 @@ class VirtualMachine(object):
                     self.name, self.template
                 )
             )
-            print("'{}' waiting on the DHCP server ".format(self.name), end='')
+            print(
+                "Virtual machine '{}' waiting on the DHCP server ".format(
+                    self.name
+                ),
+                end=''
+            )
             while not self.vm_object.summary.guest.ipAddress:
                 wait(1)
             self.ip = self.vm_object.summary.guest.ipAddress
@@ -70,7 +77,7 @@ class VirtualMachine(object):
                 self.vm_object.Destroy_Task(),
                 "Destroy virtual machine '{}'".format(self.name)
             )
-            self.connection = None
+            self.session = None
             self.vm_object = None
             self.ip = None
 
