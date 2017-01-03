@@ -6,7 +6,8 @@ Adding this extra layer helps you drive your vcenter instance easier and it make
 The ssh utility uses fabric, so it's limited to what fabric and ssh can do.
 
 ### Installation
-`python setup.py install`
+* With pip: `pip install vcenter-driver`
+* From source: `python setup.py install`
 
 ### Configuration
 * In order to communicate with your Vcenter instance, you need to provide the following environment variables:
