@@ -24,11 +24,13 @@ Provided you have set all the environment variables from the previous section, y
 from vcenter.driver.vm import VirtualMachine, virtual_machines
 
 kwargs = {
+    # If name is not provided, a unique UUID will be generated for you
+    # 'name': 'Your VM custom name'
     'template': 'My Vcenter template',
-    'ssh_username': 'user',
-    'ssh_password': 'pass'
+    'ssh_username': 'user',  # Only necessary if you want to run ssh commands
+    'ssh_password': 'pass'  # Only necessary if you want to run ssh commands
 }
-# These are lazy objects, you need to explicitely call their create 
+# These are lazy objects, you need to explicitly call their create 
 # and destroy methods to actually create and destroy the boxes on Vcenter.
 vm1 = VirtualMachine(**kwargs)
 vm2 = VirtualMachine(**kwargs)
@@ -36,6 +38,7 @@ vm2 = VirtualMachine(**kwargs)
 # This context manager will call the create and destroy methods for you even if 
 # an exception is thrown internally, useful for testing
 with virtual_machines([vm1, vm2]):
+    vm1.ssh('apt-get update', use_sudo=True)
     vm1.ssh('echo "Hello from vm 1, my ip is {}"'.format(vm1.ip))
     vm2.ssh('echo "Hello from vm 2, my ip is {}"'.format(vm2.ip))
     raise KeyboardInterrupt
