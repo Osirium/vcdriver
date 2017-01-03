@@ -3,6 +3,8 @@ python:
 - '2.6'
 - '2.7'
 script: nosetests -v --with-coverage --cover-min-percentage=100 --cover-branches --cover-package=vcenter
+after_success:
+  - bash <(curl -s https://codecov.io/bash)
 deploy:
   provider: pypi
   user: lantero

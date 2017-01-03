@@ -1,3 +1,6 @@
+[![Build Status](https://travis-ci.org/Lantero/vcenter-driver.svg?branch=master)](https://travis-ci.org/Lantero/vcenter-driver) [![codecov](https://codecov.io/gh/Lantero/vcenter-driver/branch/master/graph/badge.svg)](https://codecov.io/gh/Lantero/vcenter-driver)
+
+
 This is a vcenter driver, based on pyvmomi. 
 Adding this extra layer helps you drive your vcenter instance easier and it makes it a useful testing tool. 
 The ssh utility uses fabric, so it's limited to what fabric and ssh can do.
