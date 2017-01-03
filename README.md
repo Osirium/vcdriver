@@ -1,18 +1,18 @@
 This is a vcenter driver, based on pyvmomi. 
 Adding this extra layer helps you drive your vcenter instance easier and it makes it a useful testing tool. 
-The ssh utility uses fabric, so it's obviously limited to what fabric and ssh can do.
+The ssh utility uses fabric, so it's limited to what fabric and ssh can do.
 
 ### Installation
 `python setup.py install`
 
 ### Configuration
-* In order to communicate with your Vcenter instance, you need to provide the following environment variables.
-You will be prompted for them otherwise:
+* In order to communicate with your Vcenter instance, you need to provide the following environment variables:
     * VCENTER_HOST
     * VCENTER_PORT
     * VCENTER_USERNAME
     * VCENTER_PASSWORD
-* Optionally, you can also specify defaults for most of the virtual machine creation parameters:
+* Optionally, you can also specify defaults for some of the virtual machine creation parameters, if you don't
+want to provide them with the class constructor method:
     * VCENTER_DATA_CENTER
     * VCENTER_DATA_STORE
     * VCENTER_RESOURCE_POOL
