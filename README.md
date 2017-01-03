@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/Lantero/vcenter-driver.svg?branch=master)](https://travis-ci.org/Lantero/vcenter-driver) [![codecov](https://codecov.io/gh/Lantero/vcenter-driver/branch/master/graph/badge.svg)](https://codecov.io/gh/Lantero/vcenter-driver)
+[![Build Status](https://travis-ci.org/Lantero/vcdriver.svg?branch=master)](https://travis-ci.org/Lantero/vcdriver) [![codecov](https://codecov.io/gh/Lantero/vcenter-driver/branch/master/graph/badge.svg)](https://codecov.io/gh/Lantero/vcenter-driver)
 
 
 This is a vcenter driver, based on pyvmomi. 
@@ -6,8 +6,11 @@ Adding this extra layer helps you drive your vcenter instance easier and it make
 The ssh utility uses fabric, so it's limited to what fabric and ssh can do.
 
 ### Installation
-* With pip: `pip install vcenter-driver`
-* From source: `python setup.py install`
+* With pip: 
+    1. `pip install vcdriver`
+* From source: 
+    1. Clone this repo
+    2. `python setup.py install`
 
 ### Configuration
 * In order to communicate with your Vcenter instance, you need to provide the following environment variables:
@@ -25,7 +28,7 @@ want to provide them with the class constructor method:
 ### Usage in a nutshell
 Provided you have set all the environment variables from the previous section, you can try something like:
 ```python
-from vcenter.driver.vm import VirtualMachine, virtual_machines
+from vcdriver.vm import VirtualMachine, virtual_machines
 
 kwargs = {
     # If name is not provided, a unique UUID will be generated for you

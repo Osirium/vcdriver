@@ -1,5 +1,5 @@
 import unittest
-from vcenter.driver import vm
+from vcdriver import vm
 
 
 class TestVM(unittest.TestCase):

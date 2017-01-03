@@ -19,10 +19,10 @@ def test_requirements():
 
 setup(
     version='0.1.0',
-    name='vcenter-driver',
+    name='vcdriver',
     description='Vcenter driver for testing purposes',
     long_description=readme(),
-    url='https://github.com/Lantero/vcenter-driver',
+    url='https://github.com/Lantero/vcdriver',
     author='Carlos Ruiz Lantero',
     author_email='carlos.ruiz.lantero@gmail.com',
     license='MIT',

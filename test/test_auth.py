@@ -1,5 +1,5 @@
 import unittest
-from vcenter.driver import auth
+from vcdriver import auth
 
 
 class TestAuth(unittest.TestCase):
