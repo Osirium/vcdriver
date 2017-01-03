@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/Lantero/vcdriver.svg?branch=master)](https://travis-ci.org/Lantero/vcdriver) [![codecov](https://codecov.io/gh/Lantero/vcenter-driver/branch/master/graph/badge.svg)](https://codecov.io/gh/Lantero/vcenter-driver)
+[![Build Status](https://travis-ci.org/Lantero/vcdriver.svg?branch=master)](https://travis-ci.org/Lantero/vcdriver) [![codecov](https://codecov.io/gh/Lantero/vcdriver/branch/master/graph/badge.svg)](https://codecov.io/gh/Lantero/vcdriver)
 
 
 This is a vcenter driver, based on pyvmomi. 
