@@ -31,9 +31,9 @@ Provided you have set all the environment variables from the previous section, y
 from vcdriver.vm import VirtualMachine, virtual_machines
 
 kwargs = {
-    # If name is not provided, a unique UUID will be generated for you
+    # If name is not provided, a UUID (Universally unique identifier) will be generated for you
     # 'name': 'Your VM custom name'
-    'template': 'My Vcenter template',
+    'template': 'My Vcenter template based on some Ubuntu thing',
     'ssh_username': 'user',  # Only necessary if you want to run ssh commands
     'ssh_password': 'pass'  # Only necessary if you want to run ssh commands
 }
