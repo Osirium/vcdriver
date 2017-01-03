@@ -14,15 +14,15 @@ The ssh utility uses fabric, so it's limited to what fabric and ssh can do.
 
 ### Configuration
 * In order to communicate with your Vcenter instance, you need to provide the following environment variables:
-    * VCENTER_HOST
-    * VCENTER_PORT
-    * VCENTER_USERNAME
-    * VCENTER_PASSWORD
+    * VCDRIVER_HOST
+    * VCDRIVER_PORT
+    * VCDRIVER_USERNAME
+    * VCDRIVER_PASSWORD
 * Optionally, you can also specify defaults for some of the virtual machine creation parameters, if you don't
 want to provide them with the class constructor method:
-    * VCENTER_DATA_CENTER
-    * VCENTER_DATA_STORE
-    * VCENTER_RESOURCE_POOL
+    * VCDRIVER_DATA_CENTER
+    * VCDRIVER_DATA_STORE
+    * VCDRIVER_RESOURCE_POOL
 
 
 ### Usage in a nutshell
