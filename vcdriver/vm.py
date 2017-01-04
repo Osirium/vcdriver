@@ -16,8 +16,8 @@ class VirtualMachine(object):
             data_center=config.DATA_CENTER,
             data_store=config.DATA_STORE,
             resource_pool=config.RESOURCE_POOL,
+            folder=config.FOLDER,
             name=None,
-            folder=None,
             ssh_username=None,
             ssh_password=None
     ):

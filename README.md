@@ -23,6 +23,7 @@ want to provide them with the class constructor method:
     * VCDRIVER_DATA_CENTER
     * VCDRIVER_DATA_STORE
     * VCDRIVER_RESOURCE_POOL
+    * VCDRIVER_FOLDER
 
 
 ### Usage in a nutshell
