@@ -17,6 +17,7 @@ class VirtualMachine(object):
             data_store=config.DATA_STORE,
             resource_pool=config.RESOURCE_POOL,
             name=None,
+            folder=None,
             ssh_username=None,
             ssh_password=None
     ):
@@ -25,6 +26,7 @@ class VirtualMachine(object):
         self.data_store = data_store
         self.resource_pool = resource_pool
         self.name = name
+        self.folder = folder
         self.ssh_username = ssh_username
         self.ssh_password = ssh_password
         self.session = None
@@ -34,9 +36,15 @@ class VirtualMachine(object):
     def create(self):
         if not self.vm_object:
             self.session = Session()
+            connection = self.session.connection
             if not self.name:
                 self.name = self.session.id
-            connection = self.session.connection
+            if not self.folder:
+                self.folder = get_object(
+                    connection, vim.Datacenter, self.data_center
+                ).vmFolder
+            else:
+                self.folder = get_object(connection, vim.Folder, self.folder)
             spec = vim.vm.CloneSpec(
                 location=vim.vm.RelocateSpec(
                     datastore=get_object(
@@ -53,9 +61,7 @@ class VirtualMachine(object):
                 get_object(
                     connection, vim.VirtualMachine, self.template
                 ).CloneVM_Task(
-                    folder=get_object(
-                        connection, vim.Datacenter, self.data_center
-                    ).vmFolder,
+                    folder=self.folder,
                     name=self.name,
                     spec=spec
                 ),
