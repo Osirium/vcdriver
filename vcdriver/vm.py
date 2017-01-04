@@ -90,9 +90,7 @@ class VirtualMachine(object):
                 self.vm_object.Destroy_Task(),
                 "Destroy virtual machine '{}'".format(self.name)
             )
-            self.session = None
             self.vm_object = None
-            self.ip = None
 
     def ssh(self, command, use_sudo=False):
         with settings(
