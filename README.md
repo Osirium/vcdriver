@@ -32,7 +32,7 @@ Provided you have set all the environment variables from the previous section, y
 from vcdriver.vm import VirtualMachine, virtual_machines
 
 kwargs = {
-    # If name is not provided, a UUID (Universally unique identifier) will be generated for you
+    # If name is not provided, the UUID of the vcenter session will be taken
     # 'name': 'Your VM custom name'
     # If folder is not provided, the data center root folder will be used
     # 'folder': 'Your folder'
