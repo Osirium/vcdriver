@@ -1,7 +1,9 @@
 language: python
 python:
-  - '2.6'
   - '2.7'
+  - '3.4'
+  - '3.5'
+  - '3.6'
 install: pip install -r requirements.txt
 script: nosetests -v --with-coverage --cover-min-percentage=100 --cover-branches --cover-package=vcdriver
 after_success: bash <(curl -s https://codecov.io/bash)
