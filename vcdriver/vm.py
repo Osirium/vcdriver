@@ -6,7 +6,7 @@ from pyVmomi import vim
 
 import config
 from auth import Session
-from helpers import get_object, wait_for_task, wait
+from helpers import get_object, wait_for_task, wait, exit_timeout
 
 
 class VirtualMachine(object):
@@ -19,7 +19,9 @@ class VirtualMachine(object):
             folder=config.FOLDER,
             name=None,
             ssh_username=None,
-            ssh_password=None
+            ssh_password=None,
+            dhcp_timeout=120,
+            vcenter_timeout=600
     ):
         self.template = template
         self.data_center = data_center
@@ -29,6 +31,8 @@ class VirtualMachine(object):
         self.folder = folder
         self.ssh_username = ssh_username
         self.ssh_password = ssh_password
+        self.dhcp_timeout = dhcp_timeout
+        self.vcenter_timeout = vcenter_timeout
         self.session = None
         self.vm_object = None
         self.ip = None
@@ -67,7 +71,8 @@ class VirtualMachine(object):
                 ),
                 "Create virtual machine '{}' from template '{}'".format(
                     self.name, self.template
-                )
+                ),
+                self.vcenter_timeout
             )
             print(
                 "Virtual machine '{}' waiting on the DHCP server ".format(
@@ -75,8 +80,12 @@ class VirtualMachine(object):
                 ),
                 end=''
             )
-            while not self.vm_object.summary.guest.ipAddress:
+            dhcp_timeout = self.dhcp_timeout
+            while not self.vm_object.summary.guest.ipAddress and dhcp_timeout:
                 wait(1)
+                dhcp_timeout -= 1
+            if not dhcp_timeout:
+                exit_timeout(dhcp_timeout, 'DHCP ip assignment')
             self.ip = self.vm_object.summary.guest.ipAddress
             print(' {}'.format(self.ip))
 
@@ -84,11 +93,13 @@ class VirtualMachine(object):
         if self.vm_object:
             wait_for_task(
                 self.vm_object.PowerOffVM_Task(),
-                "Power off virtual machine '{}'".format(self.name)
+                "Power off virtual machine '{}'".format(self.name),
+                self.vcenter_timeout
             )
             wait_for_task(
                 self.vm_object.Destroy_Task(),
-                "Destroy virtual machine '{}'".format(self.name)
+                "Destroy virtual machine '{}'".format(self.name),
+                self.vcenter_timeout
             )
             self.vm_object = None
 

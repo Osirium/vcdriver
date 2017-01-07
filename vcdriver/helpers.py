@@ -22,13 +22,16 @@ def get_object(connection, object_type, name):
         )
 
 
-def wait_for_task(task, task_description):
+def wait_for_task(task, task_description, timeout):
     print('Waiting on Vcenter task [{}] '.format(task_description), end='')
     start_time = time.time()
     state = task.info.state
-    while state == vim.TaskInfo.State.running:
+    while state == vim.TaskInfo.State.running and timeout:
         wait(1)
+        timeout -= 1
         state = task.info.state
+    if not timeout:
+        exit_timeout(timeout, task_description)
     if state == vim.TaskInfo.State.success:
         elapsed_time = time.time() - start_time
         print(' => Successfully run in {:.3f} seconds'.format(elapsed_time))
@@ -42,3 +45,7 @@ def wait(seconds):
     time.sleep(seconds)
     print('.', end='')
     sys.stdout.flush()
+
+
+def exit_timeout(timeout, description):
+    raise RuntimeError('{} timed out ({} secs)'.format(description, timeout))

@@ -6,13 +6,13 @@ from vcdriver import vm
 
 
 class VmObjectMock(object):
-    def __init__(self):
+    def __init__(self, ip):
         super(self.__class__, self).__init__()
         self.__setattr__('PowerOffVM_Task', mock.MagicMock)
         self.__setattr__('Destroy_Task', mock.MagicMock)
-        self.__setattr__('summary', mock.MagicMock)
-        setattr(self.summary, 'guest', mock.MagicMock)
-        setattr(self.summary.guest, 'ipAddress', '127.0.0.1')
+        self.__setattr__('summary', mock.MagicMock())
+        setattr(self.summary, 'guest', mock.MagicMock())
+        setattr(self.summary.guest, 'ipAddress', ip)
 
 
 class TestVm(unittest.TestCase):
@@ -22,21 +22,35 @@ class TestVm(unittest.TestCase):
     @mock.patch('vcdriver.vm.vim.vm.RelocateSpec')
     @mock.patch('vcdriver.vm.wait_for_task')
     def test_virtual_machine_create(
-            self, wait, relocate_spec, clone_spec, get_object, session
+            self, wait_for_task, relocate_spec, clone_spec, get_object, session
     ):
         session.connection = 'some connection'
         session.id = 'some id'
-        wait.return_value = VmObjectMock()
+        wait_for_task.return_value = VmObjectMock('127.0.0.1')
         vm.VirtualMachine(template=None, name='something', folder='a').create()
         machine = vm.VirtualMachine(template=None)
         machine.create()
         machine.create()
-        self.assertEqual(wait.call_count, 2)
+        self.assertEqual(wait_for_task.call_count, 2)
+
+    @mock.patch('vcdriver.vm.Session')
+    @mock.patch('vcdriver.vm.get_object')
+    @mock.patch('vcdriver.vm.vim.vm.CloneSpec')
+    @mock.patch('vcdriver.vm.vim.vm.RelocateSpec')
+    @mock.patch('vcdriver.vm.wait_for_task')
+    def test_virtual_machine_create_with_dhcp_timeout(
+            self, wait_for_task, relocate_spec, clone_spec, get_object, session
+    ):
+        session.connection = 'some connection'
+        session.id = 'some id'
+        wait_for_task.return_value = VmObjectMock(None)
+        with self.assertRaises(RuntimeError):
+            vm.VirtualMachine(template=None, dhcp_timeout=1).create()
 
     @mock.patch('vcdriver.vm.wait_for_task')
     def test_virtual_machine_destroy(self, wait):
         machine = vm.VirtualMachine(template=None)
-        machine.vm_object = VmObjectMock()
+        machine.vm_object = VmObjectMock('127.0.0.1')
         machine.destroy()
         machine.destroy()
         self.assertEqual(wait.call_count, 2)
@@ -83,4 +97,3 @@ class TestVm(unittest.TestCase):
                 raise Exception
         create.assert_called_once_with()
         destroy.assert_called_once_with()
-
