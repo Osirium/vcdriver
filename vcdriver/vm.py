@@ -109,6 +109,7 @@ class VirtualMachine(object):
                         command, result.return_code
                     )
                 )
+            return result.return_code
 
 
 @contextmanager
