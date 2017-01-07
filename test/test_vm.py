@@ -5,7 +5,42 @@ from fabric.api import local
 from vcdriver import vm
 
 
+class VmObjectMock(object):
+    def __init__(self):
+        super(self.__class__, self).__init__()
+        self.__setattr__('PowerOffVM_Task', mock.MagicMock)
+        self.__setattr__('Destroy_Task', mock.MagicMock)
+        self.__setattr__('summary', mock.MagicMock)
+        setattr(self.summary, 'guest', mock.MagicMock)
+        setattr(self.summary.guest, 'ipAddress', '127.0.0.1')
+
+
 class TestVm(unittest.TestCase):
+    @mock.patch('vcdriver.vm.Session')
+    @mock.patch('vcdriver.vm.get_object')
+    @mock.patch('vcdriver.vm.vim.vm.CloneSpec')
+    @mock.patch('vcdriver.vm.vim.vm.RelocateSpec')
+    @mock.patch('vcdriver.vm.wait_for_task')
+    def test_virtual_machine_create(
+            self, wait, relocate_spec, clone_spec, get_object, session
+    ):
+        session.connection = 'some connection'
+        session.id = 'some id'
+        wait.return_value = VmObjectMock()
+        vm.VirtualMachine(template=None, name='something', folder='a').create()
+        machine = vm.VirtualMachine(template=None)
+        machine.create()
+        machine.create()
+        self.assertEqual(wait.call_count, 2)
+
+    @mock.patch('vcdriver.vm.wait_for_task')
+    def test_virtual_machine_destroy(self, wait):
+        machine = vm.VirtualMachine(template=None)
+        machine.vm_object = VmObjectMock()
+        machine.destroy()
+        machine.destroy()
+        self.assertEqual(wait.call_count, 2)
+
     @mock.patch('vcdriver.vm.run', side_effect=local)
     @mock.patch('vcdriver.vm.settings')
     def test_virtual_machine_ssh(self, settings, run):
