@@ -108,7 +108,8 @@ class VirtualMachine(object):
                 user=self.ssh_username,
                 password=self.ssh_password,
                 host_string="{}@{}".format(self.ssh_username, self.ip),
-                warn_only=True
+                warn_only=True,
+                disable_known_hosts=True
         ):
             if use_sudo:
                 result = sudo(command)
