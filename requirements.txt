@@ -1,5 +1,6 @@
 coverage
 fabric
+flake8
 mock
 nose
 pyvmomi
