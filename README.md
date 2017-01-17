@@ -1,9 +1,9 @@
 [![Build Status](https://travis-ci.org/Lantero/vcdriver.svg?branch=master)](https://travis-ci.org/Lantero/vcdriver) [![codecov](https://codecov.io/gh/Lantero/vcdriver/branch/master/graph/badge.svg)](https://codecov.io/gh/Lantero/vcdriver)
 
 
-This is a vcenter driver for Python 2.7, based on pyvmomi. 
+This is a vcenter driver, based on pyvmomi. 
 Adding this extra layer helps you drive your vcenter instance easier and it makes it a useful testing tool. 
-The ssh utility uses fabric, so it's limited to what fabric and ssh can do.
+The ssh, download, and upload utilities use fabric underneath.
 
 ### Installation
 * With pip: 
@@ -24,7 +24,6 @@ want to provide them with the class constructor method:
     * VCDRIVER_DATA_STORE
     * VCDRIVER_RESOURCE_POOL
     * VCDRIVER_FOLDER
-
 
 ### Usage in a nutshell
 Provided you have set all the environment variables from the previous section, you can try something like:
@@ -53,3 +52,6 @@ with virtual_machines([vm1, vm2]):
     vm2.ssh('echo "Hello from vm 2, my ip is {}"'.format(vm2.ip))
     raise KeyboardInterrupt
 ```
+
+### Docs
+Yet to do!
