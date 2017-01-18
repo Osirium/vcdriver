@@ -3,7 +3,7 @@ import contextlib
 from fabric.api import sudo, run, get, put
 from pyVmomi import vim
 
-from vcdriver.auth import session_context
+from vcdriver.auth import Session
 from vcdriver.config import DATA_STORE, DATA_CENTER, RESOURCE_POOL, FOLDER
 from vcdriver.exceptions import SshError, UploadError, DownloadError
 from vcdriver.helpers import (
@@ -36,68 +36,65 @@ class VirtualMachine(object):
         self.timeout = timeout
         self.ssh_username = ssh_username
         self.ssh_password = ssh_password
+        self._session = Session()
         self._vm_object = None
 
     def create(self):
         if not self._vm_object:
-            with session_context() as session:
-                self._vm_object = wait_for_vcenter_task(
-                    get_vcenter_object(
-                        session.connection, vim.VirtualMachine, self.template
-                    ).CloneVM_Task(
-                        folder=get_vcenter_object(
-                            session.connection, vim.Folder, self.folder
-                        ),
-                        name=self.name,
-                        spec=vim.vm.CloneSpec(
-                            location=vim.vm.RelocateSpec(
-                                datastore=get_vcenter_object(
-                                    session.connection,
-                                    vim.Datastore,
-                                    self.data_store
-                                ),
-                                pool=get_vcenter_object(
-                                    session.connection,
-                                    vim.ResourcePool,
-                                    self.resource_pool
-                                )
+            self._vm_object = wait_for_vcenter_task(
+                get_vcenter_object(
+                    self._session.connection, vim.VirtualMachine, self.template
+                ).CloneVM_Task(
+                    folder=get_vcenter_object(
+                        self._session.connection, vim.Folder, self.folder
+                    ),
+                    name=self.name,
+                    spec=vim.vm.CloneSpec(
+                        location=vim.vm.RelocateSpec(
+                            datastore=get_vcenter_object(
+                                self._session.connection,
+                                vim.Datastore,
+                                self.data_store
                             ),
-                            powerOn=True,
-                            template=False
-                        )
-                    ),
-                    'Create virtual machine "{}" from template "{}"'.format(
-                        self.name, self.template
-                    ),
-                    self.timeout
-                )
+                            pool=get_vcenter_object(
+                                self._session.connection,
+                                vim.ResourcePool,
+                                self.resource_pool
+                            )
+                        ),
+                        powerOn=True,
+                        template=False
+                    )
+                ),
+                'Create virtual machine "{}" from template "{}"'.format(
+                    self.name, self.template
+                ),
+                self.timeout
+            )
 
     def destroy(self):
         if self._vm_object:
-            with session_context():
-                wait_for_vcenter_task(
-                    self._vm_object.PowerOffVM_Task(),
-                    'Power off VM',
-                    self.timeout
-                )
-                wait_for_vcenter_task(
-                    self._vm_object.Destroy_Task(),
-                    'Destroy VM',
-                    self.timeout
-                )
-                self._vm_object = None
+            wait_for_vcenter_task(
+                self._vm_object.PowerOffVM_Task(),
+                'Power off VM',
+                self.timeout
+            )
+            wait_for_vcenter_task(
+                self._vm_object.Destroy_Task(),
+                'Destroy VM',
+                self.timeout
+            )
+            self._vm_object = None
 
     def find(self):
         if not self._vm_object:
-            with session_context() as session:
-                self._vm_object = get_vcenter_object(
-                    session.connection, vim.VirtualMachine, self.name
-                )
+            self._vm_object = get_vcenter_object(
+                self._session.connection, vim.VirtualMachine, self.name
+            )
 
     def ip(self):
         if self._vm_object:
-            with session_context():
-                return wait_for_dhcp_server(self._vm_object, self.timeout)
+            return wait_for_dhcp_server(self._vm_object, self.timeout)
 
     def ssh(self, command, use_sudo=False):
         with ssh_context(self.ssh_username, self.ssh_password, self.ip()):
