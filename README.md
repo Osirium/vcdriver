@@ -1,52 +1,24 @@
 [![Build Status](https://travis-ci.org/Lantero/vcdriver.svg?branch=master)](https://travis-ci.org/Lantero/vcdriver) [![codecov](https://codecov.io/gh/Lantero/vcdriver/branch/master/graph/badge.svg)](https://codecov.io/gh/Lantero/vcdriver)
 
+## About
+This project started from the need of using Vcenter for testing purposes, 
+although it can also be used to manage your Vcenter instance.
 
-This is a vcenter driver, based on pyvmomi. 
-Adding this extra layer helps you drive your vcenter instance easier and it makes it a useful testing tool. 
-The ssh, download, and upload utilities use fabric underneath.
+#### How does it work underneath?
+- Vcenter is driven using its official python API, [pyvmomi](https://github.com/vmware/pyvmomi).
+- The virtual machines are manipulated with [fabric](https://github.com/fabric/fabric).
+- It currently supports Python **2.7**, **3.3**, **3.4**, **3.5** and **3.6**.
 
-### Installation
-* With pip: 
-    1. `pip install vcdriver`
-* From source: 
-    1. Clone this repo
-    2. `python setup.py install`
+#### Why would I use vcdriver instead of using pyvmomi and fabric directly?
+- **Simplicity**: Write tests or scripts that are both easy to write and read. Pyvmomi is powerful, but its learning curve
+is overkill for most of the tasks you might want to execute programatically with Vcenter.
+- **Maintainability**: If your Vcenter and pyvmomi versions get out of sync and something stops working,
+you don't need to change every single test or script you have, you just need to change the internal implementation of the driver.
 
-### Configuration
-* In order to communicate with your Vcenter instance, you need to provide the following environment variables:
-    * VCDRIVER_HOST
-    * VCDRIVER_PORT
-    * VCDRIVER_USERNAME
-    * VCDRIVER_PASSWORD
-* Optionally, you can also specify defaults for some of the virtual machine creation parameters, if you don't
-want to provide them with the class constructor method:
-    * VCDRIVER_DATA_CENTER
-    * VCDRIVER_DATA_STORE
-    * VCDRIVER_RESOURCE_POOL
-    * VCDRIVER_FOLDER
+## Installation
+`pip install vcdriver`
 
-### Usage in a nutshell
-Provided you have set all the environment variables from the previous section, you can try something like:
-```python
-from vcdriver.vm import VirtualMachine, virtual_machines
+## Documentation
+Documentation and examples can be found on the [wiki](https://github.com/Lantero/vcdriver/wiki).
 
-kwargs = {
-    'template': 'Ubuntu-Xenial-16.04-x64',
-    'ssh_username': 'user',  # Only necessary if you want to run ssh commands
-    'ssh_password': 'pass'  # Only necessary if you want to run ssh commands
-}
-# These are lazy objects, you need to explicitly call their create 
-# and destroy methods to actually create and destroy the boxes on Vcenter.
-vm1 = VirtualMachine(name='vm1', **kwargs)
-vm2 = VirtualMachine(name='vm2', **kwargs)
-# This context manager will call the create and destroy methods for you even if 
-# an exception is thrown internally, useful for testing.
-with virtual_machines([vm1, vm2]):
-    vm1.ssh('apt-get update', use_sudo=True)
-    vm1.ssh('echo "Hello from vm 1, my ip is {}"'.format(vm1.ip))
-    vm2.ssh('echo "Hello from vm 2, my ip is {}"'.format(vm2.ip))
-    raise KeyboardInterrupt
-```
 
-### Docs
-Yet to do!
