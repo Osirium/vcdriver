@@ -1,8 +1,9 @@
 import atexit
 import ssl
+
 from pyVim import connect
 
-import config
+from vcdriver.config import HOST, PORT, USERNAME, PASSWORD
 
 
 class Session(object):
@@ -10,10 +11,10 @@ class Session(object):
         context = ssl.SSLContext(ssl.PROTOCOL_TLSv1)
         context.verify_mode = ssl.CERT_NONE
         self.connection = connect.SmartConnect(
-            host=config.HOST,
-            port=config.PORT,
-            user=config.USERNAME,
-            pwd=config.PASSWORD,
+            host=HOST,
+            port=PORT,
+            user=USERNAME,
+            pwd=PASSWORD,
             sslContext=context
         )
         self.id = self.connection.content.sessionManager.currentSession.key
@@ -23,4 +24,3 @@ class Session(object):
     def close(self):
         connect.Disconnect(self.connection)
         print('Vcenter session with ID {} closed'.format(self.id))
-
