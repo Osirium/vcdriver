@@ -7,6 +7,7 @@ from vcdriver.config import HOST, PORT, USERNAME, PASSWORD
 
 
 class Session(object):
+    """ Create a Vcenter session that gets closed at exit """
     def __init__(self):
         context = ssl.SSLContext(ssl.PROTOCOL_TLSv1)
         context.verify_mode = ssl.CERT_NONE
