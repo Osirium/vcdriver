@@ -1,130 +1,138 @@
-from __future__ import print_function
-from contextlib import contextmanager
-from fabric.api import sudo, run
-from fabric.context_managers import settings
+import contextlib
+
+from fabric.api import sudo, run, get, put
 from pyVmomi import vim
 
-import config
-from auth import Session
-from helpers import get_object, wait_for_task, wait, exit_timeout
+from vcdriver.auth import session_context
+from vcdriver.config import DATA_STORE, DATA_CENTER, RESOURCE_POOL, FOLDER
+from vcdriver.exceptions import SshError, UploadError, DownloadError
+from vcdriver.helpers import (
+    get_vcenter_object,
+    wait_for_vcenter_task,
+    wait_for_dhcp_server,
+    ssh_context
+)
 
 
 class VirtualMachine(object):
     def __init__(
             self,
-            template,
-            data_center=config.DATA_CENTER,
-            data_store=config.DATA_STORE,
-            resource_pool=config.RESOURCE_POOL,
-            folder=config.FOLDER,
+            data_center=DATA_CENTER,
+            data_store=DATA_STORE,
+            resource_pool=RESOURCE_POOL,
+            folder=FOLDER,
             name=None,
+            template=None,
+            timeout=120,
             ssh_username=None,
-            ssh_password=None,
-            dhcp_timeout=120,
-            vcenter_timeout=600
+            ssh_password=None
     ):
-        self.template = template
         self.data_center = data_center
         self.data_store = data_store
         self.resource_pool = resource_pool
-        self.name = name
         self.folder = folder
+        self.name = name
+        self.template = template
+        self.timeout = timeout
         self.ssh_username = ssh_username
         self.ssh_password = ssh_password
-        self.dhcp_timeout = dhcp_timeout
-        self.vcenter_timeout = vcenter_timeout
-        self.session = None
-        self.vm_object = None
-        self.ip = None
+        self._vm_object = None
 
     def create(self):
-        if not self.vm_object:
-            self.session = Session()
-            connection = self.session.connection
-            if not self.name:
-                self.name = self.session.id
-            if not self.folder:
-                self.folder = get_object(
-                    connection, vim.Datacenter, self.data_center
-                ).vmFolder
-            else:
-                self.folder = get_object(connection, vim.Folder, self.folder)
-            spec = vim.vm.CloneSpec(
-                location=vim.vm.RelocateSpec(
-                    datastore=get_object(
-                        connection, vim.Datastore, self.data_store
+        if not self._vm_object:
+            with session_context() as session:
+                self._vm_object = wait_for_vcenter_task(
+                    get_vcenter_object(
+                        session.connection, vim.VirtualMachine, self.template
+                    ).CloneVM_Task(
+                        folder=get_vcenter_object(
+                            session.connection, vim.Folder, self.folder
+                        ),
+                        name=self.name,
+                        spec=vim.vm.CloneSpec(
+                            location=vim.vm.RelocateSpec(
+                                datastore=get_vcenter_object(
+                                    session.connection,
+                                    vim.Datastore,
+                                    self.data_store
+                                ),
+                                pool=get_vcenter_object(
+                                    session.connection,
+                                    vim.ResourcePool,
+                                    self.resource_pool
+                                )
+                            ),
+                            powerOn=True,
+                            template=False
+                        )
                     ),
-                    pool=get_object(
-                        connection, vim.ResourcePool, self.resource_pool
-                    )
-                ),
-                powerOn=True,
-                template=False
-            )
-            self.vm_object = wait_for_task(
-                get_object(
-                    connection, vim.VirtualMachine, self.template
-                ).CloneVM_Task(
-                    folder=self.folder,
-                    name=self.name,
-                    spec=spec
-                ),
-                "Create virtual machine '{}' from template '{}'".format(
-                    self.name, self.template
-                ),
-                self.vcenter_timeout
-            )
-            print(
-                "Virtual machine '{}' waiting on the DHCP server ".format(
-                    self.name
-                ),
-                end=''
-            )
-            dhcp_timeout = self.dhcp_timeout
-            while not self.vm_object.summary.guest.ipAddress and dhcp_timeout:
-                wait(1)
-                dhcp_timeout -= 1
-            if not dhcp_timeout:
-                exit_timeout(dhcp_timeout, 'DHCP ip assignment')
-            self.ip = self.vm_object.summary.guest.ipAddress
-            print(' {}'.format(self.ip))
+                    'Create virtual machine "{}" from template "{}"'.format(
+                        self.name, self.template
+                    ),
+                    self.timeout
+                )
 
     def destroy(self):
-        if self.vm_object:
-            wait_for_task(
-                self.vm_object.PowerOffVM_Task(),
-                "Power off virtual machine '{}'".format(self.name),
-                self.vcenter_timeout
-            )
-            wait_for_task(
-                self.vm_object.Destroy_Task(),
-                "Destroy virtual machine '{}'".format(self.name),
-                self.vcenter_timeout
-            )
-            self.vm_object = None
+        if self._vm_object:
+            with session_context():
+                wait_for_vcenter_task(
+                    self._vm_object.PowerOffVM_Task(),
+                    'Power off VM',
+                    self.timeout
+                )
+                wait_for_vcenter_task(
+                    self._vm_object.Destroy_Task(),
+                    'Destroy VM',
+                    self.timeout
+                )
+                self._vm_object = None
+
+    def find(self):
+        if not self._vm_object:
+            with session_context() as session:
+                self._vm_object = get_vcenter_object(
+                    session.connection, vim.VirtualMachine, self.name
+                )
+
+    def ip(self):
+        if self._vm_object:
+            with session_context():
+                return wait_for_dhcp_server(self._vm_object, self.timeout)
 
     def ssh(self, command, use_sudo=False):
-        with settings(
-                user=self.ssh_username,
-                password=self.ssh_password,
-                host_string="{}@{}".format(self.ssh_username, self.ip),
-                warn_only=True,
-                disable_known_hosts=True
-        ):
+        with ssh_context(self.ssh_username, self.ssh_password, self.ip()):
             if use_sudo:
                 result = sudo(command)
             else:
                 result = run(command)
             if result.failed:
-                raise RuntimeError(
-                    "Command '{}' failed with exit code {}".format(
-                        command, result.return_code
-                    )
-                )
+                raise SshError(command, result.return_code)
             return result.return_code
 
+    def upload(self, remote_path, local_path, use_sudo=False):
+        with ssh_context(self.ssh_username, self.ssh_password, self.ip()):
+            result = put(
+                remote_path=remote_path,
+                local_path=local_path,
+                use_sudo=use_sudo
+            )
+            if result.failed:
+                raise UploadError(remote_path)
+            return result
 
-@contextmanager
+    def download(self, remote_path, local_path, use_sudo=False):
+        with ssh_context(self.ssh_username, self.ssh_password, self.ip()):
+            result = get(
+                remote_path=remote_path,
+                local_path=local_path,
+                use_sudo=use_sudo
+            )
+            if result.failed:
+                raise DownloadError(remote_path)
+            return result
+
+
+@contextlib.contextmanager
 def virtual_machines(vms):
     for vm in vms:
         vm.create()

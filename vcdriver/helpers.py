@@ -1,7 +1,9 @@
 from __future__ import print_function
+import contextlib
 import datetime
 import time
 
+from fabric.context_managers import settings
 from pyVmomi import vim
 
 from vcdriver.exceptions import (
@@ -48,6 +50,17 @@ def wait_for_dhcp_server(vm_object, timeout=120, step=1):
         step=step
     )
     return vm_object.summary.guest.ipAddress
+
+
+@contextlib.contextmanager
+def ssh_context(username, password, ip):
+    with settings(
+            host_string="{}@{}".format(username, ip),
+            password=password,
+            warn_only=True,
+            disable_known_hosts=True
+    ):
+        yield
 
 
 def _timeout_loop(description, callback, timeout, step, *args, **kwargs):

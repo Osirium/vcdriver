@@ -1,99 +1,123 @@
 import mock
 import unittest
-from fabric.api import local
 
-from vcdriver import vm
-
-
-class VmObjectMock(object):
-    def __init__(self, ip):
-        super(self.__class__, self).__init__()
-        self.__setattr__('PowerOffVM_Task', mock.MagicMock)
-        self.__setattr__('Destroy_Task', mock.MagicMock)
-        self.__setattr__('summary', mock.MagicMock())
-        setattr(self.summary, 'guest', mock.MagicMock())
-        setattr(self.summary.guest, 'ipAddress', ip)
+from vcdriver.exceptions import SshError, DownloadError, UploadError
+from vcdriver.vm import VirtualMachine, virtual_machines
 
 
 class TestVm(unittest.TestCase):
-    @mock.patch('vcdriver.vm.Session')
-    @mock.patch('vcdriver.vm.get_object')
+    def setUp(self):
+        self.vm = VirtualMachine()
+
+    @mock.patch('vcdriver.vm.session_context')
+    @mock.patch('vcdriver.vm.get_vcenter_object')
     @mock.patch('vcdriver.vm.vim.vm.CloneSpec')
     @mock.patch('vcdriver.vm.vim.vm.RelocateSpec')
-    @mock.patch('vcdriver.vm.wait_for_task')
+    @mock.patch('vcdriver.vm.wait_for_vcenter_task')
+    @mock.patch('vcdriver.vm.wait_for_dhcp_server')
     def test_virtual_machine_create(
-            self, wait_for_task, relocate_spec, clone_spec, get_object, session
+            self,
+            wait_for_dhcp_server,
+            wait_for_vcenter_task,
+            relocate_spec,
+            clone_spec,
+            get_vcenter_object,
+            session_context
     ):
-        session.connection = 'some connection'
-        session.id = 'some id'
-        wait_for_task.return_value = VmObjectMock('127.0.0.1')
-        vm.VirtualMachine(template=None, name='something', folder='a').create()
-        machine = vm.VirtualMachine(template=None)
-        machine.create()
-        machine.create()
-        self.assertEqual(wait_for_task.call_count, 2)
+        self.vm.create()
+        self.vm.create()
+        self.assertIsNotNone(self.vm.__getattribute__('_vm_object'))
+        self.assertEqual(wait_for_vcenter_task.call_count, 1)
 
-    @mock.patch('vcdriver.vm.Session')
-    @mock.patch('vcdriver.vm.get_object')
-    @mock.patch('vcdriver.vm.vim.vm.CloneSpec')
-    @mock.patch('vcdriver.vm.vim.vm.RelocateSpec')
-    @mock.patch('vcdriver.vm.wait_for_task')
-    def test_virtual_machine_create_with_dhcp_timeout(
-            self, wait_for_task, relocate_spec, clone_spec, get_object, session
+    @mock.patch('vcdriver.vm.session_context')
+    @mock.patch('vcdriver.vm.wait_for_vcenter_task')
+    def test_virtual_machine_destroy(
+            self,
+            wait_for_vcenter_task,
+            session_context
     ):
-        session.connection = 'some connection'
-        session.id = 'some id'
-        wait_for_task.return_value = VmObjectMock(None)
-        with self.assertRaises(RuntimeError):
-            vm.VirtualMachine(template=None, dhcp_timeout=1).create()
+        vm_object_mock = mock.MagicMock()
+        vm_object_mock.PowerOffVM_Task = lambda: True
+        vm_object_mock.Destroy_Task = lambda: True
+        self.vm.__setattr__('_vm_object', vm_object_mock)
+        self.vm.destroy()
+        self.vm.destroy()
+        self.assertIsNone(self.vm.__getattribute__('_vm_object'))
+        self.assertEqual(wait_for_vcenter_task.call_count, 2)
 
-    @mock.patch('vcdriver.vm.wait_for_task')
-    def test_virtual_machine_destroy(self, wait):
-        machine = vm.VirtualMachine(template=None)
-        machine.vm_object = VmObjectMock('127.0.0.1')
-        machine.destroy()
-        machine.destroy()
-        self.assertEqual(wait.call_count, 2)
+    @mock.patch('vcdriver.vm.session_context')
+    @mock.patch('vcdriver.vm.get_vcenter_object')
+    def test_virtual_machine_find(self, get_vcenter_object, session_context):
+        self.vm.find()
+        self.vm.find()
+        self.assertIsNotNone(self.vm.__getattribute__('_vm_object'))
+        self.assertEqual(get_vcenter_object.call_count, 1)
 
-    @mock.patch('vcdriver.vm.run', side_effect=local)
-    @mock.patch('vcdriver.vm.settings')
-    def test_virtual_machine_ssh(self, settings, run):
-        run.return_code = 0
-        run.failed = False
+    @mock.patch('vcdriver.vm.session_context')
+    @mock.patch('vcdriver.vm.wait_for_dhcp_server')
+    def test_virtual_machine_ip(self, wait_for_dhcp_server, session_context):
+        wait_for_dhcp_server.return_value = '10.0.0.1'
+        self.assertEqual(self.vm.ip(), None)
+        self.vm.__setattr__('_vm_object', 'Something')
+        self.assertEqual(self.vm.ip(), '10.0.0.1')
+
+    @mock.patch('vcdriver.vm.sudo')
+    @mock.patch('vcdriver.vm.run')
+    def test_virtual_machine_ssh_success(self, run, sudo):
+        result_mock = mock.MagicMock()
+        result_mock.return_code = 3
+        result_mock.failed = False
+        run.return_value = result_mock
+        sudo.return_value = result_mock
         self.assertEqual(
-            vm.VirtualMachine(template=None).ssh('', use_sudo=False), 0
+            self.vm.ssh('whatever', use_sudo=False), 3
         )
-
-    @mock.patch('vcdriver.vm.sudo', side_effect=local)
-    @mock.patch('vcdriver.vm.settings')
-    def test_virtual_machine_ssh_with_sudo(self, settings, sudo):
-        sudo.return_code = 0
-        sudo.failed = False
         self.assertEqual(
-            vm.VirtualMachine(template=None).ssh('', use_sudo=True), 0
+            self.vm.ssh('whatever', use_sudo=True), 3
         )
 
     @mock.patch('vcdriver.vm.run')
-    @mock.patch('vcdriver.vm.settings')
-    def test_virtual_machine_ssh_fails(self, settings, run):
-        run.return_code = 27
-        run.failed = True
-        with self.assertRaises(RuntimeError):
-            vm.VirtualMachine(template=None).ssh('', use_sudo=False)
+    def test_virtual_machine_ssh_fail(self, run):
+        with self.assertRaises(SshError):
+            self.vm.ssh('whatever', use_sudo=False)
 
-    @mock.patch.object(vm.VirtualMachine, 'create')
-    @mock.patch.object(vm.VirtualMachine, 'destroy')
-    def test_virtual_machines(self, destroy, create):
-        with vm.virtual_machines([vm.VirtualMachine(template=None)]):
+    @mock.patch('vcdriver.vm.put')
+    def test_virtual_machine_upload_success(self, put):
+        result_mock = mock.MagicMock()
+        result_mock.failed = False
+        put.return_value = result_mock
+        self.assertEqual(self.vm.upload('from', 'to'), result_mock)
+
+    @mock.patch('vcdriver.vm.put')
+    def test_virtual_machine_upload_fail(self, put):
+        with self.assertRaises(UploadError):
+            self.vm.upload('from', 'to')
+
+    @mock.patch('vcdriver.vm.get')
+    def test_virtual_machine_download_success(self, get):
+        result_mock = mock.MagicMock()
+        result_mock.failed = False
+        get.return_value = result_mock
+        self.assertEqual(self.vm.download('from', 'to'), result_mock)
+
+    @mock.patch('vcdriver.vm.get')
+    def test_virtual_machine_download_fail(self, get):
+        with self.assertRaises(DownloadError):
+            self.vm.download('from', 'to')
+
+    @mock.patch.object(VirtualMachine, 'create')
+    @mock.patch.object(VirtualMachine, 'destroy')
+    def test_virtual_machines_success(self, destroy, create):
+        with virtual_machines([self.vm]):
             pass
         create.assert_called_once_with()
         destroy.assert_called_once_with()
 
-    @mock.patch.object(vm.VirtualMachine, 'create')
-    @mock.patch.object(vm.VirtualMachine, 'destroy')
-    def test_virtual_machines_with_exception(self, destroy, create):
+    @mock.patch.object(VirtualMachine, 'create')
+    @mock.patch.object(VirtualMachine, 'destroy')
+    def test_virtual_machines_fail(self, destroy, create):
         with self.assertRaises(Exception):
-            with vm.virtual_machines([vm.VirtualMachine(template=None)]):
+            with virtual_machines([self.vm]):
                 raise Exception
         create.assert_called_once_with()
         destroy.assert_called_once_with()
