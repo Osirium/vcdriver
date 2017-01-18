@@ -91,6 +91,7 @@ class VirtualMachine(object):
             self._vm_object = get_vcenter_object(
                 self._session.connection, vim.VirtualMachine, self.name
             )
+            print('VM object found: {}'.format(self._vm_object))
 
     def ip(self):
         if self._vm_object:

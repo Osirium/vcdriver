@@ -66,7 +66,7 @@ def ssh_context(username, password, ip):
 
 def _timeout_loop(description, callback, timeout, step, *args, **kwargs):
     start = time.time()
-    print('Waiting on "{}" ... '.format(description), end='')
+    print('Waiting on [{}] ... '.format(description), end='')
     sys.stdout.flush()
     while callback(*args, **kwargs) and timeout:
         time.sleep(step)
