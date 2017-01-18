@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 
 setup(
-    version='1.1.2',
+    version='1.1.3',
     name='vcdriver',
     description='Vcenter driver for testing purposes',
     long_description=(
