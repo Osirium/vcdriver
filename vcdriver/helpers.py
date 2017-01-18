@@ -1,6 +1,7 @@
 from __future__ import print_function
 import contextlib
 import datetime
+import sys
 import time
 
 from fabric.context_managers import settings
@@ -44,7 +45,7 @@ def wait_for_vcenter_task(task, task_description, timeout=600, step=1):
 
 def wait_for_dhcp_server(vm_object, timeout=120, step=1):
     _timeout_loop(
-        description='DHCP IP assignment',
+        description='Get IP',
         callback=lambda: not vm_object.summary.guest.ipAddress,
         timeout=timeout,
         step=step
@@ -65,7 +66,8 @@ def ssh_context(username, password, ip):
 
 def _timeout_loop(description, callback, timeout, step, *args, **kwargs):
     start = time.time()
-    print('Waiting on {} ... '.format(description), end='')
+    print('Waiting on "{}" ... '.format(description), end='')
+    sys.stdout.flush()
     while callback(*args, **kwargs) and timeout:
         time.sleep(step)
         timeout -= step
