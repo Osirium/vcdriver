@@ -20,7 +20,7 @@ class session_context(object):
         print('Vcenter session opened with ID {}'.format(self.id))
 
     def __enter__(self):
-        pass
+        return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         connect.Disconnect(self.connection)
