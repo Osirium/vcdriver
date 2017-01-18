@@ -1,5 +1,5 @@
 coverage
-fabric
+Fabric3
 flake8
 mock
 nose
