@@ -1,72 +1,73 @@
 import mock
 import unittest
 
-from vcdriver import helpers
+from pyVmomi import vim
 
-
-class ErrorMock(Exception):
-    pass
-
-
-class VcenterObjectMock(object):
-    def __init__(self, name):
-        self.name = name
+from vcdriver.exceptions import (
+    NoObjectFound,
+    TooManyObjectsFound,
+    TimeoutError
+)
+from vcdriver.helpers import (
+    get_vcenter_object,
+    wait_for_vcenter_task,
+    wait_for_dhcp_server
+)
 
 
 class TestHelpers(unittest.TestCase):
     def test_get_object(self):
-        connnection_mock = mock.MagicMock()
-        content_mock = mock.MagicMock
-        setattr(connnection_mock, 'RetrieveContent', content_mock)
-        setattr(content_mock, 'content', mock.MagicMock())
-        setattr(content_mock.content, 'viewManager', mock.MagicMock())
-        setattr(
-            content_mock.content.viewManager,
-            'CreateContainerView',
-            mock.MagicMock
+        apple = mock.MagicMock()
+        orange_1 = mock.MagicMock()
+        orange_2 = mock.MagicMock()
+        apple.name = 'apple'
+        orange_1.name = 'orange'
+        orange_2.name = 'orange'
+        view_mock = mock.MagicMock()
+        view_mock.view = [apple, orange_1, orange_2]
+        content_mock = mock.MagicMock()
+        content_mock.viewManager.CreateContainerView = mock.MagicMock(
+            return_value=view_mock
         )
-        apple = VcenterObjectMock('apple')
-        orange_1 = VcenterObjectMock('orange')
-        orange_2 = VcenterObjectMock('orange')
-        setattr(
-            content_mock.content.viewManager.CreateContainerView,
-            'view',
-            [apple, orange_1, orange_2]
+        connection_mock = mock.MagicMock()
+        connection_mock.RetrieveContent = mock.MagicMock(
+            return_value=content_mock
         )
         self.assertEqual(
-            helpers.get_object(connnection_mock, VcenterObjectMock, 'apple'),
+            get_vcenter_object(connection_mock, mock.MagicMock, 'apple'),
             apple
         )
-        self.assertEqual(
-            helpers.get_object(connnection_mock, VcenterObjectMock, 'grapes'),
-            None
-        )
-        with self.assertRaises(IndexError):
-            helpers.get_object(connnection_mock, VcenterObjectMock, 'orange')
+        with self.assertRaises(NoObjectFound):
+            get_vcenter_object(connection_mock, mock.MagicMock, 'grapes'),
+        with self.assertRaises(TooManyObjectsFound):
+            get_vcenter_object(connection_mock, mock.MagicMock, 'orange')
 
-    @mock.patch('vcdriver.helpers.vim.TaskInfo.State.success')
-    def test_wait_for_task_success(self, success_state):
-        task_mock = mock.MagicMock()
-        setattr(task_mock, 'info', mock.MagicMock)
-        setattr(task_mock.info, 'state', success_state)
-        setattr(task_mock.info, 'result', 'whatever')
-        self.assertEqual(
-            'whatever', helpers.wait_for_task(task_mock, 'my task', 600)
-        )
+    def test_wait_for_vcenter_task_success(self):
+        task = mock.MagicMock()
+        task.info.state = vim.TaskInfo.State.success
+        task.info.result = 'hello'
+        self.assertEqual(wait_for_vcenter_task(task, 'description'), 'hello')
 
-    def test_wait_for_task_fail(self):
-        task_mock = mock.MagicMock()
-        setattr(task_mock, 'info', mock.MagicMock)
-        setattr(task_mock.info, 'state', 'failure')
-        setattr(task_mock.info, 'error', ErrorMock)
-        with self.assertRaises(ErrorMock):
-            helpers.wait_for_task(task_mock, 'my task', 600)
+    def test_wait_for_vcenter_task_fail(self):
+        task = mock.MagicMock()
+        task.info.state = 'Error'
+        task.info.error = Exception
+        with self.assertRaises(Exception):
+            wait_for_vcenter_task(task, 'description')
 
-    @mock.patch('vcdriver.helpers.vim.TaskInfo.State.running')
-    def test_wait_for_task_timeout(self, running_state):
-        task_mock = mock.MagicMock()
-        setattr(task_mock, 'info', mock.MagicMock)
-        setattr(task_mock.info, 'state', running_state)
-        with self.assertRaises(RuntimeError):
-            helpers.wait_for_task(task_mock, 'my task', 1)
+    def test_wait_for_vcenter_task_timeout(self):
+        task = mock.MagicMock()
+        task.info.state = vim.TaskInfo.State.running
+        with self.assertRaises(TimeoutError):
+            wait_for_vcenter_task(task, 'description', timeout=1)
 
+    def test_wait_for_dhcp_server_success(self):
+        vm_object = mock.MagicMock()
+        vm_object.summary.guest.ipAddress = '10.0.0.1'
+        self.assertEqual(wait_for_dhcp_server(vm_object), '10.0.0.1')
+
+    def test_wait_for_dhcp_server_timeout(self):
+        vm_object = mock.MagicMock()
+        vm_object.summary.guest.ipAddress = None
+        with self.assertRaises(TimeoutError):
+            wait_for_dhcp_server(vm_object, timeout=1)
