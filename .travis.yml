@@ -5,7 +5,9 @@ python:
   - '3.4'
   - '3.5'
   - '3.6'
-install: pip install -r requirements.txt
+install:
+  - pip install -r requirements.txt
+  - pip install -r test/requirements.txt
 script:
   - flake8 .
   - nosetests -v --with-coverage --cover-erase --cover-min-percentage=100 --cover-branches --cover-package=vcdriver

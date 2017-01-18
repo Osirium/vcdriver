@@ -1,6 +1,2 @@
-coverage
 Fabric3
-flake8
-mock
-nose
 pyvmomi
