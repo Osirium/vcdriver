@@ -2,15 +2,9 @@ from setuptools import setup, find_packages
 
 
 setup(
-    version='1.1.5',
+    version='1.1.6',
     name='vcdriver',
-    description='Vcenter driver for testing purposes',
-    long_description=(
-        "This is a vcenter driver, based on pyvmomi.\n"
-        "Adding this extra layer helps you drive your vcenter instance easier "
-        "and it makes it a useful testing tool.\nThe ssh, download, and "
-        "upload utilities use fabric underneath."
-    ),
+    description='A vcenter driver based on pyvmomi and fabric',
     url='https://github.com/Lantero/vcdriver',
     author='Carlos Ruiz Lantero',
     author_email='carlos.ruiz.lantero@gmail.com',
