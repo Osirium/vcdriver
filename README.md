@@ -31,21 +31,16 @@ Provided you have set all the environment variables from the previous section, y
 from vcdriver.vm import VirtualMachine, virtual_machines
 
 kwargs = {
-    # If name is not provided, the UUID of the vcenter session will be taken
-    # 'name': 'Your VM custom name'
-    # If folder is not provided, the data center root folder will be used
-    # 'folder': 'Your folder'
-    'template': 'My Vcenter template based on some Ubuntu thing',
+    'template': 'Ubuntu-Xenial-16.04-x64',
     'ssh_username': 'user',  # Only necessary if you want to run ssh commands
     'ssh_password': 'pass'  # Only necessary if you want to run ssh commands
 }
 # These are lazy objects, you need to explicitly call their create 
 # and destroy methods to actually create and destroy the boxes on Vcenter.
-vm1 = VirtualMachine(**kwargs)
-vm2 = VirtualMachine(**kwargs)
-
+vm1 = VirtualMachine(name='vm1', **kwargs)
+vm2 = VirtualMachine(name='vm2', **kwargs)
 # This context manager will call the create and destroy methods for you even if 
-# an exception is thrown internally, useful for testing
+# an exception is thrown internally, useful for testing.
 with virtual_machines([vm1, vm2]):
     vm1.ssh('apt-get update', use_sudo=True)
     vm1.ssh('echo "Hello from vm 1, my ip is {}"'.format(vm1.ip))
