@@ -27,6 +27,20 @@ class VirtualMachine(object):
             ssh_username=None,
             ssh_password=None
     ):
+        """
+        :param data_center: The vcenter data center name
+        :param data_store: The vcenter data store name
+        :param resource_pool: The vcenter resource pool name
+        :param folder: The vcenter folder name
+        :param name: The virtual machine name
+        :param template: The virtual machine template name to be cloned
+        :param timeout: The timeout for the dhcp and vcenter tasks
+        :param ssh_username: The username for the ssh functions
+        :param ssh_password: The password for the ssh functions
+
+        An internal session that gets closed at exit is kept as _session
+        An internal instance of a vcenter vm object is kept as _vm_object
+        """
         self.data_center = data_center
         self.data_store = data_store
         self.resource_pool = resource_pool
@@ -40,6 +54,7 @@ class VirtualMachine(object):
         self._vm_object = None
 
     def create(self):
+        """ Create the virtual machine and update the vm object """
         if not self._vm_object:
             self._vm_object = wait_for_vcenter_task(
                 get_vcenter_object(
@@ -73,6 +88,7 @@ class VirtualMachine(object):
             )
 
     def destroy(self):
+        """ Destroy the virtual machine and set the vm object to None """
         if self._vm_object:
             wait_for_vcenter_task(
                 self._vm_object.PowerOffVM_Task(),
@@ -87,6 +103,7 @@ class VirtualMachine(object):
             self._vm_object = None
 
     def find(self):
+        """ Find and update the vm object based on the name """
         if not self._vm_object:
             self._vm_object = get_vcenter_object(
                 self._session.connection, vim.VirtualMachine, self.name
@@ -94,10 +111,25 @@ class VirtualMachine(object):
             print('VM object found: {}'.format(self._vm_object))
 
     def ip(self):
+        """
+        Poll vcenter to get the virtual machine IP
+
+        :return: Return the ip
+        """
         if self._vm_object:
             return wait_for_dhcp_server(self._vm_object, self.timeout)
 
     def ssh(self, command, use_sudo=False):
+        """
+        Executes a shell command through ssh
+
+        :param command: The command to be executed
+        :param use_sudo: If True, it runs as sudo
+
+        :return: The return code of the command
+
+        :raise SshError: If the command fails
+        """
         with ssh_context(self.ssh_username, self.ssh_password, self.ip()):
             if use_sudo:
                 result = sudo(command)
@@ -108,6 +140,17 @@ class VirtualMachine(object):
             return result.return_code
 
     def upload(self, remote_path, local_path, use_sudo=False):
+        """
+        Upload a file or directory to the virtual machine
+
+        :param remote_path: The remote location
+        :param local_path: The local local
+        :param use_sudo: If True, it runs as sudo
+
+        :return: The list of uploaded files
+
+        :raise UploadError: If the task fails
+        """
         with ssh_context(self.ssh_username, self.ssh_password, self.ip()):
             result = put(
                 remote_path=remote_path,
@@ -119,6 +162,17 @@ class VirtualMachine(object):
             return result
 
     def download(self, remote_path, local_path, use_sudo=False):
+        """
+        Download a file or directory from the virtual machine
+
+        :param remote_path: The remote location
+        :param local_path: The local local
+        :param use_sudo: If True, it runs as sudo
+
+        :return: The list of downloaded files
+
+        :raise DownloadError: If the task fails
+        """
         with ssh_context(self.ssh_username, self.ssh_password, self.ip()):
             result = get(
                 remote_path=remote_path,
@@ -132,6 +186,11 @@ class VirtualMachine(object):
 
 @contextlib.contextmanager
 def virtual_machines(vms):
+    """
+        Ensure that a list of VMs are created and destroyed within a context
+
+        :param vms: The list of virtual machines (VirtualMachine)
+    """
     for vm in vms:
         vm.create()
     try:
