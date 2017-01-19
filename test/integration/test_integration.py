@@ -123,4 +123,3 @@ class TestIntegrationNetworking(unittest.TestCase):
             self.vm.upload(local_path='wrong-path', remote_path='file-0')
         with self.assertRaises(UploadError):
             self.vm.upload(local_path='dir-0', remote_path='wrong-path')
-
