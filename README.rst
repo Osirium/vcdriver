@@ -42,9 +42,9 @@ You can run some integration tests to check it works fine for your Vcenter insta
 
 1. Read through the configuration section on the `wiki <https://github.com/Lantero/vcdriver/wiki>`_.
 2. Provide some extra environment variables:
+
   - `VCDRIVER_TEST_TEMPLATE`: The name of the virtual machine template (UNIX-like) that will be used for the tests.
   - `VCDRIVER_TEST_SSH_USERNAME`: The username that will ssh into that virtual machine.
   - `VCDRIVER_TEST_SSH_PASSWORD`: The password for the ssh user.
+
 3. Run `nosetests test/integration`.
-
-
