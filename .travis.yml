@@ -7,10 +7,10 @@ python:
   - '3.6'
 install:
   - pip install -r requirements.txt
-  - pip install -r test/requirements.txt
+  - pip install -r test/unit/requirements.txt
 script:
   - flake8 .
-  - nosetests -v --with-coverage --cover-erase --cover-min-percentage=100 --cover-branches --cover-package=vcdriver
+  - (cd test/unit; nosetests -v --with-coverage --cover-erase --cover-min-percentage=100 --cover-branches --cover-package=vcdriver)
 after_script: bash <(curl -s https://codecov.io/bash)
 deploy:
   provider: pypi

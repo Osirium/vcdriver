@@ -150,12 +150,16 @@ class VirtualMachine(object):
         :raise UploadError: If the task fails
         """
         with ssh_context(self.ssh_username, self.ssh_password, self.ip()):
-            result = put(
-                remote_path=remote_path,
-                local_path=local_path,
-                use_sudo=use_sudo
-            )
-            if result.failed:
+            try:
+                result = put(
+                    remote_path=remote_path,
+                    local_path=local_path,
+                    use_sudo=use_sudo
+                )
+                if result.failed:
+                    raise UploadError(remote_path)
+            except ValueError as value_error:
+                print(value_error.message)
                 raise UploadError(remote_path)
             return result
 
@@ -200,7 +204,7 @@ class VirtualMachine(object):
             ['\033[94mFolder\033[0m', self.folder],
             ['\033[94mSSH username\033[0m', self.ssh_username],
             ['\033[94mSSH password\033[0m', self.ssh_password],
-            ['\033[94mIpv4\033[0m', ip]
+            ['\033[94mIP\033[0m', ip]
         ]:
             print(row_format.format(element[0], str(element[1])))
 

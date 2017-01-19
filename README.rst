@@ -7,8 +7,7 @@
 About
 =====
 
-This project started from the need of using Vcenter for testing purposes, 
-although it can also be used to manage your Vcenter instance.
+This project started from the need of using Vcenter for testing purposes, although it can also be used to manage your Vcenter instance for other general tasks.
 
 How does it work underneath?
 ============================
@@ -34,5 +33,18 @@ Documentation
 =============
 
 Documentation and examples can be found on the `wiki <https://github.com/Lantero/vcdriver/wiki>`_.
+
+A note about the tests
+======================
+
+As you might expect, the unit tests can only test the logic of the driver, as all the vcenter components have to be mocked out.
+You can run some integration tests to check it works fine for your Vcenter instance. To do so:
+
+1. Read through the configuration section on the `wiki <https://github.com/Lantero/vcdriver/wiki>`_.
+2. Provide some extra environment variables:
+  - `VCDRIVER_TEST_TEMPLATE`: The name of the virtual machine template (UNIX-like) that will be used for the tests.
+  - `VCDRIVER_TEST_SSH_USERNAME`: The username that will ssh into that virtual machine.
+  - `VCDRIVER_TEST_SSH_PASSWORD`: The password for the ssh user.
+3. Run `(cd test/integration; nosetests)`.
 
 
