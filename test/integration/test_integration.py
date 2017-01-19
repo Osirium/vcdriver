@@ -18,6 +18,14 @@ class TestIntegrationProvisioning(unittest.TestCase):
             name='test-integration-vcdriver',
             template=os.getenv('VCDRIVER_TEST_TEMPLATE')
         )
+        self.another_vm = VirtualMachine(
+            name='another-test-integration-vcdriver',
+            template=os.getenv('VCDRIVER_TEST_TEMPLATE')
+        )
+
+    def tearDown(self):
+        self.vm.destroy()
+        self.another_vm.destroy()
 
     def test_idempotent_methods(self):
         with self.assertRaises(NoObjectFound):
@@ -37,21 +45,17 @@ class TestIntegrationProvisioning(unittest.TestCase):
         self.assertIsNone(self.vm.__getattribute__('_vm_object'))
 
     def test_context_manager(self):
-        another_vm = VirtualMachine(
-            name='another-test-integration-vcdriver',
-            template=os.getenv('VCDRIVER_TEST_TEMPLATE')
-        )
         with self.assertRaises(NoObjectFound):
             self.vm.find()
         with self.assertRaises(NoObjectFound):
-            another_vm.find()
-        with virtual_machines([self.vm, another_vm]):
+            self.another_vm.find()
+        with virtual_machines([self.vm, self.another_vm]):
             self.vm.find()
-            another_vm.find()
+            self.another_vm.find()
         with self.assertRaises(NoObjectFound):
             self.vm.find()
         with self.assertRaises(NoObjectFound):
-            another_vm.find()
+            self.another_vm.find()
 
 
 class TestIntegrationNetworking(unittest.TestCase):

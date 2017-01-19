@@ -159,7 +159,7 @@ class VirtualMachine(object):
                 if result.failed:
                     raise UploadError(remote_path)
             except ValueError as value_error:
-                print(value_error.message)
+                print(value_error)
                 raise UploadError(remote_path)
             return result
 
