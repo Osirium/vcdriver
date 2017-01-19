@@ -10,7 +10,7 @@ install:
   - pip install -r test/unit/requirements.txt
 script:
   - flake8 .
-  - (cd test/unit; nosetests -v --with-coverage --cover-erase --cover-min-percentage=100 --cover-branches --cover-package=vcdriver)
+  - nosetests --with-coverage --cover-min-percentage=100 --cover-branches --cover-package=vcdriver test/unit
 after_script: bash <(curl -s https://codecov.io/bash)
 deploy:
   provider: pypi

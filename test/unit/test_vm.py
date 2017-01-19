@@ -103,6 +103,14 @@ class TestVm(unittest.TestCase):
             vm.upload('from', 'to')
 
     @mock.patch('vcdriver.vm.Session')
+    @mock.patch('vcdriver.vm.put')
+    def test_virtual_machine_upload_fail_with_value_error(self, put, session):
+        vm = VirtualMachine()
+        put.side_effect = ValueError
+        with self.assertRaises(UploadError):
+            vm.upload('from', 'to')
+
+    @mock.patch('vcdriver.vm.Session')
     @mock.patch('vcdriver.vm.get')
     def test_virtual_machine_download_success(self, get, session):
         vm = VirtualMachine()
