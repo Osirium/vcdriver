@@ -122,7 +122,6 @@ class VirtualMachine(object):
     def ssh(self, command, use_sudo=False):
         """
         Executes a shell command through ssh
-
         :param command: The command to be executed
         :param use_sudo: If True, it runs as sudo
 
@@ -142,7 +141,6 @@ class VirtualMachine(object):
     def upload(self, remote_path, local_path, use_sudo=False):
         """
         Upload a file or directory to the virtual machine
-
         :param remote_path: The remote location
         :param local_path: The local local
         :param use_sudo: If True, it runs as sudo
@@ -164,7 +162,6 @@ class VirtualMachine(object):
     def download(self, remote_path, local_path, use_sudo=False):
         """
         Download a file or directory from the virtual machine
-
         :param remote_path: The remote location
         :param local_path: The local local
         :param use_sudo: If True, it runs as sudo
@@ -183,13 +180,29 @@ class VirtualMachine(object):
                 raise DownloadError(remote_path)
             return result
 
+    def print_summary(self):
+        """ Print a nice summary of the virtual machine """
+        row_format = "{:>20}" * 2
+        print('\033[1mVirtual Machine Summary\n=======================\033[0m')
+        for key, value in {
+            '\033[94mName\033[0m': self.name,
+            '\033[94mTemplate\033[0m': self.template,
+            '\033[94mData center\033[0m': self.data_center,
+            '\033[94mData store\033[0m': self.data_store,
+            '\033[94mResource pool\033[0m': self.resource_pool,
+            '\033[94mFolder\033[0m': self.folder,
+            '\033[94mSSH username\033[0m': self.ssh_username,
+            '\033[94mSSH password\033[0m': self.ssh_password,
+            '\033[94mIpv4\033[0m': self.ip()
+        }.items():
+            print(row_format.format(key, value))
+
 
 @contextlib.contextmanager
 def virtual_machines(vms):
     """
-        Ensure that a list of VMs are created and destroyed within a context
-
-        :param vms: The list of virtual machines (VirtualMachine)
+    Ensure that a list of VMs are created and destroyed within a context
+    :param vms: The list of virtual machines (VirtualMachine)
     """
     for vm in vms:
         vm.create()

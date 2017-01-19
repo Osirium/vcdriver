@@ -16,16 +16,15 @@ from vcdriver.exceptions import (
 
 def get_vcenter_object(connection, object_type, name):
     """
-        Find a vcenter object
+    Find a vcenter object
+    :param connection: A vcenter connection
+    :param object_type: A vcenter object type, like vim.Folder
+    :param name: The name of the object
 
-        :param connection: A vcenter connection
-        :param object_type: A vcenter object type, like vim.Folder
-        :param name: The name of the object
+    :return: The object found
 
-        :return: The object found
-
-        :raise TooManyObjectsFound: If more than one object is found
-        :raise NoObjectFound: If no results are found
+    :raise TooManyObjectsFound: If more than one object is found
+    :raise NoObjectFound: If no results are found
     """
     content = connection.RetrieveContent()
     view = content.viewManager.CreateContainerView
@@ -44,15 +43,14 @@ def get_vcenter_object(connection, object_type, name):
 
 def wait_for_vcenter_task(task, task_description, timeout=600):
     """
-        Wait for a vcenter task to finish
+    Wait for a vcenter task to finish
+    :param task: A vcenter task object
+    :param task_description: The task description
+    :param timeout: The timeout, in seconds
 
-        :param task: A vcenter task object
-        :param task_description: The task description
-        :param timeout: The timeout, in seconds
+    :return: The task result
 
-        :return: The task result
-
-        :raise TimeoutError: If the timeout is reached
+    :raise TimeoutError: If the timeout is reached
     """
     _timeout_loop(
         timeout=timeout,
@@ -67,14 +65,13 @@ def wait_for_vcenter_task(task, task_description, timeout=600):
 
 def wait_for_dhcp_server(vm_object, timeout=120):
     """
-        Wait for the virtual machine to have an IP
+    Wait for the virtual machine to have an IP
+    :param vm_object: A vcenter virtual machine object
+    :param timeout: The timeout, in seconds
 
-        :param vm_object: A vcenter virtual machine object
-        :param timeout: The timeout, in seconds
+    :return: The virtual machine IP
 
-        :return: The virtual machine IP
-
-        :raise TimeoutError: If the timeout is reached
+    :raise TimeoutError: If the timeout is reached
     """
     _timeout_loop(
         timeout=timeout,
@@ -87,11 +84,10 @@ def wait_for_dhcp_server(vm_object, timeout=120):
 @contextlib.contextmanager
 def ssh_context(username, password, ip):
     """
-        Set the ssh context for fabric
-
-        :param username: The ssh user
-        :param password: The ssh password
-        :param ip: The target machine ip
+    Set the ssh context for fabric
+    :param username: The ssh user
+    :param password: The ssh password
+    :param ip: The target machine ip
     """
     with settings(
             host_string="{}@{}".format(username, ip),
@@ -104,15 +100,14 @@ def ssh_context(username, password, ip):
 
 def _timeout_loop(timeout, description, callback, *args, **kwargs):
     """
-        Wait in a while loop for a task to complete
+    Wait in a while loop for a task to complete
+    :param timeout: The timeout, in seconds
+    :param description: The task description
+    :param callback: A function that evaluates as the while loop condition
+    :param args: The positional arguments of the callback
+    :param kwargs: The keyword arguments of the callback
 
-        :param timeout: The timeout, in seconds
-        :param description: The task description
-        :param callback: A function that evaluates as the while loop condition
-        :param args: The positional arguments of the callback
-        :param kwargs: The keyword arguments of the callback
-
-        :raise TimeoutError: If the timeout is reached
+    :raise TimeoutError: If the timeout is reached
     """
     start = time.time()
     print('Waiting on [{}] ... '.format(description), end='')

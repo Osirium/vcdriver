@@ -138,3 +138,7 @@ class TestVm(unittest.TestCase):
                 raise Exception
         create.assert_called_once_with()
         destroy.assert_called_once_with()
+
+    @mock.patch('vcdriver.vm.Session')
+    def test_virtual_machine_print_summary(self, session):
+        VirtualMachine().print_summary()
