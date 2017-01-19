@@ -182,20 +182,27 @@ class VirtualMachine(object):
 
     def print_summary(self):
         """ Print a nice summary of the virtual machine """
-        row_format = "{:>20}" * 2
-        print('\033[1mVirtual Machine Summary\n=======================\033[0m')
-        for key, value in {
-            '\033[94mName\033[0m': self.name,
-            '\033[94mTemplate\033[0m': self.template,
-            '\033[94mData center\033[0m': self.data_center,
-            '\033[94mData store\033[0m': self.data_store,
-            '\033[94mResource pool\033[0m': self.resource_pool,
-            '\033[94mFolder\033[0m': self.folder,
-            '\033[94mSSH username\033[0m': self.ssh_username,
-            '\033[94mSSH password\033[0m': self.ssh_password,
-            '\033[94mIpv4\033[0m': self.ip()
-        }.items():
-            print(row_format.format(key, str(value)))
+        ip = self.ip()
+        row_format = "{:<40}" * 2
+        print(
+            '\033[1m'
+            '=======================\n'
+            'Virtual Machine Summary\n'
+            '======================='
+            '\033[0m'
+        )
+        for element in [
+            ['\033[94mName\033[0m', self.name],
+            ['\033[94mTemplate\033[0m', self.template],
+            ['\033[94mData center\033[0m', self.data_center],
+            ['\033[94mData store\033[0m', self.data_store],
+            ['\033[94mResource pool\033[0m', self.resource_pool],
+            ['\033[94mFolder\033[0m', self.folder],
+            ['\033[94mSSH username\033[0m', self.ssh_username],
+            ['\033[94mSSH password\033[0m', self.ssh_password],
+            ['\033[94mIpv4\033[0m', ip]
+        ]:
+            print(row_format.format(element[0], str(element[1])))
 
 
 @contextlib.contextmanager
