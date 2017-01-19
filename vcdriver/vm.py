@@ -195,7 +195,7 @@ class VirtualMachine(object):
             '\033[94mSSH password\033[0m': self.ssh_password,
             '\033[94mIpv4\033[0m': self.ip()
         }.items():
-            print(row_format.format(key, value))
+            print(row_format.format(key, str(value)))
 
 
 @contextlib.contextmanager
