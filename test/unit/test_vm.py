@@ -73,10 +73,10 @@ class TestVm(unittest.TestCase):
         run.return_value = result_mock
         sudo.return_value = result_mock
         self.assertEqual(
-            vm.ssh('whatever', use_sudo=False), 3
+            vm.ssh('whatever', use_sudo=False).return_code, 3
         )
         self.assertEqual(
-            vm.ssh('whatever', use_sudo=True), 3
+            vm.ssh('whatever', use_sudo=True).return_code, 3
         )
 
     @mock.patch('vcdriver.vm.Session')

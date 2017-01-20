@@ -125,7 +125,7 @@ class VirtualMachine(object):
         :param command: The command to be executed
         :param use_sudo: If True, it runs as sudo
 
-        :return: The return code of the command
+        :return: The fabric equivalent of run and sudo
 
         :raise SshError: If the command fails
         """
@@ -136,7 +136,7 @@ class VirtualMachine(object):
                 result = run(command)
             if result.failed:
                 raise SshError(command, result.return_code)
-            return result.return_code
+            return result
 
     def upload(self, remote_path, local_path, use_sudo=False):
         """
