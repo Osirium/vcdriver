@@ -61,6 +61,9 @@ class TestVm(unittest.TestCase):
         self.assertEqual(vm.ip(), None)
         vm.__setattr__('_vm_object', 'Something')
         self.assertEqual(vm.ip(), '10.0.0.1')
+        self.assertEqual(vm.ip(), '10.0.0.1')
+        self.assertEqual(vm.ip(use_cache=False), '10.0.0.1')
+        self.assertEqual(wait_for_dhcp_server.call_count, 2)
 
     @mock.patch('vcdriver.vm.Session')
     @mock.patch('vcdriver.vm.sudo')

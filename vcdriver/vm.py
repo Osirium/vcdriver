@@ -40,6 +40,7 @@ class VirtualMachine(object):
 
         An internal session that gets closed at exit is kept as _session
         An internal instance of a vcenter vm object is kept as _vm_object
+        The ip is cached internally as _ip
         """
         self.data_center = data_center
         self.data_store = data_store
@@ -52,6 +53,7 @@ class VirtualMachine(object):
         self.ssh_password = ssh_password
         self._session = Session()
         self._vm_object = None
+        self._ip = None
 
     def create(self):
         """ Create the virtual machine and update the vm object """
@@ -101,6 +103,7 @@ class VirtualMachine(object):
                 self.timeout
             )
             self._vm_object = None
+            self._ip = None
 
     def find(self):
         """ Find and update the vm object based on the name """
@@ -110,14 +113,17 @@ class VirtualMachine(object):
             )
             print('VM object found: {}'.format(self._vm_object))
 
-    def ip(self):
+    def ip(self, use_cache=True):
         """
         Poll vcenter to get the virtual machine IP
+        :param use_cache: If True, force an update of the internal cached value
 
         :return: Return the ip
         """
         if self._vm_object:
-            return wait_for_dhcp_server(self._vm_object, self.timeout)
+            if not self._ip or not use_cache:
+                self._ip = wait_for_dhcp_server(self._vm_object, self.timeout)
+            return self._ip
 
     def ssh(self, command, use_sudo=False):
         """
