@@ -1,3 +1,6 @@
+.. image:: https://badge.fury.io/py/vcdriver.svg
+    :target: https://badge.fury.io/py/vcdriver
+
 .. image:: https://travis-ci.org/Lantero/vcdriver.svg?branch=master
   :target: https://travis-ci.org/Lantero/vcdriver
 
