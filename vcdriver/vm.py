@@ -116,7 +116,7 @@ class VirtualMachine(object):
     def ip(self, use_cache=True):
         """
         Poll vcenter to get the virtual machine IP
-        :param use_cache: If True, force an update of the internal cached value
+        :param use_cache: If False, force an update of the internal value
 
         :return: Return the ip
         """
