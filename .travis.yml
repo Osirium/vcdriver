@@ -8,6 +8,8 @@ python:
 install:
   - pip install -r requirements.txt
   - pip install -r test/unit/requirements.txt
+env:
+  - VCDRIVER_PASSWORD="something"
 script:
   - flake8 .
   - nosetests --with-coverage --cover-erase --cover-min-percentage=100 --cover-branches --cover-package=vcdriver test/unit
