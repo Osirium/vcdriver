@@ -86,7 +86,7 @@ class TestIntegrationNetworking(unittest.TestCase):
         socket.inet_aton(self.vm.ip())
 
     def test_ssh(self):
-        self.assertEqual(self.vm.ssh('ls'), 0)
+        self.assertEqual(self.vm.ssh('ls').return_code, 0)
         with self.assertRaises(SshError):
             self.vm.ssh('wrong-command-seriously')
 
