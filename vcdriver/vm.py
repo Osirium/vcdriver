@@ -94,12 +94,12 @@ class VirtualMachine(object):
         if self._vm_object:
             wait_for_vcenter_task(
                 self._vm_object.PowerOffVM_Task(),
-                'Power off VM',
+                'Power off virtual machine "{}"'.format(self.name),
                 self.timeout
             )
             wait_for_vcenter_task(
                 self._vm_object.Destroy_Task(),
-                'Destroy VM',
+                'Destroy virtual machine "{}"'.format(self.name),
                 self.timeout
             )
             self._vm_object = None
