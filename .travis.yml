@@ -16,10 +16,6 @@ deploy:
   provider: pypi
   user: lantero
   password:
-    # WHERE IS THIS SECURE THING COMING FROM?
-    # sudo apt-get install ruby ruby-dev
-    # gem install travis --no-rdoc --no-ri
-    # travis encrypt 'plain-text-password'
     secure: jd/w5zpF8pX+yzEbuCtFU4L15Qsgkr2Uwo6k65P5LEmmsjbU24Ni7W8CNa6nQKGmaKsCOon5ArhvtD866xIiUT2teF5VwikWi3ZEfsqZeWwbK7t8fWCWiSqa0LYXdIwKnPu961/5i1uUyKzJZgsuwTkxh6lCEdTY7+MD7MzTPErRAD0hZvkeUlKp5JzCv9sYgUfschI5+SZCfBKTPmQwhLtCcJQ1BwMBUVyhF71pIO6/ESTiBRao5a6dLceKBKB+BWSeHHEj2T/+4HKKCn2cZZhU2tjA+XRH7T6hmw4PVD6w9u+ZpGeuv7RH/XQpadByA+4vc0l4pWRuihTvfx57kMJXkzABlZDK2bYHNQkmfmZn/euWz4W7/LsRKHITGdl85xQJLsGpBrZLKXCRxneCKOlXAs//s+rZ+6kIoGtTuLMeZMLRAV0r4qWPsU0HFYUsBs9YLAMYkKBVBQQCPY3eX1MWrbOTUWtyCPACT9ADv8suhjwTwhV1Fnb7tYP6lEjTfqgIlJpz50BW5tH383PZe+nJ/tqtxXfxZIx3EwgQNL3KttNHnQUEewTk+JRQBboOWY+v9/CnkpJ0p3VJxEo0wLzNE2wCWt8tCh4egdNtMnlqZ84Cy+A9vT4LwbfqgpnkrJlY/U5p7hJip8MquKP3KudtHL/8Xa2whTpb5d4yzQQ=
   on:
     tags: true
