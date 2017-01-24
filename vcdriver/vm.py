@@ -4,7 +4,7 @@ from fabric.api import sudo, run, get, put
 from pyVmomi import vim
 
 from vcdriver.auth import Session
-from vcdriver.config import DATA_STORE, DATA_CENTER, RESOURCE_POOL, FOLDER
+from vcdriver.config import DATA_STORE, RESOURCE_POOL, FOLDER
 from vcdriver.exceptions import SshError, UploadError, DownloadError
 from vcdriver.helpers import (
     get_vcenter_object,
@@ -17,9 +17,8 @@ from vcdriver.helpers import (
 class VirtualMachine(object):
     def __init__(
             self,
-            data_center=DATA_CENTER,
-            data_store=DATA_STORE,
             resource_pool=RESOURCE_POOL,
+            data_store=DATA_STORE,
             folder=FOLDER,
             name=None,
             template=None,
@@ -28,9 +27,8 @@ class VirtualMachine(object):
             ssh_password=None
     ):
         """
-        :param data_center: The vcenter data center name
-        :param data_store: The vcenter data store name
         :param resource_pool: The vcenter resource pool name
+        :param data_store: The vcenter data store name
         :param folder: The vcenter folder name
         :param name: The virtual machine name
         :param template: The virtual machine template name to be cloned
@@ -42,9 +40,8 @@ class VirtualMachine(object):
         An internal instance of a vcenter vm object is kept as _vm_object
         The ip is cached internally as _ip
         """
-        self.data_center = data_center
-        self.data_store = data_store
         self.resource_pool = resource_pool
+        self.data_store = data_store
         self.folder = folder
         self.name = name
         self.template = template
@@ -204,7 +201,6 @@ class VirtualMachine(object):
         for element in [
             ['\033[94mName\033[0m', self.name],
             ['\033[94mTemplate\033[0m', self.template],
-            ['\033[94mData center\033[0m', self.data_center],
             ['\033[94mData store\033[0m', self.data_store],
             ['\033[94mResource pool\033[0m', self.resource_pool],
             ['\033[94mFolder\033[0m', self.folder],
