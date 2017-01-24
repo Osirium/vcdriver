@@ -201,8 +201,8 @@ class VirtualMachine(object):
         for element in [
             ['\033[94mName\033[0m', self.name],
             ['\033[94mTemplate\033[0m', self.template],
-            ['\033[94mData store\033[0m', self.data_store],
             ['\033[94mResource pool\033[0m', self.resource_pool],
+            ['\033[94mData store\033[0m', self.data_store],
             ['\033[94mFolder\033[0m', self.folder],
             ['\033[94mSSH username\033[0m', self.ssh_username],
             ['\033[94mSSH password\033[0m', self.ssh_password],

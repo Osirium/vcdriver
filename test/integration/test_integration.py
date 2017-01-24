@@ -10,22 +10,28 @@ from vcdriver.exceptions import (
     SshError
 )
 from vcdriver.vm import VirtualMachine, virtual_machines
+from vcdriver.folder import destroy_virtual_machines
 
 
-class TestIntegrationProvisioning(unittest.TestCase):
+class TestProvisioning(unittest.TestCase):
     def setUp(self):
         self.vm = VirtualMachine(
             name='test-integration-vcdriver',
-            template=os.getenv('VCDRIVER_TEST_TEMPLATE')
+            template=os.getenv('VCDRIVER_TEST_TEMPLATE'),
+            folder=os.getenv('VCDRIVER_TEST_FOLDER')
         )
         self.another_vm = VirtualMachine(
             name='another-test-integration-vcdriver',
-            template=os.getenv('VCDRIVER_TEST_TEMPLATE')
+            template=os.getenv('VCDRIVER_TEST_TEMPLATE'),
+            folder=os.getenv('VCDRIVER_TEST_FOLDER')
         )
 
     def tearDown(self):
-        self.vm.destroy()
-        self.another_vm.destroy()
+        try:
+            self.vm.destroy()
+            self.another_vm.destroy()
+        except:
+            pass
 
     def test_idempotent_methods(self):
         with self.assertRaises(NoObjectFound):
@@ -57,8 +63,17 @@ class TestIntegrationProvisioning(unittest.TestCase):
         with self.assertRaises(NoObjectFound):
             self.another_vm.find()
 
+    def test_destroy_virtual_machines(self):
+        self.vm.create()
+        self.another_vm.create()
+        vms = destroy_virtual_machines(os.getenv('VCDRIVER_TEST_FOLDER'))
+        with self.assertRaises(NoObjectFound):
+            vms[0].find()
+        with self.assertRaises(NoObjectFound):
+            vms[1].find()
 
-class TestIntegrationNetworking(unittest.TestCase):
+
+class TestNetworking(unittest.TestCase):
     @staticmethod
     def touch(file_name):
         open(file_name, 'wb').close()
