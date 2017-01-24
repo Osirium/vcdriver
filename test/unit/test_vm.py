@@ -1,6 +1,8 @@
 import mock
 import unittest
 
+from pyVmomi import vim
+
 from vcdriver.exceptions import SshError, DownloadError, UploadError
 from vcdriver.vm import VirtualMachine, virtual_machines
 
@@ -29,20 +31,36 @@ class TestVm(unittest.TestCase):
 
     @mock.patch('vcdriver.vm.Session')
     @mock.patch('vcdriver.vm.wait_for_vcenter_task')
-    def test_virtual_machine_destroy(
+    def test_virtual_machine_destroy_machine_on(
             self,
             wait_for_vcenter_task,
             session
     ):
         vm = VirtualMachine()
         vm_object_mock = mock.MagicMock()
-        vm_object_mock.PowerOffVM_Task = lambda: True
-        vm_object_mock.Destroy_Task = lambda: True
         vm.__setattr__('_vm_object', vm_object_mock)
         vm.destroy()
         vm.destroy()
         self.assertIsNone(vm.__getattribute__('_vm_object'))
         self.assertEqual(wait_for_vcenter_task.call_count, 2)
+
+    @mock.patch('vcdriver.vm.Session')
+    @mock.patch('vcdriver.vm.wait_for_vcenter_task')
+    def test_virtual_machine_destroy_machine_off(
+            self,
+            wait_for_vcenter_task,
+            session
+    ):
+        vm = VirtualMachine()
+        vm_object_mock = mock.MagicMock()
+        vm_object_mock.PowerOffVM_Task = mock.MagicMock(
+            side_effect=vim.fault.InvalidPowerState
+        )
+        vm.__setattr__('_vm_object', vm_object_mock)
+        vm.destroy()
+        vm.destroy()
+        self.assertIsNone(vm.__getattribute__('_vm_object'))
+        self.assertEqual(wait_for_vcenter_task.call_count, 1)
 
     @mock.patch('vcdriver.vm.Session')
     @mock.patch('vcdriver.vm.get_vcenter_object')

@@ -89,11 +89,14 @@ class VirtualMachine(object):
     def destroy(self):
         """ Destroy the virtual machine and set the vm object to None """
         if self._vm_object:
-            wait_for_vcenter_task(
-                self._vm_object.PowerOffVM_Task(),
-                'Power off virtual machine "{}"'.format(self.name),
-                self.timeout
-            )
+            try:
+                wait_for_vcenter_task(
+                    self._vm_object.PowerOffVM_Task(),
+                    'Power off virtual machine "{}"'.format(self.name),
+                    self.timeout
+                )
+            except vim.fault.InvalidPowerState:
+                pass
             wait_for_vcenter_task(
                 self._vm_object.Destroy_Task(),
                 'Destroy virtual machine "{}"'.format(self.name),
