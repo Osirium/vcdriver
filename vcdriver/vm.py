@@ -133,7 +133,7 @@ class VirtualMachine(object):
 
         :return: The fabric equivalent of run and sudo
 
-        :raise SshError: If the command fails
+        :raise: SshError: If the command fails
         """
         with ssh_context(self.ssh_username, self.ssh_password, self.ip()):
             if use_sudo:
@@ -153,7 +153,7 @@ class VirtualMachine(object):
 
         :return: The list of uploaded files
 
-        :raise UploadError: If the task fails
+        :raise: UploadError: If the task fails
         """
         with ssh_context(self.ssh_username, self.ssh_password, self.ip()):
             try:
@@ -178,7 +178,7 @@ class VirtualMachine(object):
 
         :return: The list of downloaded files
 
-        :raise DownloadError: If the task fails
+        :raise: DownloadError: If the task fails
         """
         with ssh_context(self.ssh_username, self.ssh_password, self.ip()):
             result = get(

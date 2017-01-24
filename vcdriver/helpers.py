@@ -23,8 +23,8 @@ def get_vcenter_object(connection, object_type, name):
 
     :return: The object found
 
-    :raise TooManyObjectsFound: If more than one object is found
-    :raise NoObjectFound: If no results are found
+    :raise: TooManyObjectsFound: If more than one object is found
+    :raise: NoObjectFound: If no results are found
     """
     content = connection.RetrieveContent()
     view = content.viewManager.CreateContainerView
@@ -50,7 +50,7 @@ def wait_for_vcenter_task(task, task_description, timeout=600):
 
     :return: The task result
 
-    :raise TimeoutError: If the timeout is reached
+    :raise: TimeoutError: If the timeout is reached
     """
     _timeout_loop(
         timeout=timeout,
@@ -71,7 +71,7 @@ def wait_for_dhcp_server(vm_object, timeout=120):
 
     :return: The virtual machine IP
 
-    :raise TimeoutError: If the timeout is reached
+    :raise: TimeoutError: If the timeout is reached
     """
     _timeout_loop(
         timeout=timeout,
@@ -107,7 +107,7 @@ def _timeout_loop(timeout, description, callback, *args, **kwargs):
     :param args: The positional arguments of the callback
     :param kwargs: The keyword arguments of the callback
 
-    :raise TimeoutError: If the timeout is reached
+    :raise: TimeoutError: If the timeout is reached
     """
     start = time.time()
     print('Waiting on [{}] ... '.format(description), end='')
