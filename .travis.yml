@@ -6,8 +6,7 @@ python:
   - '3.5'
   - '3.6'
 install:
-  - pip install -r requirements.txt
-  - pip install -r test/unit/requirements.txt
+  - pip install nose coverage mock flake8 Fabric3 pyvmomi
 script:
   - flake8 .
   - VCDRIVER_PASSWORD="something" nosetests --with-coverage --cover-erase --cover-min-percentage=100 --cover-branches --cover-package=vcdriver test/unit
