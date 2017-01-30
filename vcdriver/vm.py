@@ -22,7 +22,7 @@ class VirtualMachine(object):
             folder=FOLDER,
             name=None,
             template=None,
-            timeout=120,
+            timeout=600,
             ssh_username=None,
             ssh_password=None
     ):
