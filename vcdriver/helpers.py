@@ -109,12 +109,13 @@ def _timeout_loop(timeout, description, callback, *args, **kwargs):
 
     :raise: TimeoutError: If the timeout is reached
     """
+    countdown = timeout
     start = time.time()
     print('Waiting on [{}] ... '.format(description), end='')
     sys.stdout.flush()
-    while callback(*args, **kwargs) and timeout:
+    while callback(*args, **kwargs) and countdown:
         time.sleep(1)
-        timeout -= 1
-    if timeout <= 0:
+        countdown -= 1
+    if countdown <= 0:
         raise TimeoutError(description, timeout)
     print(datetime.timedelta(seconds=time.time() - start))
