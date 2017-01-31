@@ -54,7 +54,7 @@ You can run some integration tests to check it works fine for your Vcenter insta
 
   - `VCDRIVER_TEST_FOLDER`: The name of the folder that will be used for the tests (Vms will be deleted inside this folder).
   - `VCDRIVER_TEST_TEMPLATE`: The name of the virtual machine template (UNIX-like) that will be cloned for the tests.
-  - `VCDRIVER_TEST_SSH_USERNAME`: The username that will ssh into that virtual machine.
-  - `VCDRIVER_TEST_SSH_PASSWORD`: The password for the ssh user.
+  - `VCDRIVER_TEST_USERNAME`: The username for that virtual machine.
+  - `VCDRIVER_TEST_PASSWORD`: The password for that user.
 
 3. Run `nosetests test/integration`.

@@ -83,8 +83,8 @@ class TestNetworking(unittest.TestCase):
         cls.vm = VirtualMachine(
             name='test-integration-vcdriver',
             template=os.getenv('VCDRIVER_TEST_TEMPLATE'),
-            username=os.getenv('VCDRIVER_TEST_SSH_USERNAME'),
-            password=os.getenv('VCDRIVER_TEST_SSH_PASSWORD')
+            username=os.getenv('VCDRIVER_TEST_USERNAME'),
+            password=os.getenv('VCDRIVER_TEST_PASSWORD')
         )
         cls.vm.create()
 
