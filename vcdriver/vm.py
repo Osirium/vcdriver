@@ -4,7 +4,13 @@ from fabric.api import sudo, run, get, put
 from pyVmomi import vim
 
 from vcdriver.auth import Session
-from vcdriver.config import DATA_STORE, RESOURCE_POOL, FOLDER
+from vcdriver.config import (
+    DATA_STORE,
+    RESOURCE_POOL,
+    FOLDER,
+    VM_USERNAME,
+    VM_PASSWORD
+)
 from vcdriver.exceptions import SshError, UploadError, DownloadError
 from vcdriver.helpers import (
     get_vcenter_object,
@@ -24,8 +30,8 @@ class VirtualMachine(object):
             name=None,
             template=None,
             timeout=600,
-            username=None,
-            password=None
+            username=VM_USERNAME,
+            password=VM_PASSWORD
     ):
         """
         :param resource_pool: The vcenter resource pool name
@@ -34,8 +40,8 @@ class VirtualMachine(object):
         :param name: The virtual machine name
         :param template: The virtual machine template name to be cloned
         :param timeout: The timeout for the dhcp and vcenter tasks
-        :param username: The username for vm management
-        :param password: The password for vm management
+        :param username: The username to manage the virtual machine
+        :param password: The password to manage the virtual machine
 
         An internal session that gets closed at exit is kept as _session
         An internal instance of a vcenter vm object is kept as _vm_object
