@@ -4,12 +4,12 @@ from setuptools import setup, find_packages
 setup(
     version='1.4.4',
     name='vcdriver',
-    description='A vcenter driver based on pyvmomi and fabric',
+    description='A vcenter driver based on pyvmomi, fabric and pywinrm',
     url='https://github.com/Lantero/vcdriver',
     author='Carlos Ruiz Lantero',
     author_email='carlos.ruiz.lantero@gmail.com',
     license='MIT',
-    install_requires=['Fabric3', 'pyvmomi'],
+    install_requires=['Fabric3', 'pyvmomi', 'pywinrm'],
     packages=find_packages(),
     classifiers=[
         'Development Status :: 5 - Production/Stable',

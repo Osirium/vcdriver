@@ -22,7 +22,7 @@ How does it work underneath?
 ============================
 
 - Vcenter is driven using its official python API, `pyvmomi <https://github.com/vmware/pyvmomi>`_.
-- The virtual machines are manipulated with `fabric <https://github.com/fabric/fabric>`_.
+- The virtual machines are manipulated with `Fabric3 <https://pypi.python.org/pypi/Fabric3>`_ and `pywinrm <https://pypi.python.org/pypi/pywinrm>`_.
 - It currently supports Python **2.7**, **3.3**, **3.4**, **3.5** and **3.6**.
     
 Why would I use vcdriver instead of using pyvmomi and fabric directly?
