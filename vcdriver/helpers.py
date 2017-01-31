@@ -82,11 +82,11 @@ def wait_for_dhcp_server(vm_object, timeout=120):
 
 
 @contextlib.contextmanager
-def ssh_context(username, password, ip):
+def fabric_context(username, password, ip):
     """
     Set the ssh context for fabric
-    :param username: The ssh user
-    :param password: The ssh password
+    :param username: The user
+    :param password: The password
     :param ip: The target machine ip
     """
     with settings(

@@ -2,6 +2,7 @@ import contextlib
 
 from fabric.api import sudo, run, get, put
 from pyVmomi import vim
+import winrm
 
 from vcdriver.auth import Session
 from vcdriver.config import DATA_STORE, RESOURCE_POOL, FOLDER
@@ -10,7 +11,7 @@ from vcdriver.helpers import (
     get_vcenter_object,
     wait_for_vcenter_task,
     wait_for_dhcp_server,
-    ssh_context
+    fabric_context
 )
 
 
@@ -23,8 +24,8 @@ class VirtualMachine(object):
             name=None,
             template=None,
             timeout=600,
-            ssh_username=None,
-            ssh_password=None
+            username=None,
+            password=None
     ):
         """
         :param resource_pool: The vcenter resource pool name
@@ -33,8 +34,8 @@ class VirtualMachine(object):
         :param name: The virtual machine name
         :param template: The virtual machine template name to be cloned
         :param timeout: The timeout for the dhcp and vcenter tasks
-        :param ssh_username: The username for the ssh functions
-        :param ssh_password: The password for the ssh functions
+        :param username: The username for vm management
+        :param password: The password for vm management
 
         An internal session that gets closed at exit is kept as _session
         An internal instance of a vcenter vm object is kept as _vm_object
@@ -46,8 +47,8 @@ class VirtualMachine(object):
         self.name = name
         self.template = template
         self.timeout = timeout
-        self.ssh_username = ssh_username
-        self.ssh_password = ssh_password
+        self.username = username
+        self.password = password
         self._session = Session()
         self._vm_object = None
         self._ip = None
@@ -135,7 +136,7 @@ class VirtualMachine(object):
 
         :raise: SshError: If the command fails
         """
-        with ssh_context(self.ssh_username, self.ssh_password, self.ip()):
+        with fabric_context(self.username, self.password, self.ip()):
             if use_sudo:
                 result = sudo(command)
             else:
@@ -155,7 +156,7 @@ class VirtualMachine(object):
 
         :raise: UploadError: If the task fails
         """
-        with ssh_context(self.ssh_username, self.ssh_password, self.ip()):
+        with fabric_context(self.username, self.password, self.ip()):
             try:
                 result = put(
                     remote_path=remote_path,
@@ -180,7 +181,7 @@ class VirtualMachine(object):
 
         :raise: DownloadError: If the task fails
         """
-        with ssh_context(self.ssh_username, self.ssh_password, self.ip()):
+        with fabric_context(self.username, self.password, self.ip()):
             result = get(
                 remote_path=remote_path,
                 local_path=local_path,
@@ -207,8 +208,8 @@ class VirtualMachine(object):
             ['\033[94mResource pool\033[0m', self.resource_pool],
             ['\033[94mData store\033[0m', self.data_store],
             ['\033[94mFolder\033[0m', self.folder],
-            ['\033[94mSSH username\033[0m', self.ssh_username],
-            ['\033[94mSSH password\033[0m', self.ssh_password],
+            ['\033[94mUsername\033[0m', self.username],
+            ['\033[94mPassword\033[0m', self.password],
             ['\033[94mIP\033[0m', ip]
         ]:
             print(row_format.format(element[0], str(element[1])))
