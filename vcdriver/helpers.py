@@ -6,6 +6,7 @@ import time
 
 from fabric.context_managers import settings
 from pyVmomi import vim
+import winrm
 
 from vcdriver.exceptions import (
     TooManyObjectsFound,
@@ -96,6 +97,18 @@ def fabric_context(username, password, ip):
             disable_known_hosts=True
     ):
         yield
+
+
+def winrm_session(username, password, ip):
+    """
+    Create a pywinrm session
+    :param username: The username
+    :param password: The password
+    :param ip: The ip
+
+    :return: The session object
+    """
+    return winrm.Session(target=ip, auth=(username, password))
 
 
 def _timeout_loop(timeout, description, callback, *args, **kwargs):

@@ -2,6 +2,7 @@ import mock
 import unittest
 
 from pyVmomi import vim
+import winrm
 
 from vcdriver.exceptions import SshError, DownloadError, UploadError
 from vcdriver.vm import VirtualMachine, virtual_machines
@@ -106,6 +107,22 @@ class TestVm(unittest.TestCase):
         vm = VirtualMachine()
         with self.assertRaises(SshError):
             vm.ssh('whatever', use_sudo=False)
+
+    @mock.patch('vcdriver.vm.Session')
+    @mock.patch.object(winrm.Session, 'run_cmd')
+    def test_virtual_machine_winrm_cmd(self, winrm_session, session):
+        vm = VirtualMachine(username='user', password='pass')
+        vm.__setattr__('ip', lambda: '127.0.0.1')
+        vm.winrm_cmd('cmd', 1, 2, 3)
+        winrm_session.assert_called_once_with('cmd', 1, 2, 3)
+
+    @mock.patch('vcdriver.vm.Session')
+    @mock.patch.object(winrm.Session, 'run_ps')
+    def test_virtual_machine_winrm_ps(self, winrm_session, session):
+        vm = VirtualMachine(username='user', password='pass')
+        vm.__setattr__('ip', lambda: '127.0.0.1')
+        vm.winrm_ps('script')
+        winrm_session.assert_called_once_with('script')
 
     @mock.patch('vcdriver.vm.Session')
     @mock.patch('vcdriver.vm.put')

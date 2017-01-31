@@ -2,7 +2,6 @@ import contextlib
 
 from fabric.api import sudo, run, get, put
 from pyVmomi import vim
-import winrm
 
 from vcdriver.auth import Session
 from vcdriver.config import DATA_STORE, RESOURCE_POOL, FOLDER
@@ -11,7 +10,8 @@ from vcdriver.helpers import (
     get_vcenter_object,
     wait_for_vcenter_task,
     wait_for_dhcp_server,
-    fabric_context
+    fabric_context,
+    winrm_session
 )
 
 
@@ -144,6 +144,29 @@ class VirtualMachine(object):
             if result.failed:
                 raise SshError(command, result.return_code)
             return result
+
+    def winrm_cmd(self, command, *args):
+        """
+        Execute a windows remote command
+        :param command: The command to be run
+        :param args: The command arguments
+
+        :return: A tuple with the status code, the stderr and the stdout
+        """
+        return winrm_session(
+            self.username, self.password, self.ip()
+        ).run_cmd(command, *args)
+
+    def winrm_ps(self, script):
+        """
+        Executes a remote windows powershell script
+        :param script: A string with the script
+
+        :return: A tuple with the status code, the stderr and the stdout
+        """
+        return winrm_session(
+            self.username, self.password, self.ip()
+        ).run_ps(script)
 
     def upload(self, remote_path, local_path, use_sudo=False):
         """
