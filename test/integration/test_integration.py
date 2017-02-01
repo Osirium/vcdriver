@@ -33,7 +33,7 @@ class TestIntegration(unittest.TestCase):
         except:
             pass
         try:
-            shutil.rmtree('dir-0')
+            os.remove('file-0')
         except:
             pass
 
@@ -50,14 +50,8 @@ class TestIntegration(unittest.TestCase):
         )
 
     def tearDown(self):
-        try:
-            self.unix.destroy()
-        except:
-            pass
-        try:
-            self.windows.destroy()
-        except:
-            pass
+        self.unix.destroy()
+        self.windows.destroy()
 
     def test_idempotent_methods(self):
         for vm in [self.unix, self.windows]:
@@ -100,15 +94,20 @@ class TestIntegration(unittest.TestCase):
             vms[1].find()
 
     def test_ip(self):
+        self.unix.create()
+        self.windows.create()
         socket.inet_aton(self.unix.ip())
         socket.inet_aton(self.windows.ip())
 
     def test_ssh(self):
+        self.unix.create()
         self.assertEqual(self.unix.ssh('ls').return_code, 0)
         with self.assertRaises(SshError):
             self.unix.ssh('wrong-command-seriously')
 
     def test_upload_and_download(self):
+        self.unix.create()
+        self.windows.create()
         for vm in [self.unix, self.windows]:
             self.assertEqual(
                 len(vm.upload(local_path='file-0', remote_path='file-0')), 1
