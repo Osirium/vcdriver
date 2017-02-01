@@ -157,22 +157,24 @@ class VirtualMachine(object):
         :param command: The command to be run
         :param args: The command arguments
 
-        :return: A tuple with the status code, the stderr and the stdout
+        :return: A tuple with the status code, the stdout and the stderr
         """
-        return winrm_session(
+        result = winrm_session(
             self.username, self.password, self.ip()
         ).run_cmd(command, *args)
+        return result.status_code, result.std_out, result.std_err
 
     def winrm_ps(self, script):
         """
         Executes a remote windows powershell script
         :param script: A string with the script
 
-        :return: A tuple with the status code, the stderr and the stdout
+        :return: A tuple with the status code, the stdout and the stderr
         """
-        return winrm_session(
+        result = winrm_session(
             self.username, self.password, self.ip()
         ).run_ps(script)
+        return result.status_code, result.std_out, result.std_err
 
     def upload(self, remote_path, local_path, use_sudo=False):
         """
