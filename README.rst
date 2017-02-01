@@ -53,8 +53,11 @@ You can run some integration tests to check it works fine for your Vcenter insta
 2. Provide some extra environment variables:
 
   - `VCDRIVER_TEST_FOLDER`: The name of the folder that will be used for the tests (Vms will be deleted inside this folder).
-  - `VCDRIVER_TEST_TEMPLATE`: The name of the virtual machine template (UNIX-like) that will be cloned for the tests.
-  - `VCDRIVER_TEST_USERNAME`: The username for that virtual machine.
-  - `VCDRIVER_TEST_PASSWORD`: The password for that user.
+  - `VCDRIVER_TEST_UNIX_TEMPLATE`: The name of the virtual machine template (UNIX like) that will be cloned for the tests.
+  - `VCDRIVER_TEST_UNIX_USERNAME`: The username for the UNIX virtual machine.
+  - `VCDRIVER_TEST_UNIX_PASSWORD`: The password for the UNIX user.
+  - `VCDRIVER_TEST_WINDOWS_TEMPLATE`: The name of the virtual machine template (Windows server like) that will be cloned for the tests.
+  - `VCDRIVER_TEST_WINDOWS_USERNAME`: The username for the Windows virtual machine.
+  - `VCDRIVER_TEST_WINDOWS_PASSWORD`: The password for the Windows user.
 
 3. Run `nosetests test/integration`.
