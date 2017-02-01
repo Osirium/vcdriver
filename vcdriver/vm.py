@@ -11,7 +11,12 @@ from vcdriver.config import (
     VM_USERNAME,
     VM_PASSWORD
 )
-from vcdriver.exceptions import SshError, UploadError, DownloadError
+from vcdriver.exceptions import (
+    SshError,
+    UploadError,
+    DownloadError,
+    WinRmError
+)
 from vcdriver.helpers import (
     get_vcenter_object,
     wait_for_vcenter_task,
@@ -158,11 +163,21 @@ class VirtualMachine(object):
         :param args: The command arguments
 
         :return: A tuple with the status code, the stdout and the stderr
+
+        :raise: WinRmError: If the command fails
         """
         result = winrm_session(
             self.username, self.password, self.ip()
         ).run_cmd(command, *args)
-        return result.status_code, result.std_out, result.std_err
+        if result.status_code != 0:
+            print('STDOUT: {}'.format(result.std_out))
+            print('STDERR: {}'.format(result.std_err))
+            raise WinRmError(
+                '{} {}'.format(command, ' '.join(map(str, args))),
+                result.status_code
+            )
+        else:
+            return result.status_code, result.std_out, result.std_err
 
     def winrm_ps(self, script):
         """
@@ -170,11 +185,18 @@ class VirtualMachine(object):
         :param script: A string with the script
 
         :return: A tuple with the status code, the stdout and the stderr
+
+        :raise: WinRmError: If the command fails
         """
         result = winrm_session(
             self.username, self.password, self.ip()
         ).run_ps(script)
-        return result.status_code, result.std_out, result.std_err
+        if result.status_code != 0:
+            print('STDOUT: {}'.format(result.std_out))
+            print('STDERR: {}'.format(result.std_err))
+            raise WinRmError(script, result.status_code)
+        else:
+            return result.status_code, result.std_out, result.std_err
 
     def upload(self, remote_path, local_path, use_sudo=False):
         """
@@ -195,10 +217,16 @@ class VirtualMachine(object):
                     use_sudo=use_sudo
                 )
                 if result.failed:
-                    raise UploadError(remote_path)
-            except ValueError as value_error:
-                print(value_error)
-                raise UploadError(remote_path)
+                    raise UploadError(
+                        local_path=local_path,
+                        remote_path=remote_path
+                    )
+            except Exception as e:
+                print(e.message)
+                raise UploadError(
+                    local_path=local_path,
+                    remote_path=remote_path
+                )
             return result
 
     def download(self, remote_path, local_path, use_sudo=False):
@@ -213,13 +241,23 @@ class VirtualMachine(object):
         :raise: DownloadError: If the task fails
         """
         with fabric_context(self.username, self.password, self.ip()):
-            result = get(
-                remote_path=remote_path,
-                local_path=local_path,
-                use_sudo=use_sudo
-            )
-            if result.failed:
-                raise DownloadError(remote_path)
+            try:
+                result = get(
+                    remote_path=remote_path,
+                    local_path=local_path,
+                    use_sudo=use_sudo
+                )
+                if result.failed:
+                    raise DownloadError(
+                        local_path=local_path,
+                        remote_path=remote_path
+                    )
+            except Exception as e:
+                print(e.message)
+                raise DownloadError(
+                        local_path=local_path,
+                        remote_path=remote_path
+                    )
             return result
 
     def print_summary(self):
