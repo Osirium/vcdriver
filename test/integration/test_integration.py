@@ -41,20 +41,28 @@ class TestIntegration(unittest.TestCase):
         self.unix = VirtualMachine(
             name='test-integration-vcdriver-unix',
             template=os.getenv('VCDRIVER_TEST_UNIX_TEMPLATE'),
-            folder=os.getenv('VCDRIVER_TEST_FOLDER')
+            folder=os.getenv('VCDRIVER_TEST_FOLDER'),
+            username=os.getenv('VCDRIVER_TEST_UNIX_USERNAME'),
+            password=os.getenv('VCDRIVER_TEST_UNIX_PASSWORD')
         )
         self.windows = VirtualMachine(
             name='test-integration-vcdriver-windows',
             template=os.getenv('VCDRIVER_TEST_WINDOWS_TEMPLATE'),
-            folder=os.getenv('VCDRIVER_TEST_FOLDER')
+            folder=os.getenv('VCDRIVER_TEST_FOLDER'),
+            username=os.getenv('VCDRIVER_TEST_WINDOWS_USERNAME'),
+            password=os.getenv('VCDRIVER_TEST_WINDOWS_PASSWORD')
         )
+        self.all_vms = [self.unix, self.windows]
 
     def tearDown(self):
-        self.unix.destroy()
-        self.windows.destroy()
+        for vm in self.all_vms:
+            try:
+                vm.destroy()
+            except:
+                pass
 
     def test_idempotent_methods(self):
-        for vm in [self.unix, self.windows]:
+        for vm in self.all_vms:
             with self.assertRaises(NoObjectFound):
                 vm.find()
             with self.assertRaises(NoObjectFound):
@@ -72,32 +80,27 @@ class TestIntegration(unittest.TestCase):
             self.assertIsNone(vm.__getattribute__('_vm_object'))
 
     def test_context_manager(self):
-        with self.assertRaises(NoObjectFound):
-            self.unix.find()
-        with self.assertRaises(NoObjectFound):
-            self.windows.find()
-        with virtual_machines([self.unix, self.windows]):
-            self.unix.find()
-            self.windows.find()
-        with self.assertRaises(NoObjectFound):
-            self.unix.find()
-        with self.assertRaises(NoObjectFound):
-            self.windows.find()
+        for vm in self.all_vms:
+            with self.assertRaises(NoObjectFound):
+                vm.find()
+        with virtual_machines(self.all_vms):
+            for vm in self.all_vms:
+                vm.find()
+        for vm in self.all_vms:
+            with self.assertRaises(NoObjectFound):
+                vm.find()
 
     def test_destroy_virtual_machines(self):
-        self.unix.create()
-        self.windows.create()
-        vms = destroy_virtual_machines(os.getenv('VCDRIVER_TEST_FOLDER'))
-        with self.assertRaises(NoObjectFound):
-            vms[0].find()
-        with self.assertRaises(NoObjectFound):
-            vms[1].find()
+        for vm in self.all_vms:
+            vm.create()
+        for vm in destroy_virtual_machines(os.getenv('VCDRIVER_TEST_FOLDER')):
+            with self.assertRaises(NoObjectFound):
+                vm.find()
 
     def test_ip(self):
-        self.unix.create()
-        self.windows.create()
-        socket.inet_aton(self.unix.ip())
-        socket.inet_aton(self.windows.ip())
+        for vm in self.all_vms:
+            vm.create()
+            socket.inet_aton(vm.ip())
 
     def test_ssh(self):
         self.unix.create()
@@ -106,9 +109,8 @@ class TestIntegration(unittest.TestCase):
             self.unix.ssh('wrong-command-seriously')
 
     def test_upload_and_download(self):
-        self.unix.create()
-        self.windows.create()
-        for vm in [self.unix, self.windows]:
+        for vm in self.all_vms:
+            vm.create()
             self.assertEqual(
                 len(vm.upload(local_path='file-0', remote_path='file-0')), 1
             )
@@ -132,11 +134,7 @@ class TestIntegration(unittest.TestCase):
             self.assertEqual(
                 len(vm.download(local_path='.', remote_path='dir-0')), 3
             )
-            os.remove('file-0')
-            shutil.rmtree('dir-0')
             with self.assertRaises(DownloadError):
                 vm.download(local_path='file-0', remote_path='wrong-path')
-            with self.assertRaises(UploadError):
-                vm.upload(local_path='wrong-path', remote_path='file-0')
             with self.assertRaises(UploadError):
                 vm.upload(local_path='dir-0', remote_path='wrong-path')
