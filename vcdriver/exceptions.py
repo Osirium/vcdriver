@@ -23,28 +23,33 @@ class TimeoutError(Exception):
         )
 
 
-class CommandError(Exception):
+class RemoteCommandError(Exception):
     def __init__(self, command, return_code):
-        super(CommandError, self).__init__(
+        super(RemoteCommandError, self).__init__(
             '"{}" failed with exit code {}'.format(command, return_code)
         )
 
 
-class SshError(CommandError):
+class SshError(RemoteCommandError):
     pass
 
 
-class WinRmError(CommandError):
+class WinRmError(RemoteCommandError):
     pass
 
 
-class UploadError(Exception):
-    def __init__(self, path):
-        super(UploadError, self).__init__('Failed to upload "{}"'.format(path))
-
-
-class DownloadError(Exception):
-    def __init__(self, path):
-        super(DownloadError, self).__init__(
-            'Failed to download "{}"'.format(path)
+class FileTransferError(Exception):
+    def __init__(self, local_path, remote_path):
+        super(FileTransferError, self).__init__(
+            'Local path: "{}" Remote path: "{}"'.format(
+                local_path, remote_path
+            )
         )
+
+
+class UploadError(FileTransferError):
+    pass
+
+
+class DownloadError(FileTransferError):
+    pass
