@@ -210,24 +210,18 @@ class VirtualMachine(object):
         :raise: UploadError: If the task fails
         """
         with fabric_context(self.username, self.password, self.ip()):
-            try:
-                result = put(
-                    remote_path=remote_path,
-                    local_path=local_path,
-                    use_sudo=use_sudo
-                )
-                if result.failed:
-                    raise UploadError(
-                        local_path=local_path,
-                        remote_path=remote_path
-                    )
-            except Exception as e:
-                print(e.message)
+            result = put(
+                remote_path=remote_path,
+                local_path=local_path,
+                use_sudo=use_sudo
+            )
+            if result.failed:
                 raise UploadError(
                     local_path=local_path,
                     remote_path=remote_path
                 )
-            return result
+            else:
+                return result
 
     def download(self, remote_path, local_path, use_sudo=False):
         """
@@ -241,24 +235,18 @@ class VirtualMachine(object):
         :raise: DownloadError: If the task fails
         """
         with fabric_context(self.username, self.password, self.ip()):
-            try:
-                result = get(
-                    remote_path=remote_path,
-                    local_path=local_path,
-                    use_sudo=use_sudo
-                )
-                if result.failed:
-                    raise DownloadError(
-                        local_path=local_path,
-                        remote_path=remote_path
-                    )
-            except Exception as e:
-                print(e.message)
+            result = get(
+                remote_path=remote_path,
+                local_path=local_path,
+                use_sudo=use_sudo
+            )
+            if result.failed:
                 raise DownloadError(
-                        local_path=local_path,
-                        remote_path=remote_path
-                    )
-            return result
+                    local_path=local_path,
+                    remote_path=remote_path
+                )
+            else:
+                return result
 
     def print_summary(self):
         """ Print a nice summary of the virtual machine """

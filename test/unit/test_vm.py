@@ -4,7 +4,12 @@ import unittest
 from pyVmomi import vim
 import winrm
 
-from vcdriver.exceptions import SshError, DownloadError, UploadError
+from vcdriver.exceptions import (
+    SshError,
+    DownloadError,
+    UploadError,
+    WinRmError
+)
 from vcdriver.vm import VirtualMachine, virtual_machines
 
 
@@ -103,26 +108,46 @@ class TestVm(unittest.TestCase):
 
     @mock.patch('vcdriver.vm.Session')
     @mock.patch('vcdriver.vm.run')
-    def test_virtual_machine_ssh_failed(self, run, session):
+    def test_virtual_machine_ssh_fail(self, run, session):
         vm = VirtualMachine()
         with self.assertRaises(SshError):
             vm.ssh('whatever', use_sudo=False)
 
     @mock.patch('vcdriver.vm.Session')
     @mock.patch.object(winrm.Session, 'run_cmd')
-    def test_virtual_machine_winrm_cmd(self, winrm_session, session):
+    def test_virtual_machine_winrm_cmd_success(self, winrm_session, session):
+        winrm_session.return_value.status_code = 0
         vm = VirtualMachine(username='user', password='pass')
         vm.__setattr__('ip', lambda: '127.0.0.1')
         vm.winrm_cmd('cmd', 1, 2, 3)
         winrm_session.assert_called_once_with('cmd', 1, 2, 3)
 
     @mock.patch('vcdriver.vm.Session')
+    @mock.patch.object(winrm.Session, 'run_cmd')
+    def test_virtual_machine_winrm_cmd_fail(self, winrm_session, session):
+        winrm_session.return_value.status_code = 1
+        vm = VirtualMachine(username='user', password='pass')
+        vm.__setattr__('ip', lambda: '127.0.0.1')
+        with self.assertRaises(WinRmError):
+            vm.winrm_cmd('cmd', 1, 2, 3)
+
+    @mock.patch('vcdriver.vm.Session')
     @mock.patch.object(winrm.Session, 'run_ps')
-    def test_virtual_machine_winrm_ps(self, winrm_session, session):
+    def test_virtual_machine_winrm_ps_success(self, winrm_session, session):
+        winrm_session.return_value.status_code = 0
         vm = VirtualMachine(username='user', password='pass')
         vm.__setattr__('ip', lambda: '127.0.0.1')
         vm.winrm_ps('script')
         winrm_session.assert_called_once_with('script')
+
+    @mock.patch('vcdriver.vm.Session')
+    @mock.patch.object(winrm.Session, 'run_ps')
+    def test_virtual_machine_winrm_ps_fail(self, winrm_session, session):
+        winrm_session.return_value.status_code = 1
+        vm = VirtualMachine(username='user', password='pass')
+        vm.__setattr__('ip', lambda: '127.0.0.1')
+        with self.assertRaises(WinRmError):
+            vm.winrm_ps('script')
 
     @mock.patch('vcdriver.vm.Session')
     @mock.patch('vcdriver.vm.put')
@@ -137,14 +162,6 @@ class TestVm(unittest.TestCase):
     @mock.patch('vcdriver.vm.put')
     def test_virtual_machine_upload_fail(self, put, session):
         vm = VirtualMachine()
-        with self.assertRaises(UploadError):
-            vm.upload('from', 'to')
-
-    @mock.patch('vcdriver.vm.Session')
-    @mock.patch('vcdriver.vm.put')
-    def test_virtual_machine_upload_fail_with_value_error(self, put, session):
-        vm = VirtualMachine()
-        put.side_effect = ValueError
         with self.assertRaises(UploadError):
             vm.upload('from', 'to')
 
