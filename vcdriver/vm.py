@@ -167,8 +167,8 @@ class VirtualMachine(object):
         :raise: WinRmError: If the command fails
         """
         result = winrm_session(
-            self.username, self.password, self.ip()
-        ).run_cmd(command, *args)
+            self.username, self.password, self.ip(), self.timeout
+        ).run_cmd(command, args)
         if result.status_code != 0:
             print('STDOUT: {}'.format(result.std_out))
             print('STDERR: {}'.format(result.std_err))
@@ -189,7 +189,7 @@ class VirtualMachine(object):
         :raise: WinRmError: If the command fails
         """
         result = winrm_session(
-            self.username, self.password, self.ip()
+            self.username, self.password, self.ip(), self.timeout
         ).run_ps(script)
         if result.status_code != 0:
             print('STDOUT: {}'.format(result.std_out))

@@ -42,7 +42,7 @@ def get_vcenter_object(connection, object_type, name):
         raise NoObjectFound(object_type, name)
 
 
-def wait_for_vcenter_task(task, task_description, timeout=600):
+def wait_for_vcenter_task(task, task_description, timeout=3600):
     """
     Wait for a vcenter task to finish
     :param task: A vcenter task object
@@ -56,7 +56,7 @@ def wait_for_vcenter_task(task, task_description, timeout=600):
     _timeout_loop(
         timeout=timeout,
         description=task_description,
-        callback=lambda: task.info.state == vim.TaskInfo.State.running
+        callback=lambda: task.info.state != vim.TaskInfo.State.running,
     )
     if task.info.state == vim.TaskInfo.State.success:
         return task.info.result
@@ -64,7 +64,7 @@ def wait_for_vcenter_task(task, task_description, timeout=600):
         raise task.info.error
 
 
-def wait_for_dhcp_server(vm_object, timeout=120):
+def wait_for_dhcp_server(vm_object, timeout=3600):
     """
     Wait for the virtual machine to have an IP
     :param vm_object: A vcenter virtual machine object
@@ -77,7 +77,7 @@ def wait_for_dhcp_server(vm_object, timeout=120):
     _timeout_loop(
         timeout=timeout,
         description='Get IP',
-        callback=lambda: not vm_object.summary.guest.ipAddress
+        callback=lambda: vm_object.summary.guest.ipAddress
     )
     return vm_object.summary.guest.ipAddress
 
@@ -99,15 +99,24 @@ def fabric_context(username, password, ip):
         yield
 
 
-def winrm_session(username, password, ip):
+def winrm_session(username, password, ip, timeout):
     """
-    Create a pywinrm session
+    Wait until the WinRM service is ready and return a pywinrm session
     :param username: The username
     :param password: The password
     :param ip: The ip
+    :param timeout: The timeout, in seconds
 
     :return: The session object
     """
+    _timeout_loop(
+        username=username,
+        password=password,
+        ip=ip,
+        timeout=timeout,
+        description='Check WinRM service',
+        callback=_check_winrm_service
+    )
     return winrm.Session(target=ip, auth=(username, password))
 
 
@@ -116,7 +125,8 @@ def _timeout_loop(timeout, description, callback, *args, **kwargs):
     Wait in a while loop for a task to complete
     :param timeout: The timeout, in seconds
     :param description: The task description
-    :param callback: A function that evaluates as the while loop condition
+    :param callback: If the function is True, the while loop will break
+    :param step: The step of the waiting in seconds
     :param args: The positional arguments of the callback
     :param kwargs: The keyword arguments of the callback
 
@@ -126,9 +136,25 @@ def _timeout_loop(timeout, description, callback, *args, **kwargs):
     start = time.time()
     print('Waiting on [{}] ... '.format(description), end='')
     sys.stdout.flush()
-    while callback(*args, **kwargs) and countdown:
+    while not callback(*args, **kwargs) and countdown:
         time.sleep(1)
         countdown -= 1
     if countdown <= 0:
         raise TimeoutError(description, timeout)
     print(datetime.timedelta(seconds=time.time() - start))
+
+
+def _check_winrm_service(username, password, ip):
+    """
+    Check whether the winrm service is up or not
+    :param username: The user
+    :param password: The password
+    :param ip: The target machine ip
+
+    :return: True if ready, False otherwise
+    """
+    try:
+        winrm.Session(target=ip, auth=(username, password)).run_cmd('ipconfig')
+        return True
+    except:
+        return False

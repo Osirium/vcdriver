@@ -7,7 +7,8 @@ from vcdriver.exceptions import (
     NoObjectFound,
     DownloadError,
     UploadError,
-    SshError
+    SshError,
+    WinRmError
 )
 from vcdriver.vm import VirtualMachine, virtual_machines
 from vcdriver.folder import destroy_virtual_machines
@@ -107,6 +108,13 @@ class TestIntegration(unittest.TestCase):
         self.assertEqual(self.unix.ssh('ls').return_code, 0)
         with self.assertRaises(SshError):
             self.unix.ssh('wrong-command-seriously')
+
+    def test_winrm_cmd_and_ps(self):
+        self.windows.create()
+        self.windows.winrm_cmd('ipconfig', '/all')
+        with self.assertRaises(WinRmError):
+            self.windows.winrm_cmd('ipconfig-wrong', '/all')
+        # TODO: Test winrm_ps
 
     def test_upload_and_download(self):
         for vm in self.all_vms:
