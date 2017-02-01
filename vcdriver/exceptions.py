@@ -23,11 +23,19 @@ class TimeoutError(Exception):
         )
 
 
-class SshError(Exception):
+class CommandError(Exception):
     def __init__(self, command, return_code):
-        super(SshError, self).__init__(
+        super(CommandError, self).__init__(
             '"{}" failed with exit code {}'.format(command, return_code)
         )
+
+
+class SshError(CommandError):
+    pass
+
+
+class WinRmError(CommandError):
+    pass
 
 
 class UploadError(Exception):
