@@ -29,7 +29,7 @@ class VirtualMachine(object):
             folder=FOLDER,
             name=None,
             template=None,
-            timeout=600,
+            timeout=3600,
             username=VM_USERNAME,
             password=VM_PASSWORD
     ):
