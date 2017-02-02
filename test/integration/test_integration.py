@@ -104,10 +104,11 @@ class TestIntegration(unittest.TestCase):
             socket.inet_aton(vm.ip())
 
     def test_ssh(self):
-        self.unix.create()
-        self.assertEqual(self.unix.ssh('ls').return_code, 0)
-        with self.assertRaises(SshError):
-            self.unix.ssh('wrong-command-seriously')
+        for vm in self.all_vms:
+            vm.create()
+            self.assertEqual(vm.ssh('ls').return_code, 0)
+            with self.assertRaises(SshError):
+                vm.ssh('wrong-command-seriously')
 
     def test_winrm_cmd_and_ps(self):
         self.windows.create()

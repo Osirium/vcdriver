@@ -16,7 +16,11 @@
 About
 =====
 
-This project started from the need of using Vcenter for testing purposes, although it can also be used to manage your Vcenter instance for other general tasks.
+Vcdriver is a wrapper around pyvmomi that lets you create, find and destroy virtual machines on your Vcenter/Vsphere instance. I also lets you manage those virtual machines:
+
+- SSH protocol for remote commands (Requires the SSH service)
+- SFTP protocol for file transfers (Requires the SSH service)
+- WinRM protocol for remote commands on Windows machines (Only for Windows, requires the WinRM service)
 
 How does it work underneath?
 ============================
