@@ -82,7 +82,7 @@ def wait_for_vcenter_task(task, task_description, timeout):
         raise task.info.error
 
 
-def wait_for_dhcp_server(vm_object, timeout):
+def wait_for_dhcp_service(vm_object, timeout):
     """
     Wait for the virtual machine to have an IP
     :param vm_object: A vcenter virtual machine object
@@ -102,12 +102,12 @@ def wait_for_dhcp_server(vm_object, timeout):
 
 def wait_for_ssh_service(username, password, ip, timeout):
     """
-        Wait until the SSH service is ready
-        :param username: The username
-        :param password: The password
-        :param ip: The target ip
-        :param timeout: The timeout, in seconds
-        """
+    Wait until the SSH service is ready
+    :param username: The username
+    :param password: The password
+    :param ip: The target ip
+    :param timeout: The timeout, in seconds
+    """
     _timeout_loop(
         username=username,
         password=password,
@@ -118,27 +118,24 @@ def wait_for_ssh_service(username, password, ip, timeout):
     )
 
 
-def wait_for_winrm_service(username, password, target, timeout, **kwargs):
+def wait_for_winrm_service(username, password, ip, timeout, **kwargs):
     """
-    Wait until the WinRM service is ready and return a pywinrm session
+    Wait until the WinRM service is ready
     :param username: The username
     :param password: The password
-    :param target: The target hostname or ip
+    :param ip: The target ip
     :param timeout: The timeout, in seconds
     :param kwargs: pywinrm Protocol kwargs
-
-    :return: The session object
     """
     _timeout_loop(
         username=username,
         password=password,
-        target=target,
+        ip=ip,
         timeout=timeout,
         description='Check WinRM service',
         callback=_check_winrm_service,
         **kwargs
     )
-    return winrm.Session(target=target, auth=(username, password), **kwargs)
 
 
 def _timeout_loop(
@@ -188,19 +185,19 @@ def _check_sshservice(username, password, ip):
         return False
 
 
-def _check_winrm_service(username, password, target, **kwargs):
+def _check_winrm_service(username, password, ip, **kwargs):
     """
     Check whether the winrm service is up or not
     :param username: The user
     :param password: The password
-    :param target: The target hostname or ip
+    :param ip: The target ip
     :param kwargs: pywinrm Protocol kwargs
 
     :return: True if ready, False otherwise
     """
     try:
         winrm.Session(
-            target=target, auth=(username, password), **kwargs
+            target=ip, auth=(username, password), **kwargs
         ).run_cmd('')
         return True
     except:

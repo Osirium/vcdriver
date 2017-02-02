@@ -43,15 +43,15 @@ class TestIntegration(unittest.TestCase):
             name='test-integration-vcdriver-unix',
             template=os.getenv('VCDRIVER_TEST_UNIX_TEMPLATE'),
             folder=os.getenv('VCDRIVER_TEST_FOLDER'),
-            username=os.getenv('VCDRIVER_TEST_UNIX_USERNAME'),
-            password=os.getenv('VCDRIVER_TEST_UNIX_PASSWORD')
+            ssh_username=os.getenv('VCDRIVER_TEST_UNIX_USERNAME'),
+            ssh_password=os.getenv('VCDRIVER_TEST_UNIX_PASSWORD')
         )
         self.windows = VirtualMachine(
             name='test-integration-vcdriver-windows',
             template=os.getenv('VCDRIVER_TEST_WINDOWS_TEMPLATE'),
             folder=os.getenv('VCDRIVER_TEST_FOLDER'),
-            username=os.getenv('VCDRIVER_TEST_WINDOWS_USERNAME'),
-            password=os.getenv('VCDRIVER_TEST_WINDOWS_PASSWORD')
+            winrm_username=os.getenv('VCDRIVER_TEST_WINDOWS_USERNAME'),
+            winrm_password=os.getenv('VCDRIVER_TEST_WINDOWS_PASSWORD')
         )
         self.all_vms = [self.unix, self.windows]
 
@@ -109,15 +109,6 @@ class TestIntegration(unittest.TestCase):
         with self.assertRaises(SshError):
             self.unix.ssh('wrong-command-seriously')
 
-    def test_winrm_cmd_and_ps(self):
-        self.windows.create()
-        self.windows.winrm_cmd('ipconfig', '/all')
-        with self.assertRaises(WinRmError):
-            self.windows.winrm_cmd('ipconfig-wrong', '/all')
-        self.windows.winrm_ps('ipconfig /all')
-        with self.assertRaises(WinRmError):
-            self.windows.winrm_ps('ipconfig-wrong /all')
-
     def test_upload_and_download(self):
         self.unix.create()
         self.assertEqual(
@@ -148,3 +139,12 @@ class TestIntegration(unittest.TestCase):
             self.unix.download(local_path='file-0', remote_path='wrong-path')
         with self.assertRaises(UploadError):
             self.unix.upload(local_path='dir-0', remote_path='wrong-path')
+
+    def test_winrm_cmd_and_ps(self):
+        self.windows.create()
+        self.windows.winrm_cmd('ipconfig', '/all')
+        with self.assertRaises(WinRmError):
+            self.windows.winrm_cmd('ipconfig-wrong', '/all')
+        self.windows.winrm_ps('ipconfig /all')
+        with self.assertRaises(WinRmError):
+            self.windows.winrm_ps('ipconfig-wrong /all')

@@ -19,10 +19,10 @@ class TestVm(unittest.TestCase):
     @mock.patch('vcdriver.vm.vim.vm.CloneSpec')
     @mock.patch('vcdriver.vm.vim.vm.RelocateSpec')
     @mock.patch('vcdriver.vm.wait_for_vcenter_task')
-    @mock.patch('vcdriver.vm.wait_for_dhcp_server')
+    @mock.patch('vcdriver.vm.wait_for_dhcp_service')
     def test_virtual_machine_create(
             self,
-            wait_for_dhcp_server,
+            wait_for_dhcp_service,
             wait_for_vcenter_task,
             relocate_spec,
             clone_spec,
@@ -78,21 +78,52 @@ class TestVm(unittest.TestCase):
         self.assertEqual(get_vcenter_object.call_count, 1)
 
     @mock.patch('vcdriver.vm.Session')
-    @mock.patch('vcdriver.vm.wait_for_dhcp_server')
-    def test_virtual_machine_ip(self, wait_for_dhcp_server, session):
+    @mock.patch('vcdriver.vm.wait_for_dhcp_service')
+    def test_virtual_machine_ip(self, wait_for_dhcp_service, session):
         vm = VirtualMachine()
-        wait_for_dhcp_server.return_value = '10.0.0.1'
+        wait_for_dhcp_service.return_value = '10.0.0.1'
         self.assertEqual(vm.ip(), None)
         vm.__setattr__('_vm_object', 'Something')
         self.assertEqual(vm.ip(), '10.0.0.1')
         self.assertEqual(vm.ip(), '10.0.0.1')
         self.assertEqual(vm.ip(use_cache=False), '10.0.0.1')
-        self.assertEqual(wait_for_dhcp_server.call_count, 2)
+        self.assertEqual(wait_for_dhcp_service.call_count, 2)
+
+    @mock.patch('vcdriver.vm.Session')
+    @mock.patch('vcdriver.vm.wait_for_ssh_service')
+    def test_virtual_machine_check_ssh_service(
+            self, wait_for_ssh_service, session
+    ):
+        vm = VirtualMachine()
+        self.assertEqual(vm.__getattribute__('_ssh_ready'), False)
+        vm.check_ssh_service(use_cache=True)
+        self.assertEqual(vm.__getattribute__('_ssh_ready'), True)
+        vm.check_ssh_service(use_cache=True)
+        vm.check_ssh_service(use_cache=False)
+        self.assertEqual(vm.__getattribute__('_ssh_ready'), True)
+        self.assertEqual(wait_for_ssh_service.call_count, 2)
+
+    @mock.patch('vcdriver.vm.Session')
+    @mock.patch('vcdriver.vm.wait_for_winrm_service')
+    def test_virtual_machine_check_winrm_service(
+            self, wait_for_winrm_service, session
+    ):
+        vm = VirtualMachine()
+        self.assertEqual(vm.__getattribute__('_winrm_ready'), False)
+        vm.check_winrm_service(use_cache=True)
+        self.assertEqual(vm.__getattribute__('_winrm_ready'), True)
+        vm.check_winrm_service(use_cache=True)
+        vm.check_winrm_service(use_cache=False)
+        self.assertEqual(vm.__getattribute__('_winrm_ready'), True)
+        self.assertEqual(wait_for_winrm_service.call_count, 2)
 
     @mock.patch('vcdriver.vm.Session')
     @mock.patch('vcdriver.vm.sudo')
     @mock.patch('vcdriver.vm.run')
-    def test_virtual_machine_ssh_success(self, run, sudo, session):
+    @mock.patch.object(VirtualMachine, 'check_ssh_service')
+    def test_virtual_machine_ssh_success(
+            self, check_ssh_service, run, sudo, session
+    ):
         vm = VirtualMachine()
         result_mock = mock.MagicMock()
         result_mock.return_code = 3
@@ -108,53 +139,18 @@ class TestVm(unittest.TestCase):
 
     @mock.patch('vcdriver.vm.Session')
     @mock.patch('vcdriver.vm.run')
-    def test_virtual_machine_ssh_fail(self, run, session):
+    @mock.patch.object(VirtualMachine, 'check_ssh_service')
+    def test_virtual_machine_ssh_fail(self, check_ssh_service, run, session):
         vm = VirtualMachine()
         with self.assertRaises(SshError):
             vm.ssh('whatever', use_sudo=False)
 
     @mock.patch('vcdriver.vm.Session')
-    @mock.patch.object(winrm.Session, 'run_cmd')
-    def test_virtual_machine_winrm_cmd_success(self, run_cmd, session):
-        run_cmd.return_value.status_code = 0
-        vm = VirtualMachine(username='user', password='pass')
-        vm.__setattr__('ip', lambda: '127.0.0.1')
-        vm.winrm_cmd('cmd', 1, 2, 3)
-        run_cmd.assert_called_with('cmd', (1, 2, 3))
-        self.assertEqual(run_cmd.call_count, 2)
-
-    @mock.patch('vcdriver.vm.Session')
-    @mock.patch.object(winrm.Session, 'run_cmd')
-    def test_virtual_machine_winrm_cmd_fail(self, run_cmd, session):
-        run_cmd.return_value.status_code = 1
-        vm = VirtualMachine(username='user', password='pass')
-        vm.__setattr__('ip', lambda: '127.0.0.1')
-        with self.assertRaises(WinRmError):
-            vm.winrm_cmd('cmd', 1, 2, 3)
-
-    @mock.patch('vcdriver.vm.Session')
-    @mock.patch.object(winrm.Session, 'run_ps')
-    @mock.patch.object(winrm.Session, 'run_cmd')
-    def test_virtual_machine_winrm_ps_success(self, run_cmd, run_ps, session):
-        run_ps.return_value.status_code = 0
-        vm = VirtualMachine(username='user', password='pass')
-        vm.__setattr__('ip', lambda: '127.0.0.1')
-        vm.winrm_ps('script')
-        run_ps.assert_called_once_with('script')
-
-    @mock.patch('vcdriver.vm.Session')
-    @mock.patch.object(winrm.Session, 'run_ps')
-    @mock.patch.object(winrm.Session, 'run_cmd')
-    def test_virtual_machine_winrm_ps_fail(self, run_cmd, run_ps, session):
-        run_ps.return_value.status_code = 1
-        vm = VirtualMachine(username='user', password='pass')
-        vm.__setattr__('ip', lambda: '127.0.0.1')
-        with self.assertRaises(WinRmError):
-            vm.winrm_ps('script')
-
-    @mock.patch('vcdriver.vm.Session')
     @mock.patch('vcdriver.vm.put')
-    def test_virtual_machine_upload_success(self, put, session):
+    @mock.patch.object(VirtualMachine, 'check_ssh_service')
+    def test_virtual_machine_upload_success(
+            self, check_ssh_service, put, session
+    ):
         vm = VirtualMachine()
         result_mock = mock.MagicMock()
         result_mock.failed = False
@@ -163,14 +159,20 @@ class TestVm(unittest.TestCase):
 
     @mock.patch('vcdriver.vm.Session')
     @mock.patch('vcdriver.vm.put')
-    def test_virtual_machine_upload_fail(self, put, session):
+    @mock.patch.object(VirtualMachine, 'check_ssh_service')
+    def test_virtual_machine_upload_fail(
+            self, check_ssh_service, put, session
+    ):
         vm = VirtualMachine()
         with self.assertRaises(UploadError):
             vm.upload('from', 'to')
 
     @mock.patch('vcdriver.vm.Session')
     @mock.patch('vcdriver.vm.get')
-    def test_virtual_machine_download_success(self, get, session):
+    @mock.patch.object(VirtualMachine, 'check_ssh_service')
+    def test_virtual_machine_download_success(
+            self, check_ssh_service, get, session
+    ):
         vm = VirtualMachine()
         result_mock = mock.MagicMock()
         result_mock.failed = False
@@ -179,10 +181,70 @@ class TestVm(unittest.TestCase):
 
     @mock.patch('vcdriver.vm.Session')
     @mock.patch('vcdriver.vm.get')
-    def test_virtual_machine_download_fail(self, get, session):
+    @mock.patch.object(VirtualMachine, 'check_ssh_service')
+    def test_virtual_machine_download_fail(
+            self, check_ssh_service, get, session
+    ):
         vm = VirtualMachine()
         with self.assertRaises(DownloadError):
             vm.download('from', 'to')
+
+    @mock.patch('vcdriver.vm.Session')
+    @mock.patch.object(winrm.Session, 'run_cmd')
+    @mock.patch.object(VirtualMachine, 'check_winrm_service')
+    @mock.patch.object(VirtualMachine, 'ip')
+    def test_virtual_machine_winrm_cmd_success(
+            self, ip, check_winrm_service, run_cmd, session
+    ):
+        ip.return_value = '127.0.0.1'
+        run_cmd.return_value.status_code = 0
+        vm = VirtualMachine(winrm_username='user', winrm_password='pass')
+        vm.winrm_cmd('cmd', (1, 2, 3))
+        run_cmd.assert_called_with('cmd', (1, 2, 3))
+        self.assertEqual(run_cmd.call_count, 1)
+
+    @mock.patch('vcdriver.vm.Session')
+    @mock.patch.object(winrm.Session, 'run_cmd')
+    @mock.patch.object(VirtualMachine, 'check_winrm_service')
+    @mock.patch.object(VirtualMachine, 'ip')
+    def test_virtual_machine_winrm_cmd_fail(
+            self, ip, check_winrm_service, run_cmd, session
+    ):
+        ip.return_value = '127.0.0.1'
+        run_cmd.return_value.status_code = 1
+        vm = VirtualMachine(winrm_username='user', winrm_password='pass')
+        with self.assertRaises(WinRmError):
+            vm.winrm_cmd('cmd', (1, 2, 3))
+
+    @mock.patch('vcdriver.vm.Session')
+    @mock.patch.object(winrm.Session, 'run_ps')
+    @mock.patch.object(VirtualMachine, 'check_winrm_service')
+    @mock.patch.object(VirtualMachine, 'ip')
+    def test_virtual_machine_winrm_ps_success(
+            self, ip, check_winrm_service, run_ps, session
+    ):
+        ip.return_value = '127.0.0.1'
+        run_ps.return_value.status_code = 0
+        vm = VirtualMachine(winrm_username='user', winrm_password='pass')
+        vm.winrm_ps('script')
+        run_ps.assert_called_once_with('script')
+
+    @mock.patch('vcdriver.vm.Session')
+    @mock.patch.object(winrm.Session, 'run_ps')
+    @mock.patch.object(VirtualMachine, 'check_winrm_service')
+    @mock.patch.object(VirtualMachine, 'ip')
+    def test_virtual_machine_winrm_ps_fail(
+            self, ip, check_winrm_service, run_ps, session
+    ):
+        ip.return_value = '127.0.0.1'
+        run_ps.return_value.status_code = 1
+        vm = VirtualMachine(winrm_username='user', winrm_password='pass')
+        with self.assertRaises(WinRmError):
+            vm.winrm_ps('script')
+
+    @mock.patch('vcdriver.vm.Session')
+    def test_virtual_machine_print_summary(self, session):
+        VirtualMachine().print_summary()
 
     @mock.patch('vcdriver.vm.Session')
     @mock.patch.object(VirtualMachine, 'create')
@@ -204,7 +266,3 @@ class TestVm(unittest.TestCase):
                 raise Exception
         create.assert_called_once_with()
         destroy.assert_called_once_with()
-
-    @mock.patch('vcdriver.vm.Session')
-    def test_virtual_machine_print_summary(self, session):
-        VirtualMachine().print_summary()

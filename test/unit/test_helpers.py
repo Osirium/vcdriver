@@ -12,7 +12,7 @@ from vcdriver.exceptions import (
 from vcdriver.helpers import (
     get_vcenter_object,
     wait_for_vcenter_task,
-    wait_for_dhcp_server,
+    wait_for_dhcp_service,
     wait_for_ssh_service,
     wait_for_winrm_service
 )
@@ -71,7 +71,7 @@ class TestHelpers(unittest.TestCase):
         vm_object = mock.MagicMock()
         vm_object.summary.guest.ipAddress = '10.0.0.1'
         self.assertEqual(
-            wait_for_dhcp_server(vm_object, timeout=1),
+            wait_for_dhcp_service(vm_object, timeout=1),
             '10.0.0.1'
         )
 
@@ -79,7 +79,7 @@ class TestHelpers(unittest.TestCase):
         vm_object = mock.MagicMock()
         vm_object.summary.guest.ipAddress = None
         with self.assertRaises(TimeoutError):
-            wait_for_dhcp_server(vm_object, timeout=1)
+            wait_for_dhcp_service(vm_object, timeout=1)
 
     @mock.patch('vcdriver.helpers.run')
     def test_wait_for_ssh_service_success(self, run):
