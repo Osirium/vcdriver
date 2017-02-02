@@ -120,25 +120,31 @@ def winrm_session(username, password, ip, timeout):
     return winrm.Session(target=ip, auth=(username, password))
 
 
-def _timeout_loop(timeout, description, callback, *args, **kwargs):
+def _timeout_loop(
+        timeout, description, callback, wait_until_retry=1, *args, **kwargs
+):
     """
-    Wait in a while loop for a task to complete
+    Wait inside a blocking loop for a task to complete
     :param timeout: The timeout, in seconds
     :param description: The task description
-    :param callback: If the function is True, the while loop will break
-    :param step: The step of the waiting in seconds
+    :param callback: If this function is True, the while loop will break
+    :param wait_until_retry: Seconds you wait before re-checking the callback
     :param args: The positional arguments of the callback
     :param kwargs: The keyword arguments of the callback
 
     :raise: TimeoutError: If the timeout is reached
     """
-    countdown = timeout
-    start = time.time()
     print('Waiting on [{}] ... '.format(description), end='')
     sys.stdout.flush()
-    while not callback(*args, **kwargs) and countdown:
-        time.sleep(1)
-        countdown -= 1
+    countdown = timeout
+    start = time.time()
+    while countdown >= 0:
+        callback_start = time.time()
+        if callback(*args, **kwargs):
+            break
+        callback_time = time.time() - callback_start
+        time.sleep(wait_until_retry)
+        countdown = countdown - wait_until_retry - callback_time
     if countdown <= 0:
         raise TimeoutError(description, timeout)
     print(datetime.timedelta(seconds=time.time() - start))
