@@ -114,7 +114,9 @@ class TestIntegration(unittest.TestCase):
         self.windows.winrm_cmd('ipconfig', '/all')
         with self.assertRaises(WinRmError):
             self.windows.winrm_cmd('ipconfig-wrong', '/all')
-        # TODO: Test winrm_ps
+        self.windows.winrm_ps('ipconfig /all')
+        with self.assertRaises(WinRmError):
+            self.windows.winrm_ps('ipconfig-wrong /all')
 
     def test_upload_and_download(self):
         for vm in self.all_vms:
