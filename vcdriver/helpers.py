@@ -99,7 +99,7 @@ def fabric_context(username, password, ip):
         yield
 
 
-def winrm_session(username, password, ip, timeout):
+def wait_for_winrm_service(username, password, ip, timeout):
     """
     Wait until the WinRM service is ready and return a pywinrm session
     :param username: The username

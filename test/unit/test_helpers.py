@@ -11,7 +11,8 @@ from vcdriver.exceptions import (
 from vcdriver.helpers import (
     get_vcenter_object,
     wait_for_vcenter_task,
-    wait_for_dhcp_server
+    wait_for_dhcp_server,
+    wait_for_winrm_service
 )
 
 
@@ -71,3 +72,7 @@ class TestHelpers(unittest.TestCase):
         vm_object.summary.guest.ipAddress = None
         with self.assertRaises(TimeoutError):
             wait_for_dhcp_server(vm_object, timeout=1)
+
+    def test_wait_for_winrm_service_timeout(self):
+        with self.assertRaises(TimeoutError):
+            wait_for_winrm_service('', '', '', timeout=1)

@@ -22,7 +22,7 @@ from vcdriver.helpers import (
     wait_for_vcenter_task,
     wait_for_dhcp_server,
     fabric_context,
-    winrm_session
+    wait_for_winrm_service
 )
 
 
@@ -166,7 +166,7 @@ class VirtualMachine(object):
 
         :raise: WinRmError: If the command fails
         """
-        result = winrm_session(
+        result = wait_for_winrm_service(
             self.username, self.password, self.ip(), self.timeout
         ).run_cmd(command, args)
         if result.status_code != 0:
@@ -188,7 +188,7 @@ class VirtualMachine(object):
 
         :raise: WinRmError: If the command fails
         """
-        result = winrm_session(
+        result = wait_for_winrm_service(
             self.username, self.password, self.ip(), self.timeout
         ).run_ps(script)
         if result.status_code != 0:
