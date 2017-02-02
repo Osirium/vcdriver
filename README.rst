@@ -18,8 +18,8 @@ About
 
 Vcdriver is a wrapper around pyvmomi that lets you create, find and destroy virtual machines on your Vcenter/Vsphere instance. I also lets you manage those virtual machines:
 
-- SSH protocol for remote commands (Requires the SSH service)
-- SFTP protocol for file transfers (Requires the SSH service)
+- SSH protocol for remote commands (Only for Unix, Requires the SSH service)
+- SFTP protocol for file transfers (Only for Unix, Requires the SSH service)
 - WinRM protocol for remote commands on Windows machines (Only for Windows, requires the WinRM service)
 
 How does it work underneath?
@@ -57,10 +57,10 @@ You can run some integration tests to check it works fine for your Vcenter insta
 2. Provide some extra environment variables:
 
   - `VCDRIVER_TEST_FOLDER`: The name of the folder that will be used for the tests (Vms will be deleted inside this folder).
-  - `VCDRIVER_TEST_UNIX_TEMPLATE`: The name of the virtual machine template (UNIX like) that will be cloned for the tests.
+  - `VCDRIVER_TEST_UNIX_TEMPLATE`: The name of the virtual machine template (UNIX like) that will be cloned for the tests. (Requires the SSH service)
   - `VCDRIVER_TEST_UNIX_USERNAME`: The username for the UNIX virtual machine.
   - `VCDRIVER_TEST_UNIX_PASSWORD`: The password for the UNIX user.
-  - `VCDRIVER_TEST_WINDOWS_TEMPLATE`: The name of the virtual machine template (Windows server like) that will be cloned for the tests.
+  - `VCDRIVER_TEST_WINDOWS_TEMPLATE`: The name of the virtual machine template (Windows server like) that will be cloned for the tests. (Requires the WinRM services)
   - `VCDRIVER_TEST_WINDOWS_USERNAME`: The username for the Windows virtual machine.
   - `VCDRIVER_TEST_WINDOWS_PASSWORD`: The password for the Windows user.
 

@@ -104,11 +104,10 @@ class TestIntegration(unittest.TestCase):
             socket.inet_aton(vm.ip())
 
     def test_ssh(self):
-        for vm in self.all_vms:
-            vm.create()
-            self.assertEqual(vm.ssh('ls').return_code, 0)
-            with self.assertRaises(SshError):
-                vm.ssh('wrong-command-seriously')
+        self.unix.create()
+        self.assertEqual(self.unix.ssh('ls').return_code, 0)
+        with self.assertRaises(SshError):
+            self.unix.ssh('wrong-command-seriously')
 
     def test_winrm_cmd_and_ps(self):
         self.windows.create()
@@ -120,32 +119,32 @@ class TestIntegration(unittest.TestCase):
             self.windows.winrm_ps('ipconfig-wrong /all')
 
     def test_upload_and_download(self):
-        for vm in self.all_vms:
-            vm.create()
-            self.assertEqual(
-                len(vm.upload(local_path='file-0', remote_path='file-0')), 1
-            )
-            self.assertEqual(
-                len(vm.upload(local_path='file-0', remote_path='.')), 1
-            )
-            self.assertEqual(
-                len(vm.upload(local_path='dir-0', remote_path='.')), 3
-            )
-            os.remove('file-0')
-            shutil.rmtree('dir-0')
-            self.assertEqual(
-                len(vm.download(local_path='file-0', remote_path='file-0')), 1
-            )
-            self.assertEqual(
-                len(vm.download(local_path='.', remote_path='file-0')), 1
-            )
-            self.assertEqual(
-                len(vm.download(local_path='dir-0', remote_path='dir-0')), 3
-            )
-            self.assertEqual(
-                len(vm.download(local_path='.', remote_path='dir-0')), 3
-            )
-            with self.assertRaises(DownloadError):
-                vm.download(local_path='file-0', remote_path='wrong-path')
-            with self.assertRaises(UploadError):
-                vm.upload(local_path='dir-0', remote_path='wrong-path')
+        self.unix.create()
+        self.assertEqual(
+            len(self.unix.upload(local_path='file-0', remote_path='file-0')), 1
+        )
+        self.assertEqual(
+            len(self.unix.upload(local_path='file-0', remote_path='.')), 1
+        )
+        self.assertEqual(
+            len(self.unix.upload(local_path='dir-0', remote_path='.')), 3
+        )
+        os.remove('file-0')
+        shutil.rmtree('dir-0')
+        self.assertEqual(
+            len(self.unix.download(local_path='file-0', remote_path='file-0')),
+            1
+        )
+        self.assertEqual(
+            len(self.unix.download(local_path='.', remote_path='file-0')), 1
+        )
+        self.assertEqual(
+            len(self.unix.download(local_path='dir-0', remote_path='dir-0')), 3
+        )
+        self.assertEqual(
+            len(self.unix.download(local_path='.', remote_path='dir-0')), 3
+        )
+        with self.assertRaises(DownloadError):
+            self.unix.download(local_path='file-0', remote_path='wrong-path')
+        with self.assertRaises(UploadError):
+            self.unix.upload(local_path='dir-0', remote_path='wrong-path')
