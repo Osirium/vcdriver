@@ -99,25 +99,27 @@ def fabric_context(username, password, ip):
         yield
 
 
-def wait_for_winrm_service(username, password, ip, timeout):
+def wait_for_winrm_service(username, password, target, timeout, **kwargs):
     """
     Wait until the WinRM service is ready and return a pywinrm session
     :param username: The username
     :param password: The password
-    :param ip: The ip
+    :param target: The target hostname or ip
     :param timeout: The timeout, in seconds
+    :param kwargs: pywinrm Protocol kwargs
 
     :return: The session object
     """
     _timeout_loop(
         username=username,
         password=password,
-        ip=ip,
+        target=target,
         timeout=timeout,
         description='Check WinRM service',
-        callback=_check_winrm_service
+        callback=_check_winrm_service,
+        **kwargs
     )
-    return winrm.Session(target=ip, auth=(username, password))
+    return winrm.Session(target=target, auth=(username, password), **kwargs)
 
 
 def _timeout_loop(
@@ -150,17 +152,20 @@ def _timeout_loop(
     print(datetime.timedelta(seconds=time.time() - start))
 
 
-def _check_winrm_service(username, password, ip):
+def _check_winrm_service(username, password, target, **kwargs):
     """
     Check whether the winrm service is up or not
     :param username: The user
     :param password: The password
-    :param ip: The target machine ip
+    :param target: The target hostname or ip
+    :param kwargs: pywinrm Protocol kwargs
 
     :return: True if ready, False otherwise
     """
     try:
-        winrm.Session(target=ip, auth=(username, password)).run_cmd('ipconfig')
+        winrm.Session(
+            target=target, auth=(username, password), **kwargs
+        ).run_cmd('ipconfig')
         return True
     except:
         return False
