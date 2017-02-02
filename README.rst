@@ -60,7 +60,7 @@ You can run some integration tests to check it works fine for your Vcenter insta
   - `VCDRIVER_TEST_UNIX_TEMPLATE`: The name of the virtual machine template (UNIX like) that will be cloned for the tests. (Requires the SSH service)
   - `VCDRIVER_TEST_UNIX_USERNAME`: The username for the UNIX virtual machine.
   - `VCDRIVER_TEST_UNIX_PASSWORD`: The password for the UNIX user.
-  - `VCDRIVER_TEST_WINDOWS_TEMPLATE`: The name of the virtual machine template (Windows server like) that will be cloned for the tests. (Requires the WinRM services)
+  - `VCDRIVER_TEST_WINDOWS_TEMPLATE`: The name of the virtual machine template (Windows server like) that will be cloned for the tests. (Requires the WinRM service)
   - `VCDRIVER_TEST_WINDOWS_USERNAME`: The username for the Windows virtual machine.
   - `VCDRIVER_TEST_WINDOWS_PASSWORD`: The password for the Windows user.
 
