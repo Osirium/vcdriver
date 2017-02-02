@@ -4,6 +4,7 @@ import datetime
 import sys
 import time
 
+from fabric.api import run
 from fabric.context_managers import settings
 from pyVmomi import vim
 import winrm
@@ -13,6 +14,23 @@ from vcdriver.exceptions import (
     NoObjectFound,
     TimeoutError
 )
+
+
+@contextlib.contextmanager
+def fabric_context(username, password, ip):
+    """
+    Set the ssh context for fabric
+    :param username: The user
+    :param password: The password
+    :param ip: The target machine ip
+    """
+    with settings(
+            host_string="{}@{}".format(username, ip),
+            password=password,
+            warn_only=True,
+            disable_known_hosts=True
+    ):
+        yield
 
 
 def get_vcenter_object(connection, object_type, name):
@@ -42,7 +60,7 @@ def get_vcenter_object(connection, object_type, name):
         raise NoObjectFound(object_type, name)
 
 
-def wait_for_vcenter_task(task, task_description, timeout=3600):
+def wait_for_vcenter_task(task, task_description, timeout):
     """
     Wait for a vcenter task to finish
     :param task: A vcenter task object
@@ -64,7 +82,7 @@ def wait_for_vcenter_task(task, task_description, timeout=3600):
         raise task.info.error
 
 
-def wait_for_dhcp_server(vm_object, timeout=3600):
+def wait_for_dhcp_server(vm_object, timeout):
     """
     Wait for the virtual machine to have an IP
     :param vm_object: A vcenter virtual machine object
@@ -82,21 +100,22 @@ def wait_for_dhcp_server(vm_object, timeout=3600):
     return vm_object.summary.guest.ipAddress
 
 
-@contextlib.contextmanager
-def fabric_context(username, password, ip):
+def wait_for_ssh_service(username, password, ip, timeout):
     """
-    Set the ssh context for fabric
-    :param username: The user
-    :param password: The password
-    :param ip: The target machine ip
-    """
-    with settings(
-            host_string="{}@{}".format(username, ip),
-            password=password,
-            warn_only=True,
-            disable_known_hosts=True
-    ):
-        yield
+        Wait until the SSH service is ready
+        :param username: The username
+        :param password: The password
+        :param ip: The target ip
+        :param timeout: The timeout, in seconds
+        """
+    _timeout_loop(
+        username=username,
+        password=password,
+        ip=ip,
+        timeout=timeout,
+        description='Check SSH service',
+        callback=_check_sshservice
+    )
 
 
 def wait_for_winrm_service(username, password, target, timeout, **kwargs):
@@ -152,6 +171,23 @@ def _timeout_loop(
     print(datetime.timedelta(seconds=time.time() - start))
 
 
+def _check_sshservice(username, password, ip):
+    """
+    Check whether the ssh service is up or not
+    :param username: The user
+    :param password: The password
+    :param ip: The target ip
+
+    :return: True if ready, False otherwise
+    """
+    try:
+        with fabric_context(username, password, ip):
+            run('')
+            return True
+    except:
+        return False
+
+
 def _check_winrm_service(username, password, target, **kwargs):
     """
     Check whether the winrm service is up or not
@@ -165,7 +201,7 @@ def _check_winrm_service(username, password, target, **kwargs):
     try:
         winrm.Session(
             target=target, auth=(username, password), **kwargs
-        ).run_cmd('ipconfig')
+        ).run_cmd('')
         return True
     except:
         return False

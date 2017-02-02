@@ -2,6 +2,7 @@ import mock
 import unittest
 
 from pyVmomi import vim
+import winrm
 
 from vcdriver.exceptions import (
     NoObjectFound,
@@ -12,6 +13,7 @@ from vcdriver.helpers import (
     get_vcenter_object,
     wait_for_vcenter_task,
     wait_for_dhcp_server,
+    wait_for_ssh_service,
     wait_for_winrm_service
 )
 
@@ -47,14 +49,17 @@ class TestHelpers(unittest.TestCase):
         task = mock.MagicMock()
         task.info.state = vim.TaskInfo.State.success
         task.info.result = 'hello'
-        self.assertEqual(wait_for_vcenter_task(task, 'description'), 'hello')
+        self.assertEqual(
+            wait_for_vcenter_task(task, 'description', timeout=1),
+            'hello'
+        )
 
     def test_wait_for_vcenter_task_fail(self):
         task = mock.MagicMock()
         task.info.state = 'Error'
         task.info.error = Exception
         with self.assertRaises(Exception):
-            wait_for_vcenter_task(task, 'description')
+            wait_for_vcenter_task(task, 'description', timeout=1)
 
     def test_wait_for_vcenter_task_timeout(self):
         task = mock.MagicMock()
@@ -65,7 +70,10 @@ class TestHelpers(unittest.TestCase):
     def test_wait_for_dhcp_server_success(self):
         vm_object = mock.MagicMock()
         vm_object.summary.guest.ipAddress = '10.0.0.1'
-        self.assertEqual(wait_for_dhcp_server(vm_object), '10.0.0.1')
+        self.assertEqual(
+            wait_for_dhcp_server(vm_object, timeout=1),
+            '10.0.0.1'
+        )
 
     def test_wait_for_dhcp_server_timeout(self):
         vm_object = mock.MagicMock()
@@ -73,6 +81,22 @@ class TestHelpers(unittest.TestCase):
         with self.assertRaises(TimeoutError):
             wait_for_dhcp_server(vm_object, timeout=1)
 
-    def test_wait_for_winrm_service_timeout(self):
+    @mock.patch('vcdriver.helpers.run')
+    def test_wait_for_ssh_service_success(self, run):
+        wait_for_ssh_service('', '', '', timeout=1)
+
+    @mock.patch('vcdriver.helpers.run')
+    def test_wait_for_ssh_service_timeout(self, run):
+        run.side_effect = Exception
         with self.assertRaises(TimeoutError):
-            wait_for_winrm_service('', '', '', timeout=1)
+            wait_for_ssh_service('', '', '', timeout=1)
+
+    @mock.patch.object(winrm.Session, 'run_cmd')
+    def test_wait_for_winrm_service_success(self, run_cmd):
+        wait_for_winrm_service('user', 'pass', 'ip', timeout=1)
+
+    @mock.patch.object(winrm.Session, 'run_cmd')
+    def test_wait_for_winrm_service_timeout(self, run_cmd):
+        run_cmd.side_effect = Exception
+        with self.assertRaises(TimeoutError):
+            wait_for_winrm_service('user', 'pass', 'ip', timeout=1)
