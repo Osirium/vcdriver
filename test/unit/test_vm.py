@@ -190,57 +190,30 @@ class TestVm(unittest.TestCase):
             vm.download('from', 'to')
 
     @mock.patch('vcdriver.vm.Session')
-    @mock.patch.object(winrm.Session, 'run_cmd')
-    @mock.patch.object(VirtualMachine, 'check_winrm_service')
-    @mock.patch.object(VirtualMachine, 'ip')
-    def test_virtual_machine_winrm_cmd_success(
-            self, ip, check_winrm_service, run_cmd, session
-    ):
-        ip.return_value = '127.0.0.1'
-        run_cmd.return_value.status_code = 0
-        vm = VirtualMachine(winrm_username='user', winrm_password='pass')
-        vm.winrm_cmd('cmd', (1, 2, 3))
-        run_cmd.assert_called_with('cmd', (1, 2, 3))
-        self.assertEqual(run_cmd.call_count, 1)
-
-    @mock.patch('vcdriver.vm.Session')
-    @mock.patch.object(winrm.Session, 'run_cmd')
-    @mock.patch.object(VirtualMachine, 'check_winrm_service')
-    @mock.patch.object(VirtualMachine, 'ip')
-    def test_virtual_machine_winrm_cmd_fail(
-            self, ip, check_winrm_service, run_cmd, session
-    ):
-        ip.return_value = '127.0.0.1'
-        run_cmd.return_value.status_code = 1
-        vm = VirtualMachine(winrm_username='user', winrm_password='pass')
-        with self.assertRaises(WinRmError):
-            vm.winrm_cmd('cmd', (1, 2, 3))
-
-    @mock.patch('vcdriver.vm.Session')
     @mock.patch.object(winrm.Session, 'run_ps')
     @mock.patch.object(VirtualMachine, 'check_winrm_service')
     @mock.patch.object(VirtualMachine, 'ip')
-    def test_virtual_machine_winrm_ps_success(
+    def test_virtual_machine_winrm_success(
             self, ip, check_winrm_service, run_ps, session
     ):
         ip.return_value = '127.0.0.1'
         run_ps.return_value.status_code = 0
         vm = VirtualMachine(winrm_username='user', winrm_password='pass')
-        vm.winrm_ps('script')
+        vm.winrm('script')
         run_ps.assert_called_once_with('script')
 
     @mock.patch('vcdriver.vm.Session')
     @mock.patch.object(winrm.Session, 'run_ps')
     @mock.patch.object(VirtualMachine, 'check_winrm_service')
     @mock.patch.object(VirtualMachine, 'ip')
-    def test_virtual_machine_winrm_ps_fail(
+    def test_virtual_machine_winrm_fail(
             self, ip, check_winrm_service, run_ps, session
     ):
         ip.return_value = '127.0.0.1'
         run_ps.return_value.status_code = 1
         vm = VirtualMachine(winrm_username='user', winrm_password='pass')
         with self.assertRaises(WinRmError):
-            vm.winrm_ps('script')
+            vm.winrm('script')
 
     @mock.patch('vcdriver.vm.Session')
     def test_virtual_machine_print_summary(self, session):

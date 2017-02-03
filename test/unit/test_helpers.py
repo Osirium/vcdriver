@@ -91,12 +91,12 @@ class TestHelpers(unittest.TestCase):
         with self.assertRaises(TimeoutError):
             wait_for_ssh_service('', '', '', timeout=1)
 
-    @mock.patch.object(winrm.Session, 'run_cmd')
-    def test_wait_for_winrm_service_success(self, run_cmd):
+    @mock.patch.object(winrm.Session, 'run_ps')
+    def test_wait_for_winrm_service_success(self, run_ps):
         wait_for_winrm_service('user', 'pass', 'ip', timeout=1)
 
-    @mock.patch.object(winrm.Session, 'run_cmd')
-    def test_wait_for_winrm_service_timeout(self, run_cmd):
-        run_cmd.side_effect = Exception
+    @mock.patch.object(winrm.Session, 'run_ps')
+    def test_wait_for_winrm_service_timeout(self, run_ps):
+        run_ps.side_effect = Exception
         with self.assertRaises(TimeoutError):
             wait_for_winrm_service('user', 'pass', 'ip', timeout=1)

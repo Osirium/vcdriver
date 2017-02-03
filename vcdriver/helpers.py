@@ -198,7 +198,7 @@ def _check_winrm_service(username, password, ip, **kwargs):
     try:
         winrm.Session(
             target=ip, auth=(username, password), **kwargs
-        ).run_cmd('')
+        ).run_ps('')
         return True
     except:
         return False

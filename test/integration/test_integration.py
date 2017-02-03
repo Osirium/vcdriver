@@ -140,11 +140,8 @@ class TestIntegration(unittest.TestCase):
         with self.assertRaises(UploadError):
             self.unix.upload(local_path='dir-0', remote_path='wrong-path')
 
-    def test_winrm_cmd_and_ps(self):
+    def test_winrm(self):
         self.windows.create()
-        self.windows.winrm_cmd('ipconfig', ('/all',))
+        self.windows.winrm('ipconfig /all')
         with self.assertRaises(WinRmError):
-            self.windows.winrm_cmd('ipconfig-wrong', ('/all',))
-        self.windows.winrm_ps('ipconfig /all')
-        with self.assertRaises(WinRmError):
-            self.windows.winrm_ps('ipconfig-wrong /all')
+            self.windows.winrm('ipconfig-wrong /wrong')

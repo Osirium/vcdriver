@@ -58,9 +58,9 @@ class VirtualMachine(object):
 
         An internal session that gets closed at exit is kept as _session
         An internal instance of a vcenter vm object is kept as _vm_object
-        The value _ip is cached internally as _ip
-        The value _ssh_ready is a cache for the ssh service readiness
-        The value _winrm_ready is a cache for the winrm service readiness
+        The value _ip is cache value for the method ip()
+        The value _ssh_ready is a cache value for the ssh service readiness
+        The value _winrm_ready is a cache value for the winrm service readiness
         """
         self.resource_pool = resource_pool
         self.data_store = data_store
@@ -272,35 +272,7 @@ class VirtualMachine(object):
             else:
                 return result
 
-    def winrm_cmd(self, command, args, use_cache=True, **kwargs):
-        """
-        Execute a windows remote command
-        :param command: The command to be run
-        :param args: An iterable with the command arguments
-        :param use_cache: Whether to use the service check cache or not
-        :param kwargs: The pywinrm Protocol class kwargs
-
-        :return: A tuple with the status code, the stdout and the stderr
-
-        :raise: WinRmError: If the command fails
-        """
-        self.check_winrm_service(use_cache=use_cache)
-        result = winrm.Session(
-            target=self.ip(use_cache=use_cache),
-            auth=(self.winrm_username, self.winrm_password),
-            **kwargs
-        ).run_cmd(command, args)
-        if result.status_code != 0:
-            print('STDOUT: {}'.format(result.std_out))
-            print('STDERR: {}'.format(result.std_err))
-            raise WinRmError(
-                '{} {}'.format(command, ' '.join(map(str, args))),
-                result.status_code
-            )
-        else:
-            return result.status_code, result.std_out, result.std_err
-
-    def winrm_ps(self, script, use_cache=True, **kwargs):
+    def winrm(self, script, use_cache=True, **kwargs):
         """
         Executes a remote windows powershell script
         :param script: A string with the script
