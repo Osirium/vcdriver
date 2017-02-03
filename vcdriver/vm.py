@@ -293,10 +293,12 @@ class VirtualMachine(object):
                 auth=(self.winrm_username, self.winrm_password),
                 **kwargs
             ).run_ps(script)
-            print('\033[94mSTATUS CODE\033[0m\n{}'.format(result.status_code))
             print('\033[94mSTDOUT\033[0m\n{}'.format(result.std_out))
-            print('\033[94mSTDERR\033[0m\n{}'.format(result.std_err))
             if result.status_code != 0:
+                print(
+                    '\033[94mSTATUS CODE\033[0m\n{}'.format(result.status_code)
+                )
+                print('\033[94mSTDERR\033[0m\n{}'.format(result.std_err))
                 raise WinRmError(script, result.status_code)
             else:
                 return result.status_code, result.std_out, result.std_err
