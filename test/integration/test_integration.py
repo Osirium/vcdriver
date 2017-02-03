@@ -142,9 +142,9 @@ class TestIntegration(unittest.TestCase):
 
     def test_winrm_cmd_and_ps(self):
         self.windows.create()
-        self.windows.winrm_cmd('ipconfig', '/all')
+        self.windows.winrm_cmd('ipconfig', ('/all',))
         with self.assertRaises(WinRmError):
-            self.windows.winrm_cmd('ipconfig-wrong', '/all')
+            self.windows.winrm_cmd('ipconfig-wrong', ('/all',))
         self.windows.winrm_ps('ipconfig /all')
         with self.assertRaises(WinRmError):
             self.windows.winrm_ps('ipconfig-wrong /all')
