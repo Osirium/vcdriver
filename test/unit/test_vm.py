@@ -125,6 +125,8 @@ class TestVm(unittest.TestCase):
             self, check_ssh_service, run, sudo, session
     ):
         vm = VirtualMachine()
+        vm.__setattr__('_vm_object', 'something')
+        vm.__setattr__('_ip', '127.0.0.1')
         result_mock = mock.MagicMock()
         result_mock.return_code = 3
         result_mock.failed = False
@@ -142,6 +144,8 @@ class TestVm(unittest.TestCase):
     @mock.patch.object(VirtualMachine, 'check_ssh_service')
     def test_virtual_machine_ssh_fail(self, check_ssh_service, run, session):
         vm = VirtualMachine()
+        vm.__setattr__('_vm_object', 'something')
+        vm.__setattr__('_ip', '127.0.0.1')
         with self.assertRaises(SshError):
             vm.ssh('whatever', use_sudo=False)
 
@@ -152,6 +156,8 @@ class TestVm(unittest.TestCase):
             self, check_ssh_service, put, session
     ):
         vm = VirtualMachine()
+        vm.__setattr__('_vm_object', 'something')
+        vm.__setattr__('_ip', '127.0.0.1')
         result_mock = mock.MagicMock()
         result_mock.failed = False
         put.return_value = result_mock
@@ -164,6 +170,8 @@ class TestVm(unittest.TestCase):
             self, check_ssh_service, put, session
     ):
         vm = VirtualMachine()
+        vm.__setattr__('_vm_object', 'something')
+        vm.__setattr__('_ip', '127.0.0.1')
         with self.assertRaises(UploadError):
             vm.upload('from', 'to')
 
@@ -174,6 +182,8 @@ class TestVm(unittest.TestCase):
             self, check_ssh_service, get, session
     ):
         vm = VirtualMachine()
+        vm.__setattr__('_vm_object', 'something')
+        vm.__setattr__('_ip', '127.0.0.1')
         result_mock = mock.MagicMock()
         result_mock.failed = False
         get.return_value = result_mock
@@ -186,6 +196,8 @@ class TestVm(unittest.TestCase):
             self, check_ssh_service, get, session
     ):
         vm = VirtualMachine()
+        vm.__setattr__('_vm_object', 'something')
+        vm.__setattr__('_ip', '127.0.0.1')
         with self.assertRaises(DownloadError):
             vm.download('from', 'to')
 
@@ -199,6 +211,7 @@ class TestVm(unittest.TestCase):
         ip.return_value = '127.0.0.1'
         run_ps.return_value.status_code = 0
         vm = VirtualMachine(winrm_username='user', winrm_password='pass')
+        vm.__setattr__('_vm_object', 'something')
         vm.winrm('script')
         run_ps.assert_called_once_with('script')
 
@@ -212,8 +225,17 @@ class TestVm(unittest.TestCase):
         ip.return_value = '127.0.0.1'
         run_ps.return_value.status_code = 1
         vm = VirtualMachine(winrm_username='user', winrm_password='pass')
+        vm.__setattr__('_vm_object', 'something')
         with self.assertRaises(WinRmError):
             vm.winrm('script')
+
+    @mock.patch('vcdriver.vm.Session')
+    def test_virtual_machine_manage_methods_with_no_vm_object(self, session):
+        vm = VirtualMachine()
+        vm.ssh('')
+        vm.upload('', '')
+        vm.download('', '')
+        vm.winrm('')
 
     @mock.patch('vcdriver.vm.Session')
     def test_virtual_machine_print_summary(self, session):

@@ -192,19 +192,20 @@ class VirtualMachine(object):
 
         :raise: SshError: If the command fails
         """
-        self.check_ssh_service(use_cache=use_cache)
-        with fabric_context(
-                self.ssh_username,
-                self.ssh_password,
-                self.ip(use_cache=use_cache)
-        ):
-            if use_sudo:
-                result = sudo(command)
-            else:
-                result = run(command)
-            if result.failed:
-                raise SshError(command, result.return_code)
-            return result
+        if self._vm_object:
+            self.check_ssh_service(use_cache=use_cache)
+            with fabric_context(
+                    self.ssh_username,
+                    self.ssh_password,
+                    self.ip(use_cache=use_cache)
+            ):
+                if use_sudo:
+                    result = sudo(command)
+                else:
+                    result = run(command)
+                if result.failed:
+                    raise SshError(command, result.return_code)
+                return result
 
     def upload(
             self, remote_path, local_path, use_sudo=False, use_cache=True
@@ -220,24 +221,25 @@ class VirtualMachine(object):
 
         :raise: UploadError: If the task fails
         """
-        self.check_ssh_service(use_cache=use_cache)
-        with fabric_context(
-                self.ssh_username,
-                self.ssh_password,
-                self.ip(use_cache=use_cache)
-        ):
-            result = put(
-                remote_path=remote_path,
-                local_path=local_path,
-                use_sudo=use_sudo
-            )
-            if result.failed:
-                raise UploadError(
+        if self._vm_object:
+            self.check_ssh_service(use_cache=use_cache)
+            with fabric_context(
+                    self.ssh_username,
+                    self.ssh_password,
+                    self.ip(use_cache=use_cache)
+            ):
+                result = put(
+                    remote_path=remote_path,
                     local_path=local_path,
-                    remote_path=remote_path
+                    use_sudo=use_sudo
                 )
-            else:
-                return result
+                if result.failed:
+                    raise UploadError(
+                        local_path=local_path,
+                        remote_path=remote_path
+                    )
+                else:
+                    return result
 
     def download(
             self, remote_path, local_path, use_sudo=False, use_cache=True
@@ -253,24 +255,25 @@ class VirtualMachine(object):
 
         :raise: DownloadError: If the task fails
         """
-        self.check_ssh_service(use_cache=use_cache)
-        with fabric_context(
-                self.ssh_username,
-                self.ssh_password,
-                self.ip(use_cache=use_cache)
-        ):
-            result = get(
-                remote_path=remote_path,
-                local_path=local_path,
-                use_sudo=use_sudo
-            )
-            if result.failed:
-                raise DownloadError(
+        if self._vm_object:
+            self.check_ssh_service(use_cache=use_cache)
+            with fabric_context(
+                    self.ssh_username,
+                    self.ssh_password,
+                    self.ip(use_cache=use_cache)
+            ):
+                result = get(
+                    remote_path=remote_path,
                     local_path=local_path,
-                    remote_path=remote_path
+                    use_sudo=use_sudo
                 )
-            else:
-                return result
+                if result.failed:
+                    raise DownloadError(
+                        local_path=local_path,
+                        remote_path=remote_path
+                    )
+                else:
+                    return result
 
     def winrm(self, script, use_cache=True, **kwargs):
         """
@@ -283,19 +286,20 @@ class VirtualMachine(object):
 
         :raise: WinRmError: If the command fails
         """
-        self.check_winrm_service(use_cache=use_cache)
-        result = winrm.Session(
-            target=self.ip(use_cache=use_cache),
-            auth=(self.winrm_username, self.winrm_password),
-            **kwargs
-        ).run_ps(script)
-        print('\033[94mSTATUS CODE\033[0m\n{}'.format(result.status_code))
-        print('\033[94mSTDOUT\033[0m\n{}'.format(result.std_out))
-        print('\033[94mSTDERR\033[0m\n{}'.format(result.std_err))
-        if result.status_code != 0:
-            raise WinRmError(script, result.status_code)
-        else:
-            return result.status_code, result.std_out, result.std_err
+        if self._vm_object:
+            self.check_winrm_service(use_cache=use_cache)
+            result = winrm.Session(
+                target=self.ip(use_cache=use_cache),
+                auth=(self.winrm_username, self.winrm_password),
+                **kwargs
+            ).run_ps(script)
+            print('\033[94mSTATUS CODE\033[0m\n{}'.format(result.status_code))
+            print('\033[94mSTDOUT\033[0m\n{}'.format(result.std_out))
+            print('\033[94mSTDERR\033[0m\n{}'.format(result.std_err))
+            if result.status_code != 0:
+                raise WinRmError(script, result.status_code)
+            else:
+                return result.status_code, result.std_out, result.std_err
 
     def print_summary(self, use_cache=True):
         """ Print a nice summary of the virtual machine """
