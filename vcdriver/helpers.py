@@ -207,6 +207,12 @@ def _check_winrm_service(username, password, ip, **kwargs):
 
 
 def validate_ipv4(ip):
+    """
+    Validate an ipv4 adress
+    :param ip: The string with the ip
+
+    :raise DhcpError: If the ip format is not correct
+    """
     try:
         socket.inet_pton(socket.AF_INET, ip)
     except AttributeError:
