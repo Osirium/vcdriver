@@ -290,6 +290,7 @@ class VirtualMachine(object):
         """
         if self._vm_object:
             self.check_winrm_service(use_cache=use_cache)
+            print('Executing powershell script ...')
             result = winrm.Session(
                 target=self.ip(use_cache=use_cache),
                 auth=(self.winrm_username, self.winrm_password),
