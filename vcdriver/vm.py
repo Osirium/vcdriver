@@ -290,9 +290,15 @@ class VirtualMachine(object):
         """
         if self._vm_object:
             self.check_winrm_service(use_cache=use_cache)
-            print('Executing powershell script ...')
+            ip = self.ip(use_cache=True)
+            print(
+                'Wait until the following powershell script executes '
+                'remotely on {}:\n{}'.format(
+                    ip, script
+                )
+            )
             result = winrm.Session(
-                target=self.ip(use_cache=use_cache),
+                target=ip,
                 auth=(self.winrm_username, self.winrm_password),
                 **kwargs
             ).run_ps(script)
