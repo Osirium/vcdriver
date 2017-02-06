@@ -16,6 +16,13 @@ class NoObjectFound(Exception):
         )
 
 
+class DhcpError(Exception):
+    def __init__(self, ip):
+        super(DhcpError, self).__init__(
+            '"{}" is not a valid IPv4 address'.format(ip)
+        )
+
+
 class TimeoutError(Exception):
     def __init__(self, description, timeout):
         super(TimeoutError, self).__init__(

@@ -7,14 +7,16 @@ import winrm
 from vcdriver.exceptions import (
     NoObjectFound,
     TooManyObjectsFound,
-    TimeoutError
+    TimeoutError,
+    DhcpError
 )
 from vcdriver.helpers import (
     get_vcenter_object,
     wait_for_vcenter_task,
     wait_for_dhcp_service,
     wait_for_ssh_service,
-    wait_for_winrm_service
+    wait_for_winrm_service,
+    validate_ipv4
 )
 
 
@@ -100,3 +102,25 @@ class TestHelpers(unittest.TestCase):
         run_ps.side_effect = Exception
         with self.assertRaises(TimeoutError):
             wait_for_winrm_service('user', 'pass', 'ip', timeout=1)
+
+    def test_validate_ipv4_success(self):
+        validate_ipv4('127.0.0.1')
+
+    @mock.patch('vcdriver.helpers.socket.inet_pton')
+    def test_validate_ipv4_success_no_inet_pton(self, inet_pton):
+        inet_pton.side_effect = AttributeError
+        validate_ipv4('127.0.0.1')
+
+    def test_validate_ipv4_fail(self):
+        with self.assertRaises(DhcpError):
+            validate_ipv4('fe80::250:56ff:febf:1a0a')
+
+    @mock.patch('vcdriver.helpers.socket.inet_pton')
+    def test_validate_ipv4_fail_no_inet_pton(self, inet_pton):
+        inet_pton.side_effect = AttributeError
+        with self.assertRaises(DhcpError):
+            validate_ipv4('fe80::250:56ff:febf:1a0a')
+
+    def test_validate_ipv4_fail_windows_internal(self):
+        with self.assertRaises(DhcpError):
+            validate_ipv4('169.254.1.1')

@@ -1,6 +1,7 @@
 from __future__ import print_function
 import contextlib
 import datetime
+import socket
 import sys
 import time
 
@@ -12,7 +13,8 @@ import winrm
 from vcdriver.exceptions import (
     TooManyObjectsFound,
     NoObjectFound,
-    TimeoutError
+    TimeoutError,
+    DhcpError
 )
 
 
@@ -202,3 +204,17 @@ def _check_winrm_service(username, password, ip, **kwargs):
         return True
     except:
         return False
+
+
+def validate_ipv4(ip):
+    try:
+        socket.inet_pton(socket.AF_INET, ip)
+    except AttributeError:
+        try:
+            socket.inet_aton(ip)
+        except socket.error:
+            raise DhcpError(ip)
+    except socket.error:
+        raise DhcpError(ip)
+    if ip.startswith('169.254.'):
+        raise DhcpError(ip)

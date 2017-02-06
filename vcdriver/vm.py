@@ -26,7 +26,8 @@ from vcdriver.helpers import (
     wait_for_vcenter_task,
     wait_for_dhcp_service,
     wait_for_ssh_service,
-    wait_for_winrm_service
+    wait_for_winrm_service,
+    validate_ipv4
 )
 
 
@@ -149,6 +150,7 @@ class VirtualMachine(object):
         if self._vm_object:
             if not self._ip or not use_cache:
                 self._ip = wait_for_dhcp_service(self._vm_object, self.timeout)
+                validate_ipv4(self._ip)
             return self._ip
 
     def check_ssh_service(self, use_cache):
