@@ -1,5 +1,5 @@
 .. image:: https://badge.fury.io/py/vcdriver.svg
-    :target: https://badge.fury.io/py/vcdriver
+  :target: https://badge.fury.io/py/vcdriver
 
 .. image:: https://travis-ci.org/Lantero/vcdriver.svg?branch=master
   :target: https://travis-ci.org/Lantero/vcdriver
@@ -29,8 +29,8 @@ How does it work underneath?
 - The virtual machines are manipulated with `Fabric3 <https://pypi.python.org/pypi/Fabric3>`_ and `pywinrm <https://pypi.python.org/pypi/pywinrm>`_.
 - It currently supports Python **2.7**, **3.3**, **3.4**, **3.5** and **3.6**.
     
-Why would I use vcdriver instead of using pyvmomi, fabric and pywinrm directly?
-===============================================================================
+Why would I use vcdriver instead of using pyvmomi directly?
+===========================================================
 
 - **Simplicity**: Write tests or scripts that are both easy to write and read. Pyvmomi is powerful, but its learning curve is overkill for most of the tasks you might want to execute programatically with Vcenter.
 - **Maintainability**: If your Vcenter and pyvmomi versions get out of sync and something stops working, you don't need to change every single test or script you have, you just need to update the driver.
@@ -56,12 +56,12 @@ You can run some integration tests to check it works fine for your Vcenter insta
 1. Read through the configuration section on the `wiki <https://github.com/Lantero/vcdriver/wiki>`_.
 2. Provide some extra environment variables:
 
-  - `VCDRIVER_TEST_FOLDER`: The name of the folder that will be used for the tests (Vms will be deleted inside this folder).
-  - `VCDRIVER_TEST_UNIX_TEMPLATE`: The name of the virtual machine template (UNIX like) that will be cloned for the tests. (Requires the SSH service)
-  - `VCDRIVER_TEST_UNIX_USERNAME`: The username for the UNIX virtual machine.
-  - `VCDRIVER_TEST_UNIX_PASSWORD`: The password for the UNIX user.
-  - `VCDRIVER_TEST_WINDOWS_TEMPLATE`: The name of the virtual machine template (Windows server like) that will be cloned for the tests. (Requires the WinRM service)
-  - `VCDRIVER_TEST_WINDOWS_USERNAME`: The username for the Windows virtual machine.
-  - `VCDRIVER_TEST_WINDOWS_PASSWORD`: The password for the Windows user.
+  - ``VCDRIVER_TEST_FOLDER``: The name of the folder that will be used for the tests (Vms will be deleted inside this folder).
+  - ``VCDRIVER_TEST_UNIX_TEMPLATE``: The name of the virtual machine template (UNIX like) that will be cloned for the tests. (Requires the SSH service)
+  - ``VCDRIVER_TEST_UNIX_USERNAME``: The username for the UNIX virtual machine.
+  - ``VCDRIVER_TEST_UNIX_PASSWORD``: The password for the UNIX user.
+  - ``VCDRIVER_TEST_WINDOWS_TEMPLATE``: The name of the virtual machine template (Windows server like) that will be cloned for the tests. (Requires the WinRM service)
+  - ``VCDRIVER_TEST_WINDOWS_USERNAME``: The username for the Windows virtual machine.
+  - ``VCDRIVER_TEST_WINDOWS_PASSWORD``: The password for the Windows user.
 
-3. Run `nosetests -v test/integration`.
+3. Run ``nosetests -v test/integration``.
