@@ -293,21 +293,17 @@ class VirtualMachine(object):
             ip = self.ip(use_cache=True)
             print(
                 'Wait until the following powershell script executes '
-                'remotely on {}:\n{}'.format(
-                    ip, script
-                )
+                'remotely on {}:\n{}'.format(ip, script)
             )
             result = winrm.Session(
                 target=ip,
                 auth=(self.winrm_username, self.winrm_password),
                 **kwargs
             ).run_ps(script)
-            print('\033[94mSTDOUT\033[0m\n{}'.format(result.std_out))
+            print('STATUS CODE\n{}'.format(result.status_code))
+            print('STDOUT\n{}'.format(result.std_out))
             if result.status_code != 0:
-                print(
-                    '\033[94mSTATUS CODE\033[0m\n{}'.format(result.status_code)
-                )
-                print('\033[94mSTDERR\033[0m\n{}'.format(result.std_err))
+                print('STDERR\n{}'.format(result.std_err))
                 raise WinRmError(script, result.status_code)
             else:
                 return result.status_code, result.std_out, result.std_err
@@ -317,23 +313,21 @@ class VirtualMachine(object):
         ip = self.ip(use_cache=use_cache)
         row_format = "{:<40}" * 2
         print(
-            '\033[1m'
             '=======================\n'
             'Virtual Machine Summary\n'
             '======================='
-            '\033[0m'
         )
         for element in [
-            ['\033[94mName\033[0m', self.name],
-            ['\033[94mTemplate\033[0m', self.template],
-            ['\033[94mResource pool\033[0m', self.resource_pool],
-            ['\033[94mData store\033[0m', self.data_store],
-            ['\033[94mFolder\033[0m', self.folder],
-            ['\033[94mSSH Username\033[0m', self.ssh_username],
-            ['\033[94mSSH Password\033[0m', self.ssh_password],
-            ['\033[94mWinRM Username\033[0m', self.winrm_username],
-            ['\033[94mWinRM Password\033[0m', self.winrm_password],
-            ['\033[94mIP\033[0m', ip]
+            ['Name', self.name],
+            ['Template', self.template],
+            ['Resource pool', self.resource_pool],
+            ['Data store', self.data_store],
+            ['Folder', self.folder],
+            ['SSH Username', self.ssh_username],
+            ['SSH Password', self.ssh_password],
+            ['WinRM Username', self.winrm_username],
+            ['WinRM Password', self.winrm_password],
+            ['IP', ip]
         ]:
             print(row_format.format(element[0], str(element[1])))
 
