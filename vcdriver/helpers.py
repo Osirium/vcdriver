@@ -5,6 +5,7 @@ import socket
 import sys
 import time
 
+from colorama import init, Style, Fore
 from fabric.api import run
 from fabric.context_managers import settings
 from pyVmomi import vim
@@ -16,6 +17,8 @@ from vcdriver.exceptions import (
     TimeoutError,
     DhcpError
 )
+
+init()
 
 
 @contextlib.contextmanager
@@ -224,3 +227,19 @@ def validate_ipv4(ip):
         raise DhcpError(ip)
     if ip.startswith('169.254.'):
         raise DhcpError(ip)
+
+
+def _styled_print(styles):
+    """
+    Generate a function that prints a message with a given style
+    :param styles: The colorama styles to be applied e.g. colorama.Fore.RED
+
+    :return: The print function
+    """
+    return lambda msg: print(''.join(styles) + msg + Style.RESET_ALL)
+
+
+green_print = _styled_print(Fore.GREEN)
+red_print = _styled_print(Fore.RED)
+bright_print = _styled_print(Style.BRIGHT)
+dim_print = _styled_print(Style.DIM)

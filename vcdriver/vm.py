@@ -27,7 +27,11 @@ from vcdriver.helpers import (
     wait_for_dhcp_service,
     wait_for_ssh_service,
     wait_for_winrm_service,
-    validate_ipv4
+    validate_ipv4,
+    green_print,
+    red_print,
+    bright_print,
+    dim_print
 )
 
 
@@ -291,19 +295,17 @@ class VirtualMachine(object):
         if self._vm_object:
             self.check_winrm_service(use_cache=use_cache)
             ip = self.ip(use_cache=True)
-            print(
-                'Wait until the following powershell script executes '
-                'remotely on {}:\n{}'.format(ip, script)
-            )
+            print('Executing remotely on {} ...'.format(ip))
+            dim_print(script)
             result = winrm.Session(
                 target=ip,
                 auth=(self.winrm_username, self.winrm_password),
                 **kwargs
             ).run_ps(script)
-            print('STATUS CODE\n{}'.format(result.status_code))
-            print('STDOUT\n{}'.format(result.std_out))
+            bright_print('STATUS CODE {}'.format(result.status_code))
+            green_print(result.std_out)
             if result.status_code != 0:
-                print('STDERR\n{}'.format(result.std_err))
+                red_print(result.std_err)
                 raise WinRmError(script, result.status_code)
             else:
                 return result.status_code, result.std_out, result.std_err
@@ -312,7 +314,7 @@ class VirtualMachine(object):
         """ Print a nice summary of the virtual machine """
         ip = self.ip(use_cache=use_cache)
         row_format = "{:<40}" * 2
-        print(
+        bright_print(
             '=======================\n'
             'Virtual Machine Summary\n'
             '======================='
