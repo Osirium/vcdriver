@@ -63,6 +63,12 @@ class TestHelpers(unittest.TestCase):
         with self.assertRaises(Exception):
             wait_for_vcenter_task(task, 'description', timeout=1)
 
+    def test_wait_for_vcenter_task_fail_no_exception(self):
+        task = mock.MagicMock()
+        task.info.state = 'Error'
+        task.info.error = None
+        wait_for_vcenter_task(task, 'description', timeout=1)
+
     def test_wait_for_vcenter_task_timeout(self):
         task = mock.MagicMock()
         task.info.state = vim.TaskInfo.State.running
