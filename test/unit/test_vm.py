@@ -78,6 +78,56 @@ class TestVm(unittest.TestCase):
         self.assertEqual(get_vcenter_object.call_count, 1)
 
     @mock.patch('vcdriver.vm.Session')
+    @mock.patch('vcdriver.vm.wait_for_vcenter_task')
+    def test_virtual_machine_turn_on(
+            self,
+            wait_for_vcenter_task,
+            session
+    ):
+        vm = VirtualMachine()
+        vm_object_mock = mock.MagicMock()
+        vm.turn_on()
+        vm.__setattr__('_vm_object', vm_object_mock)
+        vm.turn_on()
+        vm.turn_on()
+        vm_object_mock = mock.MagicMock()
+        vm_object_mock.PowerOnVM_Task = mock.MagicMock(
+            side_effect=vim.fault.InvalidPowerState
+        )
+        vm.__setattr__('_vm_object', vm_object_mock)
+        vm.turn_on()
+        self.assertEqual(wait_for_vcenter_task.call_count, 2)
+
+    @mock.patch('vcdriver.vm.Session')
+    @mock.patch('vcdriver.vm.wait_for_vcenter_task')
+    def test_virtual_machine_turn_off_success(
+            self,
+            wait_for_vcenter_task,
+            session
+    ):
+        vm = VirtualMachine()
+        vm_object_mock = mock.MagicMock()
+        vm.turn_off()
+        vm.__setattr__('_vm_object', vm_object_mock)
+        vm.turn_off()
+        vm.turn_off()
+        vm_object_mock = mock.MagicMock()
+        vm_object_mock.PowerOffVM_Task = mock.MagicMock(
+            side_effect=vim.fault.InvalidPowerState
+        )
+        vm.__setattr__('_vm_object', vm_object_mock)
+        vm.turn_off()
+        self.assertEqual(wait_for_vcenter_task.call_count, 2)
+
+    @mock.patch('vcdriver.vm.Session')
+    @mock.patch.object(VirtualMachine, 'turn_on')
+    @mock.patch.object(VirtualMachine, 'turn_off')
+    def test_virtual_machine_reboot(self, turn_off, turn_on, session):
+        VirtualMachine().reboot()
+        self.assertEqual(turn_on.call_count, 1)
+        self.assertEqual(turn_off.call_count, 1)
+
+    @mock.patch('vcdriver.vm.Session')
     @mock.patch('vcdriver.vm.wait_for_dhcp_service')
     def test_virtual_machine_ip(self, wait_for_dhcp_service, session):
         vm = VirtualMachine()

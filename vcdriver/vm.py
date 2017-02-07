@@ -144,6 +144,38 @@ class VirtualMachine(object):
             )
             print('VM object found: {}'.format(self._vm_object))
 
+    def turn_on(self):
+        """ Turn on machine """
+        if self._vm_object:
+            try:
+                wait_for_vcenter_task(
+                    self._vm_object.PowerOnVM_Task(),
+                    'Power off virtual machine "{}"'.format(self.name),
+                    self.timeout
+                )
+            except vim.fault.InvalidPowerState:
+                pass
+
+    def turn_off(self):
+        """ Turn off machine and reset the cache values """
+        if self._vm_object:
+            try:
+                wait_for_vcenter_task(
+                    self._vm_object.PowerOffVM_Task(),
+                    'Power off virtual machine "{}"'.format(self.name),
+                    self.timeout
+                )
+            except vim.fault.InvalidPowerState:
+                pass
+            self._ip = None
+            self._ssh_ready = False
+            self._winrm_ready = False
+
+    def reboot(self):
+        """ Reboot the machine """
+        self.turn_off()
+        self.turn_on()
+
     def ip(self, use_cache=True):
         """
         Poll vcenter to get the virtual machine IP
