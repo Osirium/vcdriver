@@ -84,7 +84,8 @@ def wait_for_vcenter_task(task, task_description, timeout):
     if task.info.state == vim.TaskInfo.State.success:
         return task.info.result
     else:
-        raise task.info.error
+        if task.info.error is not None:
+            raise task.info.error
 
 
 def wait_for_dhcp_service(vm_object, timeout):
