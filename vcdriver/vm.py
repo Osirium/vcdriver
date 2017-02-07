@@ -300,6 +300,8 @@ class VirtualMachine(object):
             result = winrm.Session(
                 target=ip,
                 auth=(self.winrm_username, self.winrm_password),
+                read_timeout_sec=self.timeout,
+                operation_timeout_sec=self.timeout,
                 **kwargs
             ).run_ps(script)
             bright_print('STATUS CODE {}'.format(result.status_code))
