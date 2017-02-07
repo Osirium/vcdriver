@@ -300,7 +300,7 @@ class VirtualMachine(object):
             result = winrm.Session(
                 target=ip,
                 auth=(self.winrm_username, self.winrm_password),
-                read_timeout_sec=self.timeout,
+                read_timeout_sec=self.timeout+1,
                 operation_timeout_sec=self.timeout,
                 **kwargs
             ).run_ps(script)
