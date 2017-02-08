@@ -160,24 +160,6 @@ class VirtualMachine(object):
                 self.timeout
             )
 
-    def reset(self):
-        """ Reset the machine (Machine must be on) """
-        if self._vm_object:
-            wait_for_vcenter_task(
-                self._vm_object.ResetVM_Task(),
-                'Reset virtual machine "{}"'.format(self.name),
-                self.timeout
-            )
-
-    def suspend(self):
-        """ Suspend the machine (Machine must be on) """
-        if self._vm_object:
-            wait_for_vcenter_task(
-                self._vm_object.SuspendVM_Task(),
-                'Suspend virtual machine "{}"'.format(self.name),
-                self.timeout
-            )
-
     def ssh(self, command, use_sudo=False):
         """
         Executes a shell command through ssh

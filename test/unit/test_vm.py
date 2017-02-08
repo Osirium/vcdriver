@@ -77,12 +77,7 @@ class TestVm(unittest.TestCase):
     ):
         vm = VirtualMachine()
         vm_object_mock = mock.MagicMock()
-        methods = [
-            vm.power_on,
-            vm.power_off,
-            vm.reset,
-            vm.suspend
-        ]
+        methods = [vm.power_on, vm.power_off]
         for method in methods:
             method()
             method()

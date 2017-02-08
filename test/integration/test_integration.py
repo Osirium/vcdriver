@@ -91,19 +91,6 @@ class TestIntegration(unittest.TestCase):
                 vm.power_off()
             vm.power_on()
             vm.power_on()
-            vm.reset()
-            vm.reset()
-            vm.power_off()
-            with self.assertRaises(vim.fault.InvalidPowerState):
-                vm.reset()
-            with self.assertRaises(vim.fault.InvalidPowerState):
-                vm.suspend()
-            vm.power_on()
-            vm.suspend()
-            with self.assertRaises(vim.fault.InvalidPowerState):
-                vm.suspend()
-            vm.power_on()
-            vm.power_off()
 
     def test_context_manager(self):
         for vm in self.all_vms:
