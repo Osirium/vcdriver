@@ -23,6 +23,14 @@ class Ipv4Error(Exception):
         )
 
 
+class DhcpError(Exception):
+    def __init__(self, ip):
+        super(DhcpError, self).__init__(
+            'An external DHCP server could not be contacted, so a link-local '
+            'address was used: "{}"'.format(ip)
+        )
+
+
 class TimeoutError(Exception):
     def __init__(self, description, timeout):
         super(TimeoutError, self).__init__(

@@ -2,21 +2,19 @@ import mock
 import unittest
 
 from pyVmomi import vim
-import winrm
 
 from vcdriver.exceptions import (
     NoObjectFound,
     TooManyObjectsFound,
     TimeoutError,
-    DhcpError
+    DhcpError,
+    Ipv4Error
 )
 from vcdriver.helpers import (
     get_vcenter_object,
+    timeout_loop,
+    validate_ipv4,
     wait_for_vcenter_task,
-    wait_for_dhcp_service,
-    wait_for_ssh_service,
-    wait_for_winrm_service,
-    validate_ipv4
 )
 
 
@@ -47,6 +45,35 @@ class TestHelpers(unittest.TestCase):
         with self.assertRaises(TooManyObjectsFound):
             get_vcenter_object(connection_mock, mock.MagicMock, 'orange')
 
+    def test_timeout_loop_success(self):
+        timeout_loop(1, '', lambda: True)
+
+    def test_timeout_loop_fail(self):
+        with self.assertRaises(TimeoutError):
+            timeout_loop(1, '', lambda: False)
+
+    def test_validate_ipv4_success(self):
+        self.assertEqual(validate_ipv4('127.0.0.1'), '127.0.0.1')
+
+    @mock.patch('vcdriver.helpers.socket.inet_pton')
+    def test_validate_ipv4_success_no_inet_pton(self, inet_pton):
+        inet_pton.side_effect = AttributeError
+        self.assertEqual(validate_ipv4('127.0.0.1'), '127.0.0.1')
+
+    def test_validate_ipv4_fail(self):
+        with self.assertRaises(Ipv4Error):
+            validate_ipv4('fe80::250:56ff:febf:1a0a')
+
+    @mock.patch('vcdriver.helpers.socket.inet_pton')
+    def test_validate_ipv4_fail_no_inet_pton(self, inet_pton):
+        inet_pton.side_effect = AttributeError
+        with self.assertRaises(Ipv4Error):
+            validate_ipv4('fe80::250:56ff:febf:1a0a')
+
+    def test_validate_ipv4_fail_link_local_address(self):
+        with self.assertRaises(DhcpError):
+            validate_ipv4('169.254.1.1')
+
     def test_wait_for_vcenter_task_success(self):
         task = mock.MagicMock()
         task.info.state = vim.TaskInfo.State.success
@@ -74,59 +101,3 @@ class TestHelpers(unittest.TestCase):
         task.info.state = vim.TaskInfo.State.running
         with self.assertRaises(TimeoutError):
             wait_for_vcenter_task(task, 'description', timeout=1)
-
-    def test_wait_for_dhcp_server_success(self):
-        vm_object = mock.MagicMock()
-        vm_object.summary.guest.ipAddress = '10.0.0.1'
-        self.assertEqual(
-            wait_for_dhcp_service(vm_object, timeout=1),
-            '10.0.0.1'
-        )
-
-    def test_wait_for_dhcp_server_timeout(self):
-        vm_object = mock.MagicMock()
-        vm_object.summary.guest.ipAddress = None
-        with self.assertRaises(TimeoutError):
-            wait_for_dhcp_service(vm_object, timeout=1)
-
-    @mock.patch('vcdriver.helpers.run')
-    def test_wait_for_ssh_service_success(self, run):
-        wait_for_ssh_service('', '', '', timeout=1)
-
-    @mock.patch('vcdriver.helpers.run')
-    def test_wait_for_ssh_service_timeout(self, run):
-        run.side_effect = Exception
-        with self.assertRaises(TimeoutError):
-            wait_for_ssh_service('', '', '', timeout=1)
-
-    @mock.patch.object(winrm.Session, 'run_ps')
-    def test_wait_for_winrm_service_success(self, run_ps):
-        wait_for_winrm_service('user', 'pass', 'ip', timeout=1)
-
-    @mock.patch.object(winrm.Session, 'run_ps')
-    def test_wait_for_winrm_service_timeout(self, run_ps):
-        run_ps.side_effect = Exception
-        with self.assertRaises(TimeoutError):
-            wait_for_winrm_service('user', 'pass', 'ip', timeout=1)
-
-    def test_validate_ipv4_success(self):
-        self.assertEqual(validate_ipv4('127.0.0.1'), '127.0.0.1')
-
-    @mock.patch('vcdriver.helpers.socket.inet_pton')
-    def test_validate_ipv4_success_no_inet_pton(self, inet_pton):
-        inet_pton.side_effect = AttributeError
-        self.assertEqual(validate_ipv4('127.0.0.1'), '127.0.0.1')
-
-    def test_validate_ipv4_fail(self):
-        with self.assertRaises(DhcpError):
-            validate_ipv4('fe80::250:56ff:febf:1a0a')
-
-    @mock.patch('vcdriver.helpers.socket.inet_pton')
-    def test_validate_ipv4_fail_no_inet_pton(self, inet_pton):
-        inet_pton.side_effect = AttributeError
-        with self.assertRaises(DhcpError):
-            validate_ipv4('fe80::250:56ff:febf:1a0a')
-
-    def test_validate_ipv4_fail_windows_internal(self):
-        with self.assertRaises(DhcpError):
-            validate_ipv4('169.254.1.1')
