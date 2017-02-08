@@ -1,10 +1,13 @@
 import contextlib
+import uuid
 
+from colorama import Style, Fore
 from fabric.api import sudo, run, get, put
+from fabric.context_managers import settings
 from pyVmomi import vim
 import winrm
 
-from vcdriver.auth import Session
+from vcdriver.session import connection
 from vcdriver.config import (
     DATA_STORE,
     RESOURCE_POOL,
@@ -22,16 +25,10 @@ from vcdriver.exceptions import (
 )
 from vcdriver.helpers import (
     get_vcenter_object,
-    fabric_context,
-    wait_for_vcenter_task,
-    wait_for_dhcp_service,
-    wait_for_ssh_service,
-    wait_for_winrm_service,
+    styled_print,
+    timeout_loop,
     validate_ipv4,
-    green_print,
-    red_print,
-    bright_print,
-    dim_print
+    wait_for_vcenter_task
 )
 
 
@@ -41,7 +38,7 @@ class VirtualMachine(object):
             resource_pool=RESOURCE_POOL,
             data_store=DATA_STORE,
             folder=FOLDER,
-            name=None,
+            name=str(uuid.uuid4()),
             template=None,
             timeout=3600,
             ssh_username=VM_SSH_USERNAME,
@@ -55,17 +52,13 @@ class VirtualMachine(object):
         :param folder: The vcenter folder name
         :param name: The virtual machine name
         :param template: The virtual machine template name to be cloned
-        :param timeout: The timeout for the dhcp and vcenter tasks
+        :param timeout: The timeout for the tasks
         :param ssh_username: The ssh username to manage the virtual machine
         :param ssh_password: The ssh password to manage the virtual machine
         :param winrm_username: The winrm username to manage the virtual machine
         :param winrm_password: The winrm password to manage the virtual machine
 
-        An internal session that gets closed at exit is kept as _session
-        An internal instance of a vcenter vm object is kept as _vm_object
-        The value _ip is cache value for the method ip()
-        The value _ssh_ready is a cache value for the ssh service readiness
-        The value _winrm_ready is a cache value for the winrm service readiness
+        _vm_object: An internal instance of the vcenter vm object
         """
         self.resource_pool = resource_pool
         self.data_store = data_store
@@ -77,32 +70,28 @@ class VirtualMachine(object):
         self.ssh_password = ssh_password
         self.winrm_username = winrm_username
         self.winrm_password = winrm_password
-        self._session = Session()
         self._vm_object = None
-        self._ip = None
-        self._ssh_ready = False
-        self._winrm_ready = False
 
     def create(self):
         """ Create the virtual machine and update the vm object """
         if not self._vm_object:
             self._vm_object = wait_for_vcenter_task(
                 get_vcenter_object(
-                    self._session.connection, vim.VirtualMachine, self.template
+                    connection(), vim.VirtualMachine, self.template
                 ).CloneVM_Task(
                     folder=get_vcenter_object(
-                        self._session.connection, vim.Folder, self.folder
+                        connection(), vim.Folder, self.folder
                     ),
                     name=self.name,
                     spec=vim.vm.CloneSpec(
                         location=vim.vm.RelocateSpec(
                             datastore=get_vcenter_object(
-                                self._session.connection,
+                                connection(),
                                 vim.Datastore,
                                 self.data_store
                             ),
                             pool=get_vcenter_object(
-                                self._session.connection,
+                                connection(),
                                 vim.ResourcePool,
                                 self.resource_pool
                             )
@@ -120,123 +109,116 @@ class VirtualMachine(object):
     def destroy(self):
         """ Destroy the virtual machine and set the vm object to None """
         if self._vm_object:
-            try:
-                wait_for_vcenter_task(
-                    self._vm_object.PowerOffVM_Task(),
-                    'Power off virtual machine "{}"'.format(self.name),
-                    self.timeout
-                )
-            except vim.fault.InvalidPowerState:
-                pass
+            wait_for_vcenter_task(
+                self._vm_object.PowerOffVM_Task(),
+                'Power off virtual machine "{}"'.format(self.name),
+                self.timeout
+            )
             wait_for_vcenter_task(
                 self._vm_object.Destroy_Task(),
                 'Destroy virtual machine "{}"'.format(self.name),
                 self.timeout
             )
             self._vm_object = None
-            self._ip = None
 
     def find(self):
         """ Find and update the vm object based on the name """
         if not self._vm_object:
             self._vm_object = get_vcenter_object(
-                self._session.connection, vim.VirtualMachine, self.name
+                connection(), vim.VirtualMachine, self.name
             )
-            print('VM object found: {}'.format(self._vm_object))
 
-    def turn_on(self):
-        """ Turn on machine """
+    def power_on(self):
+        """ Power on machine """
         if self._vm_object:
-            try:
-                wait_for_vcenter_task(
-                    self._vm_object.PowerOnVM_Task(),
-                    'Power on virtual machine "{}"'.format(self.name),
-                    self.timeout
-                )
-            except vim.fault.InvalidPowerState:
-                pass
+            wait_for_vcenter_task(
+                self._vm_object.PowerOnVM_Task(),
+                'Power on virtual machine "{}"'.format(self.name),
+                self.timeout
+            )
 
-    def turn_off(self):
-        """ Turn off machine and reset the cache values """
+    def power_off(self):
+        """ Power off machine """
         if self._vm_object:
-            try:
-                wait_for_vcenter_task(
-                    self._vm_object.PowerOffVM_Task(),
-                    'Power off virtual machine "{}"'.format(self.name),
-                    self.timeout
-                )
-            except vim.fault.InvalidPowerState:
-                pass
-            self._ip = None
-            self._ssh_ready = False
-            self._winrm_ready = False
+            wait_for_vcenter_task(
+                self._vm_object.PowerOffVM_Task(),
+                'Power off virtual machine "{}"'.format(self.name),
+                self.timeout
+            )
 
-    def reboot(self):
-        """ Reboot the machine """
-        self.turn_off()
-        self.turn_on()
+    def reset(self):
+        """ Reset the machine """
+        if self._vm_object:
+            wait_for_vcenter_task(
+                self._vm_object.ResetVM_Task(),
+                'Power off virtual machine "{}"'.format(self.name),
+                self.timeout
+            )
 
-    def ip(self, use_cache=True):
+    def suspend(self):
+        """ Suspend the machine """
+        if self._vm_object:
+            wait_for_vcenter_task(
+                self._vm_object.SuspendVM_Task(),
+                'Suspend virtual machine "{}"'.format(self.name),
+                self.timeout
+            )
+
+    def shutdown_guest(self):
+        """ Shutdown guest operating system """
+        if self._vm_object:
+            wait_for_vcenter_task(
+                self._vm_object.ShutdownGuest_Task(),
+                'Shutdown guest operating system on "{}"'.format(self.name),
+                self.timeout
+            )
+
+    def reboot_guest(self):
+        """ Reboot guest operating system """
+        if self._vm_object:
+            wait_for_vcenter_task(
+                self._vm_object.RebootGuest_Task(),
+                'Reboot guest operating system on "{}"'.format(self.name),
+                self.timeout
+            )
+
+    def stand_by_guest(self):
+        """ Standby guest operating system """
+        if self._vm_object:
+            wait_for_vcenter_task(
+                self._vm_object.StandbyGuest_Task(),
+                'Standby guest operating system on "{}"'.format(self.name),
+                self.timeout
+            )
+
+    def ip(self):
         """
         Poll vcenter to get the virtual machine IP
-        :param use_cache: If False, force an update of the internal value
 
         :return: Return the ip
         """
         if self._vm_object:
-            if not self._ip or not use_cache:
-                self._ip = wait_for_dhcp_service(self._vm_object, self.timeout)
-                validate_ipv4(self._ip)
-            return self._ip
+            if not self._vm_object.summary.guest.ipAddress:
+                timeout_loop(
+                    timeout=self.timeout,
+                    description='Get IP',
+                    callback=lambda: self._vm_object.summary.guest.ipAddress
+                )
+            return validate_ipv4(self._vm_object.summary.guest.ipAddress)
 
-    def check_ssh_service(self, use_cache):
-        """
-        Wait until the SSH service is ready
-        :param use_cache: If False, force an update of the internal value
-        """
-        if not self._ssh_ready or not use_cache:
-            wait_for_ssh_service(
-                self.ssh_username,
-                self.ssh_password,
-                self.ip(use_cache=use_cache),
-                self.timeout
-            )
-            self._ssh_ready = True
-
-    def check_winrm_service(self, use_cache, **kwargs):
-        """
-        Wait until the WinRM service is ready
-        :param use_cache: If False, force an update of the internal value
-        :param kwargs: The pywinrm Protocol class kwargs
-        """
-        if not self._winrm_ready or not use_cache:
-            wait_for_winrm_service(
-                self.winrm_username,
-                self.winrm_password,
-                self.ip(use_cache=use_cache),
-                self.timeout,
-                **kwargs
-            )
-            self._winrm_ready = True
-
-    def ssh(self, command, use_sudo=False, use_cache=True):
+    def ssh(self, command, use_sudo=False):
         """
         Executes a shell command through ssh
         :param command: The command to be executed
         :param use_sudo: If True, it runs as sudo
-        :param use_cache: Whether to use the service check cache or not
 
         :return: The fabric equivalent of run and sudo
 
         :raise: SshError: If the command fails
         """
         if self._vm_object:
-            self.check_ssh_service(use_cache=use_cache)
-            with fabric_context(
-                    self.ssh_username,
-                    self.ssh_password,
-                    self.ip(use_cache=use_cache)
-            ):
+            self._wait_for_ssh_service()
+            with self._fabric_context():
                 if use_sudo:
                     result = sudo(command)
                 else:
@@ -245,27 +227,20 @@ class VirtualMachine(object):
                     raise SshError(command, result.return_code)
                 return result
 
-    def upload(
-            self, remote_path, local_path, use_sudo=False, use_cache=True
-    ):
+    def upload(self, remote_path, local_path, use_sudo=False):
         """
         Upload a file or directory to the virtual machine
         :param remote_path: The remote location
         :param local_path: The local local
         :param use_sudo: If True, it runs as sudo
-        :param use_cache: Whether to use the service check cache or not
 
         :return: The list of uploaded files
 
         :raise: UploadError: If the task fails
         """
         if self._vm_object:
-            self.check_ssh_service(use_cache=use_cache)
-            with fabric_context(
-                    self.ssh_username,
-                    self.ssh_password,
-                    self.ip(use_cache=use_cache)
-            ):
+            self._wait_for_ssh_service()
+            with self._fabric_context():
                 result = put(
                     remote_path=remote_path,
                     local_path=local_path,
@@ -279,27 +254,20 @@ class VirtualMachine(object):
                 else:
                     return result
 
-    def download(
-            self, remote_path, local_path, use_sudo=False, use_cache=True
-    ):
+    def download(self, remote_path, local_path, use_sudo=False):
         """
         Download a file or directory from the virtual machine
         :param remote_path: The remote location
         :param local_path: The local local
         :param use_sudo: If True, it runs as sudo
-        :param use_cache: Whether to use the service check cache or not
 
         :return: The list of downloaded files
 
         :raise: DownloadError: If the task fails
         """
         if self._vm_object:
-            self.check_ssh_service(use_cache=use_cache)
-            with fabric_context(
-                    self.ssh_username,
-                    self.ssh_password,
-                    self.ip(use_cache=use_cache)
-            ):
+            self._wait_for_ssh_service()
+            with self._fabric_context():
                 result = get(
                     remote_path=remote_path,
                     local_path=local_path,
@@ -313,11 +281,10 @@ class VirtualMachine(object):
                 else:
                     return result
 
-    def winrm(self, script, use_cache=True, **kwargs):
+    def winrm(self, script, **kwargs):
         """
         Executes a remote windows powershell script
-        :param script: A string with the script
-        :param use_cache: Whether to use the service check cache or not
+        :param script: A string with the powershell script
         :param kwargs: The pywinrm Protocol class kwargs
 
         :return: A tuple with the status code, the stdout and the stderr
@@ -325,30 +292,29 @@ class VirtualMachine(object):
         :raise: WinRmError: If the command fails
         """
         if self._vm_object:
-            self.check_winrm_service(use_cache=use_cache)
-            ip = self.ip(use_cache=True)
-            print('Executing remotely on {} ...'.format(ip))
-            dim_print(script)
+            self._wait_for_winrm_service(**kwargs)
+            print('Executing remotely on {} ...'.format(self.ip()))
+            styled_print(Style.DIM)(script)
             result = winrm.Session(
-                target=ip,
+                target=self.ip(),
                 auth=(self.winrm_username, self.winrm_password),
                 read_timeout_sec=self.timeout+1,
                 operation_timeout_sec=self.timeout,
                 **kwargs
             ).run_ps(script)
-            bright_print('STATUS CODE {}'.format(result.status_code))
-            green_print(result.std_out)
+            styled_print(Style.BRIGHT)('CODE: {}'.format(result.status_code))
+            styled_print(Fore.GREEN)(result.std_out)
             if result.status_code != 0:
-                red_print(result.std_err)
+                styled_print(Fore.RED)(result.std_err)
                 raise WinRmError(script, result.status_code)
             else:
                 return result.status_code, result.std_out, result.std_err
 
-    def print_summary(self, use_cache=True):
+    def print_summary(self):
         """ Print a nice summary of the virtual machine """
-        ip = self.ip(use_cache=use_cache)
+        ip = self.ip()
         row_format = "{:<40}" * 2
-        bright_print(
+        styled_print(Style.BRIGHT)(
             '=======================\n'
             'Virtual Machine Summary\n'
             '======================='
@@ -366,6 +332,61 @@ class VirtualMachine(object):
             ['IP', ip]
         ]:
             print(row_format.format(element[0], str(element[1])))
+
+    @contextlib.contextmanager
+    def _fabric_context(self):
+        """ Set the ssh context for fabric """
+        with settings(
+                host_string="{}@{}".format(self.ssh_username, self.ip()),
+                password=self.ssh_password,
+                warn_only=True,
+                disable_known_hosts=True
+        ):
+            yield
+
+    def _check_ssh_service(self):
+        """ Check whether the ssh service is up or not """
+        try:
+            with self._fabric_context():
+                run('')
+                return True
+        except:
+            return False
+
+    def _check_winrm_service(self, **kwargs):
+        """
+        Check whether the winrm service is up or not
+        :param kwargs: pywinrm Protocol kwargs
+        """
+        try:
+            winrm.Session(
+                target=self.ip(),
+                auth=(self.winrm_username, self.winrm_password),
+                **kwargs
+            ).run_ps('')
+            return True
+        except:
+            return False
+
+    def _wait_for_ssh_service(self):
+        """ Wait until ssh service is ready """
+        timeout_loop(
+            timeout=self.timeout,
+            description='Check SSH service',
+            callback=self._check_ssh_service
+        )
+
+    def _wait_for_winrm_service(self, **kwargs):
+        """
+        Wait until winrm service is ready
+        :param kwargs: pywinrm Protocol kwargs
+        """
+        timeout_loop(
+            timeout=self.timeout,
+            description='Check WinRM service',
+            callback=self._check_winrm_service,
+            **kwargs
+        )
 
 
 @contextlib.contextmanager
