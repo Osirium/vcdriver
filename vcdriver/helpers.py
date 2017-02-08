@@ -31,6 +31,14 @@ def get_vcenter_object(connection, object_type, name):
     :raise: TooManyObjectsFound: If more than one object is found
     :raise: NoObjectFound: If no results are found
     """
+    print(
+        'Retrieving Vcenter object of type "{}" with name "{}" ... '.format(
+            object_type, name
+        ),
+        end=''
+    )
+    sys.stdout.flush()
+    start = time.time()
     content = connection.RetrieveContent()
     view = content.viewManager.CreateContainerView
     objects = [
@@ -39,6 +47,7 @@ def get_vcenter_object(connection, object_type, name):
     ]
     count = len(objects)
     if count == 1:
+        print(datetime.timedelta(seconds=time.time() - start))
         return objects[0]
     elif count > 1:
         raise TooManyObjectsFound(object_type, name)
