@@ -33,8 +33,8 @@ def connection():
             pwd=PASSWORD,
             sslContext=context
         )
-        print('Vcenter session opened with ID {}'.format(_session_id))
         _session_id = _connection_obj.content.sessionManager.currentSession.key
+        print('Vcenter session opened with ID {}'.format(_session_id))
         atexit.register(close)
     return _connection_obj
 
