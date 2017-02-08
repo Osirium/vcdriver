@@ -105,6 +105,7 @@ def validate_ipv4(ip):
     :raise Ipv4Error: If the ip format is not correct
     :raise DhcpError: If an external DHCP server cannot be reached
     """
+    ip = str(ip)
     try:
         socket.inet_pton(socket.AF_INET, ip)
     except AttributeError:

@@ -106,6 +106,13 @@ class VirtualMachine(object):
                 self.timeout
             )
 
+    def find(self):
+        """ Find and update the vm object based on the name """
+        if not self._vm_object:
+            self._vm_object = get_vcenter_object(
+                connection(), vim.VirtualMachine, self.name
+            )
+
     def destroy(self):
         """ Destroy the virtual machine and set the vm object to None """
         if self._vm_object:
@@ -121,12 +128,20 @@ class VirtualMachine(object):
             )
             self._vm_object = None
 
-    def find(self):
-        """ Find and update the vm object based on the name """
-        if not self._vm_object:
-            self._vm_object = get_vcenter_object(
-                connection(), vim.VirtualMachine, self.name
-            )
+    def ip(self):
+        """
+        Poll vcenter to get the virtual machine IP
+
+        :return: Return the ip
+        """
+        if self._vm_object:
+            if not self._vm_object.summary.guest.ipAddress:
+                timeout_loop(
+                    timeout=self.timeout,
+                    description='Get IP',
+                    callback=lambda: self._vm_object.summary.guest.ipAddress
+                )
+            return validate_ipv4(self._vm_object.summary.guest.ipAddress)
 
     def power_on(self):
         """ Power on machine """
@@ -190,21 +205,6 @@ class VirtualMachine(object):
                 'Standby guest operating system on "{}"'.format(self.name),
                 self.timeout
             )
-
-    def ip(self):
-        """
-        Poll vcenter to get the virtual machine IP
-
-        :return: Return the ip
-        """
-        if self._vm_object:
-            if not self._vm_object.summary.guest.ipAddress:
-                timeout_loop(
-                    timeout=self.timeout,
-                    description='Get IP',
-                    callback=lambda: self._vm_object.summary.guest.ipAddress
-                )
-            return validate_ipv4(self._vm_object.summary.guest.ipAddress)
 
     def ssh(self, command, use_sudo=False):
         """
