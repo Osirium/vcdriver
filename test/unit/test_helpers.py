@@ -110,12 +110,12 @@ class TestHelpers(unittest.TestCase):
             wait_for_winrm_service('user', 'pass', 'ip', timeout=1)
 
     def test_validate_ipv4_success(self):
-        validate_ipv4('127.0.0.1')
+        self.assertEqual(validate_ipv4('127.0.0.1'), '127.0.0.1')
 
     @mock.patch('vcdriver.helpers.socket.inet_pton')
     def test_validate_ipv4_success_no_inet_pton(self, inet_pton):
         inet_pton.side_effect = AttributeError
-        validate_ipv4('127.0.0.1')
+        self.assertEqual(validate_ipv4('127.0.0.1'), '127.0.0.1')
 
     def test_validate_ipv4_fail(self):
         with self.assertRaises(DhcpError):

@@ -216,6 +216,7 @@ def validate_ipv4(ip):
     :param ip: The string with the ip
 
     :raise DhcpError: If the ip format is not correct
+    :return: The ip if it's valid
     """
     try:
         socket.inet_pton(socket.AF_INET, ip)
@@ -228,6 +229,7 @@ def validate_ipv4(ip):
         raise DhcpError(ip)
     if ip.startswith('169.254.'):
         raise DhcpError(ip)
+    return ip
 
 
 def _styled_print(styles):
