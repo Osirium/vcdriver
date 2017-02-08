@@ -60,6 +60,7 @@ class TestIntegration(unittest.TestCase):
     def tearDown(self):
         for vm in self.all_vms:
             try:
+                vm.find()
                 vm.destroy()
             except:
                 pass
