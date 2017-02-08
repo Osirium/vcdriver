@@ -1,6 +1,7 @@
 import mock
 import unittest
 
+from pyVmomi import vim
 import winrm
 
 from vcdriver.exceptions import (
@@ -35,10 +36,26 @@ class TestVm(unittest.TestCase):
 
     @mock.patch('vcdriver.vm.connection')
     @mock.patch('vcdriver.vm.wait_for_vcenter_task')
-    def test_virtual_machine_destroy(self, wait_for_vcenter_task, connection):
+    def test_virtual_machine_destroy_vm_on(
+            self, wait_for_vcenter_task, connection
+    ):
         vm = VirtualMachine()
         vm_object_mock = mock.MagicMock()
         vm.__setattr__('_vm_object', vm_object_mock)
+        vm.destroy()
+        vm.destroy()
+        self.assertIsNone(vm.__getattribute__('_vm_object'))
+        self.assertEqual(wait_for_vcenter_task.call_count, 2)
+
+    @mock.patch('vcdriver.vm.connection')
+    @mock.patch('vcdriver.vm.wait_for_vcenter_task')
+    def test_virtual_machine_destroy_vm_off(
+            self, wait_for_vcenter_task, connection
+    ):
+        vm = VirtualMachine()
+        vm_object_mock = mock.MagicMock()
+        vm.__setattr__('_vm_object', vm_object_mock)
+        wait_for_vcenter_task.side_effect = [vim.fault.InvalidPowerState, None]
         vm.destroy()
         vm.destroy()
         self.assertIsNone(vm.__getattribute__('_vm_object'))
@@ -56,9 +73,7 @@ class TestVm(unittest.TestCase):
     @mock.patch('vcdriver.vm.connection')
     @mock.patch('vcdriver.vm.wait_for_vcenter_task')
     def test_virtual_machine_single_vcenter_task_methods(
-            self,
-            wait_for_vcenter_task,
-            connection
+            self, wait_for_vcenter_task, connection
     ):
         vm = VirtualMachine()
         vm_object_mock = mock.MagicMock()
@@ -93,10 +108,7 @@ class TestVm(unittest.TestCase):
     @mock.patch('vcdriver.vm.timeout_loop')
     @mock.patch('vcdriver.vm.validate_ipv4')
     def test_virtual_machine_ip_with_dhcp_wait(
-            self,
-            validate_ipv4,
-            timeout_loop,
-            connection
+            self, validate_ipv4, timeout_loop, connection
     ):
         vm = VirtualMachine()
         validate_ipv4.side_effect = lambda x: x
