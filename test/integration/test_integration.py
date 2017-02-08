@@ -3,6 +3,8 @@ import shutil
 import socket
 import unittest
 
+from pyVmomi import vim
+
 from vcdriver.exceptions import (
     NoObjectFound,
     DownloadError,
@@ -72,12 +74,6 @@ class TestIntegration(unittest.TestCase):
             vm.create()
             vm.create()
             self.assertIsNotNone(vm.__getattribute__('_vm_object'))
-            vm.turn_on()
-            vm.turn_on()
-            vm.turn_off()
-            vm.turn_off()
-            vm.reboot()
-            vm.reboot()
             vm.__setattr__('_vm_object', None)
             vm.find()
             vm.find()
@@ -85,6 +81,28 @@ class TestIntegration(unittest.TestCase):
             vm.destroy()
             vm.destroy()
             self.assertIsNone(vm.__getattribute__('_vm_object'))
+
+    def test_power_methods(self):
+        for vm in self.all_vms:
+            vm.create()
+            vm.power_off()
+            with self.assertRaises(vim.fault.InvalidPowerState):
+                vm.power_off()
+            vm.power_on()
+            vm.power_on()
+            vm.reset()
+            vm.reset()
+            vm.power_off()
+            with self.assertRaises(vim.fault.InvalidPowerState):
+                vm.reset()
+            with self.assertRaises(vim.fault.InvalidPowerState):
+                vm.suspend()
+            vm.power_on()
+            vm.suspend()
+            with self.assertRaises(vim.fault.InvalidPowerState):
+                vm.suspend()
+            vm.power_on()
+            vm.power_off()
 
     def test_context_manager(self):
         for vm in self.all_vms:

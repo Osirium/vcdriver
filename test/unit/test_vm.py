@@ -81,10 +81,7 @@ class TestVm(unittest.TestCase):
             vm.power_on,
             vm.power_off,
             vm.reset,
-            vm.suspend,
-            vm.shutdown_guest,
-            vm.reboot_guest,
-            vm.stand_by_guest
+            vm.suspend
         ]
         for method in methods:
             method()

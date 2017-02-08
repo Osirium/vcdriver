@@ -117,11 +117,7 @@ class VirtualMachine(object):
         """ Destroy the virtual machine and set the vm object to None """
         if self._vm_object:
             try:
-                wait_for_vcenter_task(
-                    self._vm_object.PowerOffVM_Task(),
-                    'Power off virtual machine "{}"'.format(self.name),
-                    self.timeout
-                )
+                self.power_off()
             except vim.fault.InvalidPowerState:
                 pass
             wait_for_vcenter_task(
@@ -156,7 +152,7 @@ class VirtualMachine(object):
             )
 
     def power_off(self):
-        """ Power off machine """
+        """ Power off machine (Machine must be on) """
         if self._vm_object:
             wait_for_vcenter_task(
                 self._vm_object.PowerOffVM_Task(),
@@ -165,47 +161,20 @@ class VirtualMachine(object):
             )
 
     def reset(self):
-        """ Reset the machine """
+        """ Reset the machine (Machine must be on) """
         if self._vm_object:
             wait_for_vcenter_task(
                 self._vm_object.ResetVM_Task(),
-                'Power off virtual machine "{}"'.format(self.name),
+                'Reset virtual machine "{}"'.format(self.name),
                 self.timeout
             )
 
     def suspend(self):
-        """ Suspend the machine """
+        """ Suspend the machine (Machine must be on) """
         if self._vm_object:
             wait_for_vcenter_task(
                 self._vm_object.SuspendVM_Task(),
                 'Suspend virtual machine "{}"'.format(self.name),
-                self.timeout
-            )
-
-    def shutdown_guest(self):
-        """ Shutdown guest operating system """
-        if self._vm_object:
-            wait_for_vcenter_task(
-                self._vm_object.ShutdownGuest_Task(),
-                'Shutdown guest operating system on "{}"'.format(self.name),
-                self.timeout
-            )
-
-    def reboot_guest(self):
-        """ Reboot guest operating system """
-        if self._vm_object:
-            wait_for_vcenter_task(
-                self._vm_object.RebootGuest_Task(),
-                'Reboot guest operating system on "{}"'.format(self.name),
-                self.timeout
-            )
-
-    def stand_by_guest(self):
-        """ Standby guest operating system """
-        if self._vm_object:
-            wait_for_vcenter_task(
-                self._vm_object.StandbyGuest_Task(),
-                'Standby guest operating system on "{}"'.format(self.name),
                 self.timeout
             )
 
