@@ -106,6 +106,15 @@ class TestVm(unittest.TestCase):
         self.assertEqual(vm.ip(), None)
 
     @mock.patch('vcdriver.vm.connection')
+    def test_virtual_machine_ip_timeout(self, connection):
+        vm = VirtualMachine(timeout=1)
+        vm_object_mock = mock.MagicMock()
+        vm_object_mock.summary.guest.ipAddress = None
+        vm.__setattr__('_vm_object', vm_object_mock)
+        with self.assertRaises(TimeoutError):
+            vm.ip()
+
+    @mock.patch('vcdriver.vm.connection')
     @mock.patch('vcdriver.vm.sudo')
     @mock.patch('vcdriver.vm.run')
     def test_virtual_machine_ssh_success(
