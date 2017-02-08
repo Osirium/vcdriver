@@ -150,7 +150,7 @@ class VirtualMachine(object):
             try:
                 wait_for_vcenter_task(
                     self._vm_object.PowerOnVM_Task(),
-                    'Power off virtual machine "{}"'.format(self.name),
+                    'Power on virtual machine "{}"'.format(self.name),
                     self.timeout
                 )
             except vim.fault.InvalidPowerState:

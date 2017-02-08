@@ -33,7 +33,9 @@ class TimeoutError(Exception):
 class RemoteCommandError(Exception):
     def __init__(self, command, return_code):
         super(RemoteCommandError, self).__init__(
-            '"{}" failed with exit code {}'.format(command, return_code)
+            'Remote execution of "{}" failed with exit code {}'.format(
+                command, return_code
+            )
         )
 
 
