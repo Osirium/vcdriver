@@ -8,12 +8,12 @@ from vcdriver.vm import VirtualMachine
 
 
 class TestFolder(unittest.TestCase):
-    @mock.patch('vcdriver.vm.Session')
-    @mock.patch('vcdriver.folder.Session')
+    @mock.patch('vcdriver.vm.connection')
+    @mock.patch('vcdriver.folder.connection')
     @mock.patch('vcdriver.folder.get_vcenter_object')
     @mock.patch.object(VirtualMachine, 'destroy')
     def test_destroy_virtual_machines(
-            self, destroy, get_vcenter_object, folder_session, vm_session
+            self, destroy, get_vcenter_object, folder_connection, vm_connection
     ):
         vm1 = mock.MagicMock(spec=vim.VirtualMachine)
         vm1.summary.config.name = ''
