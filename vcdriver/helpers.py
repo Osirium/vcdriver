@@ -18,7 +18,7 @@ from vcdriver.exceptions import (
 init()
 
 
-def get_vcenter_object(connection, object_type, name):
+def get_vcenter_object_by_name(connection, object_type, name):
     """
     Find a vcenter object
     :param connection: A vcenter connection

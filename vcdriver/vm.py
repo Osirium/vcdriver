@@ -24,7 +24,7 @@ from vcdriver.exceptions import (
     DownloadError
 )
 from vcdriver.helpers import (
-    get_vcenter_object,
+    get_vcenter_object_by_name,
     styled_print,
     timeout_loop,
     validate_ip,
@@ -76,21 +76,21 @@ class VirtualMachine(object):
         """ Create the virtual machine and update the vm object """
         if not self._vm_object:
             self._vm_object = wait_for_vcenter_task(
-                get_vcenter_object(
+                get_vcenter_object_by_name(
                     connection(), vim.VirtualMachine, self.template
                 ).CloneVM_Task(
-                    folder=get_vcenter_object(
+                    folder=get_vcenter_object_by_name(
                         connection(), vim.Folder, self.folder
                     ),
                     name=self.name,
                     spec=vim.vm.CloneSpec(
                         location=vim.vm.RelocateSpec(
-                            datastore=get_vcenter_object(
+                            datastore=get_vcenter_object_by_name(
                                 connection(),
                                 vim.Datastore,
                                 self.data_store
                             ),
-                            pool=get_vcenter_object(
+                            pool=get_vcenter_object_by_name(
                                 connection(),
                                 vim.ResourcePool,
                                 self.resource_pool
@@ -109,7 +109,7 @@ class VirtualMachine(object):
     def find(self):
         """ Find and update the vm object based on the name """
         if not self._vm_object:
-            self._vm_object = get_vcenter_object(
+            self._vm_object = get_vcenter_object_by_name(
                 connection(), vim.VirtualMachine, self.name
             )
 

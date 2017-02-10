@@ -10,7 +10,7 @@ from vcdriver.exceptions import (
     IpError,
 )
 from vcdriver.helpers import (
-    get_vcenter_object,
+    get_vcenter_object_by_name,
     timeout_loop,
     validate_ip,
     validate_ipv4,
@@ -38,13 +38,19 @@ class TestHelpers(unittest.TestCase):
             return_value=content_mock
         )
         self.assertEqual(
-            get_vcenter_object(connection_mock, mock.MagicMock, 'apple'),
+            get_vcenter_object_by_name(
+                connection_mock, mock.MagicMock, 'apple'
+            ),
             apple
         )
         with self.assertRaises(NoObjectFound):
-            get_vcenter_object(connection_mock, mock.MagicMock, 'grapes'),
+            get_vcenter_object_by_name(
+                connection_mock, mock.MagicMock, 'grapes'
+            ),
         with self.assertRaises(TooManyObjectsFound):
-            get_vcenter_object(connection_mock, mock.MagicMock, 'orange')
+            get_vcenter_object_by_name(
+                connection_mock, mock.MagicMock, 'orange'
+            )
 
     def test_timeout_loop_success(self):
         timeout_loop(1, '', lambda: True)

@@ -16,7 +16,7 @@ from vcdriver.vm import VirtualMachine, virtual_machines
 
 class TestVm(unittest.TestCase):
     @mock.patch('vcdriver.vm.connection')
-    @mock.patch('vcdriver.vm.get_vcenter_object')
+    @mock.patch('vcdriver.vm.get_vcenter_object_by_name')
     @mock.patch('vcdriver.vm.vim.vm.CloneSpec')
     @mock.patch('vcdriver.vm.vim.vm.RelocateSpec')
     @mock.patch('vcdriver.vm.wait_for_vcenter_task')
@@ -25,7 +25,7 @@ class TestVm(unittest.TestCase):
             wait_for_vcenter_task,
             relocate_spec,
             clone_spec,
-            get_vcenter_object,
+            get_vcenter_object_by_name,
             connection
     ):
         vm = VirtualMachine()
@@ -62,13 +62,15 @@ class TestVm(unittest.TestCase):
         self.assertEqual(wait_for_vcenter_task.call_count, 2)
 
     @mock.patch('vcdriver.vm.connection')
-    @mock.patch('vcdriver.vm.get_vcenter_object')
-    def test_virtual_machine_find(self, get_vcenter_object, connection):
+    @mock.patch('vcdriver.vm.get_vcenter_object_by_name')
+    def test_virtual_machine_find(
+            self, get_vcenter_object_by_name, connection
+    ):
         vm = VirtualMachine()
         vm.find()
         vm.find()
         self.assertIsNotNone(vm.__getattribute__('_vm_object'))
-        self.assertEqual(get_vcenter_object.call_count, 1)
+        self.assertEqual(get_vcenter_object_by_name.call_count, 1)
 
     @mock.patch('vcdriver.vm.connection')
     @mock.patch('vcdriver.vm.wait_for_vcenter_task')

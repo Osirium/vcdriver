@@ -1,7 +1,7 @@
 from pyVmomi import vim
 
 from vcdriver.session import connection
-from vcdriver.helpers import get_vcenter_object
+from vcdriver.helpers import get_vcenter_object_by_name
 from vcdriver.vm import VirtualMachine
 
 
@@ -13,7 +13,7 @@ def destroy_virtual_machines(folder_name, timeout=600):
 
     :return: A list with the destroyed vms
     """
-    folder = get_vcenter_object(connection(), vim.Folder, folder_name)
+    folder = get_vcenter_object_by_name(connection(), vim.Folder, folder_name)
     destroyed_vms = []
     for entity in folder.childEntity:
         if isinstance(entity, vim.VirtualMachine):
