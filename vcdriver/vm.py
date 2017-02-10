@@ -317,6 +317,7 @@ class VirtualMachine(object):
 
     def _wait_for_ssh_service(self):
         """ Wait until ssh service is ready """
+        self.ip()
         timeout_loop(
             timeout=self.timeout,
             description='Check SSH service',
@@ -328,6 +329,7 @@ class VirtualMachine(object):
         Wait until winrm service is ready
         :param kwargs: pywinrm Protocol kwargs
         """
+        self.ip()
         timeout_loop(
             timeout=self.timeout,
             description='Check WinRM service',
