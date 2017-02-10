@@ -349,6 +349,9 @@ class VirtualMachine(object):
             **kwargs
         )
 
+    def __str__(self):
+        return str(self.name)
+
 
 @contextlib.contextmanager
 def virtual_machines(vms):
