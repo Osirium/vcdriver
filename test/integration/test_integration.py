@@ -12,7 +12,11 @@ from vcdriver.exceptions import (
     SshError,
     WinRmError
 )
-from vcdriver.vm import VirtualMachine, virtual_machines
+from vcdriver.vm import (
+    VirtualMachine,
+    virtual_machines,
+    get_all_virtual_machines
+)
 from vcdriver.folder import destroy_virtual_machines
 
 
@@ -102,6 +106,10 @@ class TestIntegration(unittest.TestCase):
         for vm in self.all_vms:
             with self.assertRaises(NoObjectFound):
                 vm.find()
+
+    def test_get_all_virtual_machines(self):
+        self.unix.create()
+        self.assertGreaterEqual(len(get_all_virtual_machines()), 1)
 
     def test_destroy_virtual_machines(self):
         for vm in self.all_vms:
