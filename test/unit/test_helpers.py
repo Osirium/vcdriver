@@ -7,12 +7,12 @@ from vcdriver.exceptions import (
     NoObjectFound,
     TooManyObjectsFound,
     TimeoutError,
-    Ipv4Error,
-    Ipv6Error
+    IpError,
 )
 from vcdriver.helpers import (
     get_vcenter_object,
     timeout_loop,
+    validate_ip,
     validate_ipv4,
     validate_ipv6,
     wait_for_vcenter_task,
@@ -53,33 +53,43 @@ class TestHelpers(unittest.TestCase):
         with self.assertRaises(TimeoutError):
             timeout_loop(1, '', lambda: False)
 
+    def test_validate_ip_success_version_4(self):
+        self.assertEqual(
+            validate_ip('127.0.0.1'),
+            {'ip': '127.0.0.1', 'version': 4}
+        )
+
+    def test_validate_ip_success_version_6(self):
+        self.assertEqual(
+            validate_ip('fe80::250:56ff:febf:1a0a'),
+            {'ip': 'fe80::250:56ff:febf:1a0a', 'version': 6}
+        )
+
+    def test_validate_ip_fail(self):
+        with self.assertRaises(IpError):
+            validate_ip('wrong')
+
     def test_validate_ipv4_success(self):
-        self.assertEqual(validate_ipv4('127.0.0.1'), '127.0.0.1')
+        self.assertTrue(validate_ipv4('127.0.0.1'), True)
 
     def test_validate_ipv4_fail(self):
-        with self.assertRaises(Ipv4Error):
-            validate_ipv4('fe80::250:56ff:febf:1a0a')
+        self.assertFalse(validate_ipv4('fe80::250:56ff:febf:1a0a'))
 
     @mock.patch('vcdriver.helpers.socket.inet_pton')
     def test_validate_ipv4_no_inet_pton_success(self, inet_pton):
         inet_pton.side_effect = AttributeError
-        self.assertEqual(validate_ipv4('127.0.0.1'), '127.0.0.1')
+        self.assertTrue(validate_ipv4('127.0.0.1'))
 
     @mock.patch('vcdriver.helpers.socket.inet_pton')
     def test_validate_ipv4_no_inet_pton_fail(self, inet_pton):
         inet_pton.side_effect = AttributeError
-        with self.assertRaises(Ipv4Error):
-            validate_ipv4('fe80::250:56ff:febf:1a0a')
+        self.assertFalse(validate_ipv4('fe80::250:56ff:febf:1a0a'))
 
     def test_validate_ipv6_success(self):
-        self.assertEqual(
-            validate_ipv6('fe80::250:56ff:febf:1a0a'),
-            'fe80::250:56ff:febf:1a0a'
-        )
+        self.assertTrue(validate_ipv6('fe80::250:56ff:febf:1a0a'))
 
     def test_validate_ipv6_fail(self):
-        with self.assertRaises(Ipv6Error):
-            self.assertEqual(validate_ipv6('127.0.0.1'), '127.0.0.1')
+        self.assertFalse(validate_ipv6('127.0.0.1'))
 
     def test_wait_for_vcenter_task_success(self):
         task = mock.MagicMock()

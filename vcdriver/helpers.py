@@ -11,8 +11,7 @@ from vcdriver.exceptions import (
     TooManyObjectsFound,
     NoObjectFound,
     TimeoutError,
-    Ipv4Error,
-    Ipv6Error
+    IpError
 )
 
 
@@ -95,14 +94,29 @@ def timeout_loop(
     print(datetime.timedelta(seconds=time.time() - start))
 
 
+def validate_ip(ip):
+    """
+    Try to validate an ip against ipv4 and ipv6
+    :param ip: The target ip
+
+    :return: A dictionary with the ip and the ip version
+
+    :raise IpError: If the ip is not valid
+    """
+    if validate_ipv4(ip):
+        return {'ip': ip, 'version': 4}
+    elif validate_ipv6(ip):
+        return {'ip': ip, 'version': 6}
+    else:
+        raise IpError(ip)
+
+
 def validate_ipv4(ip):
     """
     Validate an ipv4 address
     :param ip: The string with the ip
 
-    :return: The ip if it's valid
-
-    :raise Ipv4Error: If the ip format is not correct
+    :return: True ip if it's valid for ipv4, False otherwise
     """
     ip = str(ip)
     try:
@@ -111,10 +125,10 @@ def validate_ipv4(ip):
         try:
             socket.inet_aton(ip)
         except socket.error:
-            raise Ipv4Error(ip)
+            return False
     except socket.error:
-        raise Ipv4Error(ip)
-    return ip
+        return False
+    return True
 
 
 def validate_ipv6(ip):
@@ -122,16 +136,14 @@ def validate_ipv6(ip):
     Validate an ipv6 address
     :param ip: The string with the ip
 
-    :return: The ip if it's valid
-
-    :raise Ipv6Error: If the ip format is not correct
+    :return: True ip if it's valid for ipv6, False otherwise
     """
     ip = str(ip)
     try:
         socket.inet_pton(socket.AF_INET6, ip)
     except socket.error:
-        raise Ipv6Error(ip)
-    return ip
+        return False
+    return True
 
 
 def wait_for_vcenter_task(task, task_description, timeout):

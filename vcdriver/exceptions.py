@@ -16,17 +16,10 @@ class NoObjectFound(Exception):
         )
 
 
-class Ipv4Error(Exception):
+class IpError(Exception):
     def __init__(self, ip):
-        super(Ipv4Error, self).__init__(
-            '"{}" is not a valid IPv4 address'.format(ip)
-        )
-
-
-class Ipv6Error(Exception):
-    def __init__(self, ip):
-        super(Ipv6Error, self).__init__(
-            '"{}" is not a valid IPv6 address'.format(ip)
+        super(IpError, self).__init__(
+            '"{}" is not a valid IPv4/IPv6 address'.format(ip)
         )
 
 

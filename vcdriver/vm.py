@@ -27,7 +27,7 @@ from vcdriver.helpers import (
     get_vcenter_object,
     styled_print,
     timeout_loop,
-    validate_ipv4,
+    validate_ip,
     wait_for_vcenter_task
 )
 
@@ -140,7 +140,9 @@ class VirtualMachine(object):
                     description='Get IP',
                     callback=lambda: self._vm_object.summary.guest.ipAddress
                 )
-            return validate_ipv4(self._vm_object.summary.guest.ipAddress)
+            ip = self._vm_object.summary.guest.ipAddress
+            validate_ip(ip)
+            return ip
 
     def power_on(self):
         """ Power on machine """
@@ -290,8 +292,12 @@ class VirtualMachine(object):
     @contextlib.contextmanager
     def _fabric_context(self):
         """ Set the ssh context for fabric """
+        ip = self.ip()
+        ip_version = validate_ip(ip)['version']
+        if ip_version == 6:
+            ip = '[{}]'.format(ip)
         with settings(
-                host_string="{}@{}".format(self.ssh_username, self.ip()),
+                host_string="{}@{}".format(self.ssh_username, ip),
                 password=self.ssh_password,
                 warn_only=True,
                 disable_known_hosts=True

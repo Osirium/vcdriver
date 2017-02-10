@@ -98,12 +98,12 @@ class TestVm(unittest.TestCase):
 
     @mock.patch('vcdriver.vm.connection')
     @mock.patch('vcdriver.vm.timeout_loop')
-    @mock.patch('vcdriver.vm.validate_ipv4')
+    @mock.patch('vcdriver.vm.validate_ip')
     def test_virtual_machine_ip_with_dhcp_wait(
-            self, validate_ipv4, timeout_loop, connection
+            self, validate_ip, timeout_loop, connection
     ):
         vm = VirtualMachine()
-        validate_ipv4.side_effect = lambda x: x
+        validate_ip.side_effect = lambda x: x
         vm_object_mock = mock.MagicMock()
         vm_object_mock.summary.guest.ipAddress = None
         vm.__setattr__('_vm_object', vm_object_mock)
@@ -143,7 +143,7 @@ class TestVm(unittest.TestCase):
     def test_virtual_machine_ssh_fail(self, sudo, run, connection):
         vm = VirtualMachine()
         vm_object_mock = mock.MagicMock()
-        vm_object_mock.summary.guest.ipAddress = '127.0.0.1'
+        vm_object_mock.summary.guest.ipAddress = 'fe80::250:56ff:febf:1a0a'
         vm.__setattr__('_vm_object', vm_object_mock)
         with self.assertRaises(SshError):
             vm.ssh('whatever', use_sudo=True)
