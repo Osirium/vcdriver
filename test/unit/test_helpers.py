@@ -10,6 +10,7 @@ from vcdriver.exceptions import (
     IpError,
 )
 from vcdriver.helpers import (
+    get_all_vcenter_objects,
     get_vcenter_object_by_name,
     timeout_loop,
     validate_ip,
@@ -20,7 +21,23 @@ from vcdriver.helpers import (
 
 
 class TestHelpers(unittest.TestCase):
-    def test_get_object(self):
+    def test_all_vcenter_objects(self):
+        view_mock = mock.MagicMock()
+        view_mock.view = ['one', 2, None]
+        content_mock = mock.MagicMock()
+        content_mock.viewManager.CreateContainerView = mock.MagicMock(
+            return_value=view_mock
+        )
+        connection_mock = mock.MagicMock()
+        connection_mock.RetrieveContent = mock.MagicMock(
+            return_value=content_mock
+        )
+        self.assertListEqual(
+            get_all_vcenter_objects(connection_mock, mock.MagicMock),
+            ['one', 2, None]
+        )
+
+    def test_get_vcenter_object_by_name(self):
         apple = mock.MagicMock()
         orange_1 = mock.MagicMock()
         orange_2 = mock.MagicMock()

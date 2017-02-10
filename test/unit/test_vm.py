@@ -11,7 +11,11 @@ from vcdriver.exceptions import (
     WinRmError,
     TimeoutError
 )
-from vcdriver.vm import VirtualMachine, virtual_machines
+from vcdriver.vm import (
+    VirtualMachine,
+    virtual_machines,
+    get_all_virtual_machines
+)
 
 
 class TestVm(unittest.TestCase):
@@ -260,6 +264,9 @@ class TestVm(unittest.TestCase):
     def test_virtual_machine_print_summary(self, connection):
         VirtualMachine().print_summary()
 
+    def test_str(self):
+        self.assertEqual(str(VirtualMachine(name='whatever')), 'whatever')
+
     @mock.patch('vcdriver.vm.connection')
     @mock.patch.object(VirtualMachine, 'create')
     @mock.patch.object(VirtualMachine, 'destroy')
@@ -280,3 +287,13 @@ class TestVm(unittest.TestCase):
                 raise Exception
         create.assert_called_once_with()
         destroy.assert_called_once_with()
+
+    @mock.patch('vcdriver.vm.connection')
+    @mock.patch('vcdriver.vm.get_all_vcenter_objects')
+    def test_get_all_virtual_machines(
+            self, get_all_vcenter_objects, connection
+    ):
+        obj1 = mock.MagicMock()
+        obj2 = mock.MagicMock()
+        get_all_vcenter_objects.return_value = [obj1, obj2]
+        self.assertEqual(len(get_all_virtual_machines()), 2)
