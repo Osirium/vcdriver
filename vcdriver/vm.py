@@ -24,6 +24,7 @@ from vcdriver.exceptions import (
     DownloadError
 )
 from vcdriver.helpers import (
+    get_all_vcenter_objects,
     get_vcenter_object_by_name,
     styled_print,
     timeout_loop,
@@ -366,3 +367,19 @@ def virtual_machines(vms):
         for vm in vms:
             vm.destroy()
         raise
+
+
+def get_all_virtual_machines():
+    """
+    Get all the virtual machines from your Vcenter Instance.
+    It will update both the internal _vm_object and the name.
+
+    :return: A list with all the VirtualMachine objects
+    """
+    machines = []
+    for vm_object in get_all_vcenter_objects(connection(), vim.VirtualMachine):
+        machine = VirtualMachine()
+        machine.__setattr__('_vm_object', vm_object)
+        machine.name = vm_object.summary.config.name
+        machines.append(machine)
+    return machines

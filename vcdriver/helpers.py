@@ -18,11 +18,34 @@ from vcdriver.exceptions import (
 init()
 
 
+def get_all_vcenter_objects(connection, object_type):
+    """
+    Return all the vcenter objects of a given type
+    :param connection: A vcenter connection
+    :param object_type:  A vcenter object type, like vim.VirtualMachine
+
+    :return: A list with all the objects found
+    """
+    print(
+        'Retrieving all Vcenter objects of type "{}" ... '.format(object_type),
+        end=''
+    )
+    sys.stdout.flush()
+    start = time.time()
+    content = connection.RetrieveContent()
+    view = content.viewManager.CreateContainerView
+    objects = [
+        obj for obj in view(content.rootFolder, [object_type], True).view
+    ]
+    print(datetime.timedelta(seconds=time.time() - start))
+    return objects
+
+
 def get_vcenter_object_by_name(connection, object_type, name):
     """
     Find a vcenter object
     :param connection: A vcenter connection
-    :param object_type: A vcenter object type, like vim.Folder
+    :param object_type: A vcenter object type, like vim.VirtualMachine
     :param name: The name of the object
 
     :return: The object found
