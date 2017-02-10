@@ -3,8 +3,6 @@ import shutil
 import socket
 import unittest
 
-from pyVmomi import vim
-
 from vcdriver.exceptions import (
     NoObjectFound,
     DownloadError,
@@ -86,15 +84,6 @@ class TestIntegration(unittest.TestCase):
             vm.destroy()
             vm.destroy()
             self.assertIsNone(vm.__getattribute__('_vm_object'))
-
-    def test_power_methods(self):
-        for vm in self.all_vms:
-            vm.create()
-            vm.power_off()
-            with self.assertRaises(vim.fault.InvalidPowerState):
-                vm.power_off()
-            vm.power_on()
-            vm.power_on()
 
     def test_context_manager(self):
         for vm in self.all_vms:

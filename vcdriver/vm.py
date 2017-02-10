@@ -118,7 +118,11 @@ class VirtualMachine(object):
         """ Destroy the virtual machine and set the vm object to None """
         if self._vm_object:
             try:
-                self.power_off()
+                wait_for_vcenter_task(
+                    self._vm_object.PowerOffVM_Task(),
+                    'Power off virtual machine "{}"'.format(self.name),
+                    self.timeout
+                )
             except vim.fault.InvalidPowerState:
                 pass
             wait_for_vcenter_task(
@@ -144,24 +148,6 @@ class VirtualMachine(object):
             ip = self._vm_object.summary.guest.ipAddress
             validate_ip(ip)
             return ip
-
-    def power_on(self):
-        """ Power on machine """
-        if self._vm_object:
-            wait_for_vcenter_task(
-                self._vm_object.PowerOnVM_Task(),
-                'Power on virtual machine "{}"'.format(self.name),
-                self.timeout
-            )
-
-    def power_off(self):
-        """ Power off machine (Machine must be on) """
-        if self._vm_object:
-            wait_for_vcenter_task(
-                self._vm_object.PowerOffVM_Task(),
-                'Power off virtual machine "{}"'.format(self.name),
-                self.timeout
-            )
 
     def ssh(self, command, use_sudo=False):
         """
