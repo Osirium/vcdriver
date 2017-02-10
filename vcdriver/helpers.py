@@ -12,7 +12,7 @@ from vcdriver.exceptions import (
     NoObjectFound,
     TimeoutError,
     Ipv4Error,
-    DhcpError
+    Ipv6Error
 )
 
 
@@ -103,7 +103,6 @@ def validate_ipv4(ip):
     :return: The ip if it's valid
 
     :raise Ipv4Error: If the ip format is not correct
-    :raise DhcpError: If an external DHCP server cannot be reached
     """
     ip = str(ip)
     try:
@@ -115,8 +114,23 @@ def validate_ipv4(ip):
             raise Ipv4Error(ip)
     except socket.error:
         raise Ipv4Error(ip)
-    if ip.startswith('169.254.'):
-        raise DhcpError(ip)
+    return ip
+
+
+def validate_ipv6(ip):
+    """
+    Validate an ipv6 address
+    :param ip: The string with the ip
+
+    :return: The ip if it's valid
+
+    :raise Ipv6Error: If the ip format is not correct
+    """
+    ip = str(ip)
+    try:
+        socket.inet_pton(socket.AF_INET6, ip)
+    except socket.error:
+        raise Ipv6Error(ip)
     return ip
 
 

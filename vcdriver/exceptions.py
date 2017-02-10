@@ -23,11 +23,10 @@ class Ipv4Error(Exception):
         )
 
 
-class DhcpError(Exception):
+class Ipv6Error(Exception):
     def __init__(self, ip):
-        super(DhcpError, self).__init__(
-            'An external DHCP server could not be contacted, so a link-local '
-            'address was used: "{}"'.format(ip)
+        super(Ipv6Error, self).__init__(
+            '"{}" is not a valid IPv6 address'.format(ip)
         )
 
 

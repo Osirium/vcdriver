@@ -7,13 +7,14 @@ from vcdriver.exceptions import (
     NoObjectFound,
     TooManyObjectsFound,
     TimeoutError,
-    DhcpError,
-    Ipv4Error
+    Ipv4Error,
+    Ipv6Error
 )
 from vcdriver.helpers import (
     get_vcenter_object,
     timeout_loop,
     validate_ipv4,
+    validate_ipv6,
     wait_for_vcenter_task,
 )
 
@@ -55,24 +56,30 @@ class TestHelpers(unittest.TestCase):
     def test_validate_ipv4_success(self):
         self.assertEqual(validate_ipv4('127.0.0.1'), '127.0.0.1')
 
-    @mock.patch('vcdriver.helpers.socket.inet_pton')
-    def test_validate_ipv4_success_no_inet_pton(self, inet_pton):
-        inet_pton.side_effect = AttributeError
-        self.assertEqual(validate_ipv4('127.0.0.1'), '127.0.0.1')
-
     def test_validate_ipv4_fail(self):
         with self.assertRaises(Ipv4Error):
             validate_ipv4('fe80::250:56ff:febf:1a0a')
 
     @mock.patch('vcdriver.helpers.socket.inet_pton')
-    def test_validate_ipv4_fail_no_inet_pton(self, inet_pton):
+    def test_validate_ipv4_no_inet_pton_success(self, inet_pton):
+        inet_pton.side_effect = AttributeError
+        self.assertEqual(validate_ipv4('127.0.0.1'), '127.0.0.1')
+
+    @mock.patch('vcdriver.helpers.socket.inet_pton')
+    def test_validate_ipv4_no_inet_pton_fail(self, inet_pton):
         inet_pton.side_effect = AttributeError
         with self.assertRaises(Ipv4Error):
             validate_ipv4('fe80::250:56ff:febf:1a0a')
 
-    def test_validate_ipv4_fail_link_local_address(self):
-        with self.assertRaises(DhcpError):
-            validate_ipv4('169.254.1.1')
+    def test_validate_ipv6_success(self):
+        self.assertEqual(
+            validate_ipv6('fe80::250:56ff:febf:1a0a'),
+            'fe80::250:56ff:febf:1a0a'
+        )
+
+    def test_validate_ipv6_fail(self):
+        with self.assertRaises(Ipv6Error):
+            self.assertEqual(validate_ipv6('127.0.0.1'), '127.0.0.1')
 
     def test_wait_for_vcenter_task_success(self):
         task = mock.MagicMock()
