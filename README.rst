@@ -62,15 +62,15 @@ Integration tests
 As you might expect, the unit tests can only test the logic of the driver, as all the vcenter components have to be mocked out.
 You can run some integration tests to check it works fine for your Vcenter instance. To do so:
 
-1. Read through the configuration section on the `wiki <https://github.com/Lantero/vcdriver/wiki>`_.
+1. Read through the `configuration section <https://github.com/Lantero/vcdriver/wiki/Configuration>`_.
 2. You need the following Vcenter resources:
 
   - An empty folder which will serve as a sandbox environment for the tests.
   - A Unix virtual machine template with the SSH service allowing remote username/password SSH/SFTP connections.
   - A Windows Server virtual machine template with the WinRM service allowing remote username/password WinRM connections.
-    This might not be non-trivial, so here is a snippet you can run on the CMD console to set it up on a Windows Server 2012,
+    This might not be non-trivial, so here is an snippet you can run on the CMD console to set it up on a Windows Server 2012,
     which probably works for other versions too. Remember this is not a production config, you can read a bit more about different
-    WinRM setups on the `wiki <https://github.com/Lantero/vcdriver/wiki>`_.
+    WinRM setups on the `WinRM section of the wiki <https://github.com/Lantero/vcdriver/wiki/Documentation#5-manage-virtual-machines-winrm-windows>`_.
 
     .. code-block::
 
