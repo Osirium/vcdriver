@@ -257,24 +257,27 @@ class VirtualMachine(object):
     def summary(self):
         """ Return a string summary of the virtual machine """
         ip = self.ip()
-        row_format = "{:<40}" * 2
-        styled_print(Style.BRIGHT)(
+        return (
             '=======================\n'
             'Virtual Machine Summary\n'
-            '======================='
+            '=======================\n'
+            '{}'.format(
+                os.linesep.join([
+                    '{:<40}{:<40}'.format(element[0], str(element[1]) or '')
+                    for element in [
+                        ['Name:', self.name],
+                        ['Template:', self.template],
+                        ['Resource pool:', self.resource_pool],
+                        ['Data store:', self.data_store],
+                        ['Folder:', self.folder],
+                        ['SSH Username:', self.ssh_username],
+                        ['WinRM Username:', self.winrm_username],
+                        ['IP:', ip]
+                    ]
+                ])
+            )
         )
-        return '{}'.format(os.linesep).join([
-            row_format.format(element[0], str(element[1])) for element in [
-                ['Name', self.name or ''],
-                ['Template', self.template or ''],
-                ['Resource pool', self.resource_pool or ''],
-                ['Data store', self.data_store or ''],
-                ['Folder', self.folder or ''],
-                ['SSH Username', self.ssh_username or ''],
-                ['WinRM Username', self.winrm_username or ''],
-                ['IP', ip or '']
-            ]
-        ])
+
 
     @contextlib.contextmanager
     def _fabric_context(self):
