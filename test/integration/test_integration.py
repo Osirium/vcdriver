@@ -3,6 +3,12 @@ import shutil
 import socket
 import unittest
 
+from vcdriver.config import (
+    VM_SSH_USERNAME,
+    VM_SSH_PASSWORD,
+    VM_WINRM_USERNAME,
+    VM_WINRM_PASSWORD
+)
 from vcdriver.exceptions import (
     NoObjectFound,
     DownloadError,
@@ -47,15 +53,15 @@ class TestIntegration(unittest.TestCase):
             name='test-integration-vcdriver-unix',
             template=os.getenv('VCDRIVER_TEST_UNIX_TEMPLATE'),
             folder=os.getenv('VCDRIVER_TEST_FOLDER'),
-            ssh_username=os.getenv('VCDRIVER_TEST_UNIX_USERNAME'),
-            ssh_password=os.getenv('VCDRIVER_TEST_UNIX_PASSWORD')
+            ssh_username=VM_SSH_USERNAME,
+            ssh_password=VM_SSH_PASSWORD
         )
         self.windows = VirtualMachine(
             name='test-integration-vcdriver-windows',
             template=os.getenv('VCDRIVER_TEST_WINDOWS_TEMPLATE'),
             folder=os.getenv('VCDRIVER_TEST_FOLDER'),
-            winrm_username=os.getenv('VCDRIVER_TEST_WINDOWS_USERNAME'),
-            winrm_password=os.getenv('VCDRIVER_TEST_WINDOWS_PASSWORD')
+            winrm_username=VM_WINRM_USERNAME,
+            winrm_password=VM_WINRM_PASSWORD
         )
         self.all_vms = [self.unix, self.windows]
 
