@@ -278,7 +278,6 @@ class VirtualMachine(object):
             )
         )
 
-
     @contextlib.contextmanager
     def _fabric_context(self):
         """ Set the ssh context for fabric """
