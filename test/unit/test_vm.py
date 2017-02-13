@@ -245,8 +245,8 @@ class TestVm(unittest.TestCase):
             vm.winrm('script')
 
     @mock.patch('vcdriver.vm.connection')
-    def test_virtual_machine_print_summary(self, connection):
-        VirtualMachine().print_summary()
+    def test_virtual_machine_summary(self, connection):
+        print(VirtualMachine().summary())
 
     def test_str(self):
         self.assertEqual(str(VirtualMachine(name='whatever')), 'whatever')
