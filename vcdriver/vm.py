@@ -1,4 +1,5 @@
 import contextlib
+import os
 import uuid
 
 from colorama import Style, Fore
@@ -262,7 +263,7 @@ class VirtualMachine(object):
             'Virtual Machine Summary\n'
             '======================='
         )
-        return '\n'.join([
+        return '{}'.format(os.linesep).join([
             row_format.format(element[0], str(element[1])) for element in [
                 ['Name', self.name or ''],
                 ['Template', self.template or ''],
