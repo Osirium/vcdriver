@@ -255,24 +255,25 @@ class VirtualMachine(object):
                 return result.status_code, result.std_out, result.std_err
 
     def summary(self):
-        """ Return a string summary of the virtual machine """
+        """ Return a string summary of the virtual machine in markdown/reST """
         ip = self.ip()
         return (
-            '=======================\n'
-            'Virtual Machine Summary\n'
-            '=======================\n'
+            'Virtual Machine Summary{}'
+            '======================={}'
             '{}'.format(
+                os.linesep,
+                os.linesep,
                 os.linesep.join([
-                    '{:<40}{:<40}'.format(element[0], str(element[1]) or '')
+                    '* **{}**: {}'.format(element[0], str(element[1] or ''))
                     for element in [
-                        ['Name:', self.name],
-                        ['Template:', self.template],
-                        ['Resource pool:', self.resource_pool],
-                        ['Data store:', self.data_store],
-                        ['Folder:', self.folder],
-                        ['SSH Username:', self.ssh_username],
-                        ['WinRM Username:', self.winrm_username],
-                        ['IP:', ip]
+                        ['Name', self.name],
+                        ['Template', self.template],
+                        ['Resource pool', self.resource_pool],
+                        ['Data store', self.data_store],
+                        ['Folder', self.folder],
+                        ['SSH Username', self.ssh_username],
+                        ['WinRM Username', self.winrm_username],
+                        ['IP', ip]
                     ]
                 ])
             )
