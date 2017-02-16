@@ -9,7 +9,8 @@ from vcdriver.exceptions import (
     DownloadError,
     UploadError,
     WinRmError,
-    TimeoutError
+    TimeoutError,
+    MissingCredentialsError
 )
 from vcdriver.vm import (
     VirtualMachine,
@@ -114,7 +115,7 @@ class TestVm(unittest.TestCase):
     def test_virtual_machine_ssh_success(
             self, run, sudo, connection
     ):
-        vm = VirtualMachine()
+        vm = VirtualMachine(ssh_username='', ssh_password='')
         self.assertEqual(vm.ssh('whatever'), None)
         vm_object_mock = mock.MagicMock()
         vm_object_mock.summary.guest.ipAddress = '127.0.0.1'
@@ -131,7 +132,7 @@ class TestVm(unittest.TestCase):
     @mock.patch('vcdriver.vm.run')
     @mock.patch('vcdriver.vm.sudo')
     def test_virtual_machine_ssh_fail(self, sudo, run, connection):
-        vm = VirtualMachine()
+        vm = VirtualMachine(ssh_username='', ssh_password='')
         vm_object_mock = mock.MagicMock()
         vm_object_mock.summary.guest.ipAddress = 'fe80::250:56ff:febf:1a0a'
         vm.__setattr__('_vm_object', vm_object_mock)
@@ -141,7 +142,7 @@ class TestVm(unittest.TestCase):
     @mock.patch('vcdriver.vm.connection')
     @mock.patch('vcdriver.vm.run')
     def test_virtual_machine_ssh_timeout(self, run, connection):
-        vm = VirtualMachine(timeout=1)
+        vm = VirtualMachine(ssh_username='', ssh_password='', timeout=1)
         vm_object_mock = mock.MagicMock()
         vm_object_mock.summary.guest.ipAddress = '127.0.0.1'
         vm.__setattr__('_vm_object', vm_object_mock)
@@ -155,7 +156,7 @@ class TestVm(unittest.TestCase):
     def test_virtual_machine_upload_success(
             self, run, put, connection
     ):
-        vm = VirtualMachine()
+        vm = VirtualMachine(ssh_username='', ssh_password='')
         self.assertEqual(vm.upload('from', 'to'), None)
         vm_object_mock = mock.MagicMock()
         vm_object_mock.summary.guest.ipAddress = '127.0.0.1'
@@ -171,7 +172,7 @@ class TestVm(unittest.TestCase):
     def test_virtual_machine_upload_fail(
             self, run, put, connection
     ):
-        vm = VirtualMachine()
+        vm = VirtualMachine(ssh_username='', ssh_password='')
         vm_object_mock = mock.MagicMock()
         vm_object_mock.summary.guest.ipAddress = '127.0.0.1'
         vm.__setattr__('_vm_object', vm_object_mock)
@@ -184,7 +185,7 @@ class TestVm(unittest.TestCase):
     def test_virtual_machine_download_success(
             self, run, get, session
     ):
-        vm = VirtualMachine()
+        vm = VirtualMachine(ssh_username='', ssh_password='')
         self.assertEqual(vm.download('from', 'to'), None)
         vm_object_mock = mock.MagicMock()
         vm_object_mock.summary.guest.ipAddress = '127.0.0.1'
@@ -200,7 +201,7 @@ class TestVm(unittest.TestCase):
     def test_virtual_machine_download_fail(
             self, run, get, session
     ):
-        vm = VirtualMachine()
+        vm = VirtualMachine(ssh_username='', ssh_password='')
         vm_object_mock = mock.MagicMock()
         vm_object_mock.summary.guest.ipAddress = '127.0.0.1'
         vm.__setattr__('_vm_object', vm_object_mock)
@@ -243,6 +244,23 @@ class TestVm(unittest.TestCase):
         run_ps.side_effect = Exception
         with self.assertRaises(TimeoutError):
             vm.winrm('script')
+
+    @mock.patch('vcdriver.vm.connection')
+    def test_virtual_machine_missing_credentials(self, connection):
+        vm_object_mock = mock.MagicMock()
+        vm_object_mock.summary.guest.ipAddress = '127.0.0.1'
+        vm = VirtualMachine()
+        vm.__setattr__('_vm_object', vm_object_mock)
+        with self.assertRaises(MissingCredentialsError):
+            vm.winrm('')
+        with self.assertRaises(MissingCredentialsError):
+            vm.ssh('')
+        vm = VirtualMachine(ssh_username='', winrm_password='')
+        vm.__setattr__('_vm_object', vm_object_mock)
+        with self.assertRaises(MissingCredentialsError):
+            vm.winrm('')
+        with self.assertRaises(MissingCredentialsError):
+            vm.ssh('')
 
     @mock.patch('vcdriver.vm.connection')
     def test_virtual_machine_summary(self, connection):
