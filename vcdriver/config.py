@@ -1,10 +1,13 @@
+import getpass
 import os
 
 # Session config
 HOST = os.getenv('VCDRIVER_HOST')
 PORT = os.getenv('VCDRIVER_PORT')
 USERNAME = os.getenv('VCDRIVER_USERNAME')
-PASSWORD = os.getenv('VCDRIVER_PASSWORD')
+PASSWORD = os.getenv('VCDRIVER_PASSWORD') or getpass.getpass(
+    'Enter your password for Vcenter: '
+)
 
 # Virtual machine config
 RESOURCE_POOL = os.getenv('VCDRIVER_RESOURCE_POOL')
