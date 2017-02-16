@@ -258,12 +258,11 @@ class VirtualMachine(object):
         """ Return a string summary of the virtual machine in markdown/reST """
         ip = self.ip()
         return (
-            'Virtual Machine Summary{}'
-            '======================={}'
-            '{}'.format(
-                os.linesep,
-                os.linesep,
-                os.linesep.join([
+            'Virtual Machine Summary{new_line}'
+            '======================={new_line}'
+            '{elements}'.format(
+                new_line=os.linesep,
+                elements=os.linesep.join([
                     '* **{}**: {}'.format(element[0], str(element[1] or ''))
                     for element in [
                         ['Name', self.name],
