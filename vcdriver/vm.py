@@ -4,7 +4,7 @@ import uuid
 
 from colorama import Style, Fore
 from fabric.api import sudo, run, get, put
-from fabric.context_managers import settings
+from fabric.context_managers import settings, hide
 from pyVmomi import vim
 import winrm
 
@@ -298,7 +298,8 @@ class VirtualMachine(object):
         """ Check whether the ssh service is up or not """
         try:
             with self._fabric_context():
-                run('')
+                with hide():
+                    run('')
                 return True
         except:
             return False
