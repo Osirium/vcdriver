@@ -357,6 +357,9 @@ class VirtualMachine(object):
     def __str__(self):
         return str(self.name)
 
+    def __repr__(self):
+        return str(self.name)
+
 
 @contextlib.contextmanager
 def virtual_machines(vms):

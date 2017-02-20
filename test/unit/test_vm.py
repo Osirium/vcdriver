@@ -266,8 +266,9 @@ class TestVm(unittest.TestCase):
     def test_virtual_machine_summary(self, connection):
         print(VirtualMachine().summary())
 
-    def test_str(self):
+    def test_str_repr(self):
         self.assertEqual(str(VirtualMachine(name='whatever')), 'whatever')
+        self.assertEqual(repr(VirtualMachine(name='whatever')), 'whatever')
 
     @mock.patch('vcdriver.vm.connection')
     @mock.patch.object(VirtualMachine, 'create')
