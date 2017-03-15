@@ -78,6 +78,15 @@ class TestVm(unittest.TestCase):
         self.assertEqual(get_vcenter_object_by_name.call_count, 1)
 
     @mock.patch('vcdriver.vm.connection')
+    def test_virtual_machine_reset(self, wait_for_vcenter_task, connection):
+        vm = VirtualMachine()
+        vm.reset()
+        vm_object_mock = mock.MagicMock()
+        vm.__setattr__('_vm_object', vm_object_mock)
+        vm.reset()
+        self.assertEqual(wait_for_vcenter_task.call_count, 1)
+
+    @mock.patch('vcdriver.vm.connection')
     def test_virtual_machine_ip(self, connection):
         vm = VirtualMachine()
         vm_object_mock = mock.MagicMock()

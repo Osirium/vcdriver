@@ -134,6 +134,15 @@ class VirtualMachine(object):
             )
             self._vm_object = None
 
+    def reset(self):
+        """ Reset the virtual machine """
+        if self._vm_object:
+            wait_for_vcenter_task(
+                self._vm_object.ResetVM_Task(),
+                'Reset virtual machine "{}"'.format(self.name),
+                self.timeout
+            )
+
     def ip(self):
         """
         Poll vcenter to get the virtual machine IP
