@@ -78,6 +78,7 @@ class TestVm(unittest.TestCase):
         self.assertEqual(get_vcenter_object_by_name.call_count, 1)
 
     @mock.patch('vcdriver.vm.connection')
+    @mock.patch('vcdriver.vm.wait_for_vcenter_task')
     def test_virtual_machine_reset(self, wait_for_vcenter_task, connection):
         vm = VirtualMachine()
         vm.reset()
