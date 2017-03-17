@@ -143,6 +143,17 @@ class VirtualMachine(object):
                 self.timeout
             )
 
+    def reboot(self):
+        """
+        Reboot the guest operating system in an async fashion
+        Need Vmware tools installed in the virtual machine
+        """
+        if self._vm_object:
+            try:
+                self._vm_object.RebootGuest()
+            except vim.fault.InvalidPowerState:
+                pass
+
     def ip(self):
         """
         Poll vcenter to get the virtual machine IP

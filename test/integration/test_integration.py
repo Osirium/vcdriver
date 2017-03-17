@@ -72,6 +72,7 @@ class TestIntegration(unittest.TestCase):
             self.assertIsNone(vm.__getattribute__('_vm_object'))
             vm.create()
             vm.reset()
+            vm.reboot()
             vm.create()
             self.assertIsNotNone(vm.__getattribute__('_vm_object'))
             vm.__setattr__('_vm_object', None)
@@ -80,6 +81,7 @@ class TestIntegration(unittest.TestCase):
             self.assertIsNotNone(vm.__getattribute__('_vm_object'))
             vm.destroy()
             vm.reset()
+            vm.reboot()
             vm.destroy()
             self.assertIsNone(vm.__getattribute__('_vm_object'))
 
