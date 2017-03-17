@@ -2,6 +2,7 @@ import os
 import shutil
 import socket
 import unittest
+import time
 
 from vcdriver.exceptions import (
     NoObjectFound,
@@ -72,6 +73,7 @@ class TestIntegration(unittest.TestCase):
             self.assertIsNone(vm.__getattribute__('_vm_object'))
             vm.create()
             vm.reset()
+            time.sleep(20)  # Need some time to load vmware tools for reboot
             vm.reboot()
             vm.create()
             self.assertIsNotNone(vm.__getattribute__('_vm_object'))
