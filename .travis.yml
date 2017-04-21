@@ -6,7 +6,8 @@ python:
   - '3.5'
   - '3.6'
 install:
-  - pip install pytest pytest-cov mock flake8 colorama Fabric3 pyvmomi pywinrm
+  - pip install .
+  - pip install pytest pytest-cov mock flake8
 script:
   - flake8 .
   - VCDRIVER_PASSWORD="something" py.test -v --cov=vcdriver test/unit
