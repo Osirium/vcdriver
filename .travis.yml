@@ -6,7 +6,7 @@ python:
   - '3.5'
   - '3.6'
 install:
-  - pip install .
+  - pip install -e .
   - pip install pytest pytest-cov mock flake8
 script:
   - flake8 .
