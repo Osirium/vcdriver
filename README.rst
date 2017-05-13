@@ -59,7 +59,7 @@ Documentation and examples can be found on the `wiki <https://github.com/Lantero
 Unit tests
 ==========
 
-Just run ``py.test -v test/unit``.
+Just run ``pytest -v test/unit``.
 
 Integration tests
 =================
