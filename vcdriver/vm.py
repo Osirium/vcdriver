@@ -35,6 +35,28 @@ from vcdriver.helpers import (
 )
 
 
+def _search_snapshots_by_name(snapshots, name):
+    found_snapshots = []
+    for snapshot in snapshots:
+        if name == snapshot.name:
+            found_snapshots.append(snapshot)
+        found_snapshots = (
+            found_snapshots +
+            _search_snapshots_by_name(snapshot.childSnapshotList, name)
+        )
+    return found_snapshots
+
+
+def _get_snapshot_by_name(snapshots, name):
+    found_snapshots = _search_snapshots_by_name(snapshots, name)
+    if len(found_snapshots) > 1:
+        raise ValueError('Supplied snapshot name is not unique.')
+    elif len(found_snapshots) == 0:
+        raise ValueError('Supplied snapshot name not found.')
+    else:
+        return found_snapshots[0]
+
+
 class VirtualMachine(object):
     def __init__(
             self,
@@ -115,6 +137,37 @@ class VirtualMachine(object):
             self._vm_object = get_vcenter_object_by_name(
                 connection(), vim.VirtualMachine, self.name
             )
+
+    def create_snapshot(self, name, dump_memory, description=''):
+        """Create a snapshot of the virtual machine.
+
+        :param name: The name of the snapshot to revert to.
+        :param dump_memory: Whether to dump the memory of the vm.
+        :param description: A description of the snapshot
+        """
+        wait_for_vcenter_task(self._vm_object.CreateSnapshot(
+            name, description, dump_memory, False),
+            'Creating snapshot {} on {}'.format(name, self.name),
+            self.timeout
+        )  # We set quiesce to false here see: https://kb.vmware.com/selfservice/microsites/search.do?language=en_US&cmd=displayKC&externalId=1015180
+
+    def revert_to_snapshot(self, name):
+        """Revert to a snapshot of the virtual machine.
+
+        This assumes that the snapshot name is unique on this VM, and will raise
+        a ValueError if it isn't.
+
+        :param name: The name of the snapshot to revert to.
+        :raises ValueError: If the snapshot isn't found, or is not identifiable
+            uniquely by its name.
+        """
+        snapshot_info = _get_snapshot_by_name(
+            self._vm_object.snapshot.rootSnapshotList, name)
+        wait_for_vcenter_task(
+            snapshot_info.snapshot.RevertToSnapshot_Task(),
+            'Restoring snapshot {} on {}'.format(name, self.name),
+            self.timeout
+        )
 
     def destroy(self):
         """ Destroy the virtual machine and set the vm object to None """
