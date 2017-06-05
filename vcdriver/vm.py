@@ -149,13 +149,13 @@ class VirtualMachine(object):
             name, description, dump_memory, False),
             'Creating snapshot {} on {}'.format(name, self.name),
             self.timeout
-        )  # We set quiesce to false here see: https://kb.vmware.com/selfservice/microsites/search.do?language=en_US&cmd=displayKC&externalId=1015180
+        )
 
     def revert_to_snapshot(self, name):
         """Revert to a snapshot of the virtual machine.
 
-        This assumes that the snapshot name is unique on this VM, and will raise
-        a ValueError if it isn't.
+        This assumes that the snapshot name is unique on this VM, and will
+        raise a ValueError if it isn't.
 
         :param name: The name of the snapshot to revert to.
         :raises ValueError: If the snapshot isn't found, or is not identifiable

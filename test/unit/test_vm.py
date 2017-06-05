@@ -346,7 +346,8 @@ class TestVm(unittest.TestCase):
         vm.create_snapshot('test_snapshot', True, description='bananas')
 
         wfvc_mock.assert_called_once_with(
-            CreateSnapshot_ret_val, 'Creating snapshot test_snapshot on test_vm',
+            CreateSnapshot_ret_val,
+            'Creating snapshot test_snapshot on test_vm',
             vm.timeout
         )
         vm._vm_object.CreateSnapshot.assert_called_once_with(
@@ -396,7 +397,9 @@ class TestGetSnapshotsByName(unittest.TestCase):
 
     def test_get_missing_raises(self):
         self.assertRaisesRegexp(
-            ValueError, 'not found', _get_snapshot_by_name, self.snapshots, '?')
+            ValueError, 'not found', _get_snapshot_by_name,
+            self.snapshots, '?'
+        )
 
     def test_get_duplicate_raises(self):
         self.assertRaisesRegexp(
