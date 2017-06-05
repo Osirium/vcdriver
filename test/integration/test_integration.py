@@ -120,6 +120,14 @@ class TestIntegration(unittest.TestCase):
         with self.assertRaises(SshError):
             self.unix.ssh('wrong-command-seriously')
 
+    def test_snapshot_create_and_revert(self):
+        self.unix.create()
+        self.unix.create_snapshot('test_snapshot', True)
+        self.assertEqual(self.unix.ssh('touch banana').return_code, 0)
+        self.assertEqual(self.unix.ssh('ls'), 'banana')
+        self.unix.revert_to_snapshot('test_snapshot')
+        self.assertEqual(self.unix.ssh('ls'), '')
+
     def test_upload_and_download(self):
         self.unix.create()
         self.assertEqual(
