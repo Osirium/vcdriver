@@ -147,7 +147,7 @@ class VirtualMachine(object):
         """
         wait_for_vcenter_task(self._vm_object.CreateSnapshot(
             name, description, dump_memory, False),
-            'Creating snapshot {} on {}'.format(name, self.name),
+            'Creating snapshot "{}" on "{}"'.format(name, self.name),
             self.timeout
         )
 
@@ -165,7 +165,7 @@ class VirtualMachine(object):
             self._vm_object.snapshot.rootSnapshotList, name)
         wait_for_vcenter_task(
             snapshot_info.snapshot.RevertToSnapshot_Task(),
-            'Restoring snapshot {} on {}'.format(name, self.name),
+            'Restoring snapshot "{}" on "{}"'.format(name, self.name),
             self.timeout
         )
 
