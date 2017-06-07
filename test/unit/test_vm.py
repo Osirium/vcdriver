@@ -17,6 +17,7 @@ from vcdriver.exceptions import (
 from vcdriver.vm import (
     VirtualMachine,
     virtual_machines,
+    snapshot,
     get_all_virtual_machines,
 )
 
@@ -306,6 +307,7 @@ class TestVm(unittest.TestCase):
         fake_snapshots[-1].name = 'other'
         fake_snapshots[-1].childSnapshotList = []
         vm = VirtualMachine()
+        self.assertEqual(vm.find_snapshot('snapshot'), None)
         vm_object_mock = mock.MagicMock()
         vm.__setattr__('_vm_object', vm_object_mock)
         vm_object_mock.snapshot.rootSnapshotList = []
@@ -326,6 +328,7 @@ class TestVm(unittest.TestCase):
         fake_snapshot.name = 'snapshot'
         fake_snapshot.childSnapshotList = []
         vm = VirtualMachine()
+        self.assertEqual(vm.create_snapshot('snapshot', True), None)
         vm_object_mock = mock.MagicMock()
         vm_object_mock.snapshot.rootSnapshotList = []
         vm.__setattr__('_vm_object', vm_object_mock)
@@ -337,13 +340,17 @@ class TestVm(unittest.TestCase):
     @mock.patch('vcdriver.vm.wait_for_vcenter_task')
     def test_virtual_machine_revert_snapshot(self, wait_for_vcenter_task):
         vm = VirtualMachine()
+        self.assertEqual(vm.revert_snapshot('snapshot'), None)
         vm.find_snapshot = mock.MagicMock()
+        vm.__setattr__('_vm_object', mock.MagicMock())
         vm.revert_snapshot('snapshot')
 
     @mock.patch('vcdriver.vm.wait_for_vcenter_task')
     def test_virtual_machine_remove_snapshot(self, wait_for_vcenter_task):
         vm = VirtualMachine()
+        self.assertEqual(vm.remove_snapshot('snapshot'), None)
         vm.find_snapshot = mock.MagicMock()
+        vm.__setattr__('_vm_object', mock.MagicMock())
         vm.remove_snapshot('snapshot')
 
     @mock.patch('vcdriver.vm.connection')
@@ -374,6 +381,29 @@ class TestVm(unittest.TestCase):
                 raise Exception
         create.assert_called_once_with()
         destroy.assert_called_once_with()
+
+    @mock.patch.object(VirtualMachine, 'create_snapshot')
+    @mock.patch.object(VirtualMachine, 'revert_snapshot')
+    @mock.patch.object(VirtualMachine, 'remove_snapshot')
+    def test_snapshot_success(self, remove, revert, create):
+        vm = VirtualMachine()
+        with snapshot(vm):
+            pass
+        create.assert_called_once()
+        revert.assert_called_once()
+        remove.assert_called_once()
+
+    @mock.patch.object(VirtualMachine, 'create_snapshot')
+    @mock.patch.object(VirtualMachine, 'revert_snapshot')
+    @mock.patch.object(VirtualMachine, 'remove_snapshot')
+    def test_snapshot_fail(self, remove, revert, create):
+        vm = VirtualMachine()
+        with self.assertRaises(Exception):
+            with snapshot(vm):
+                raise Exception
+        create.assert_called_once()
+        revert.assert_called_once()
+        remove.assert_called_once()
 
     @mock.patch('vcdriver.vm.connection')
     @mock.patch('vcdriver.vm.get_all_vcenter_objects')

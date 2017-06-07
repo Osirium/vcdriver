@@ -15,6 +15,7 @@ from vcdriver.exceptions import (
 from vcdriver.vm import (
     VirtualMachine,
     virtual_machines,
+    snapshot,
     get_all_virtual_machines
 )
 from vcdriver.folder import destroy_virtual_machines
@@ -172,4 +173,8 @@ class TestIntegration(unittest.TestCase):
         self.assertEqual(self.unix.ssh('ls'), 'banana')
         for vm in self.all_vms:
             vm.revert_snapshot(snapshot_name)
+        self.assertEqual(self.unix.ssh('ls'), '')
+        with snapshot(self.unix) as vm:
+            vm.ssh('touch banana')
+            self.assertEqual(vm.ssh('ls'), 'banana')
         self.assertEqual(self.unix.ssh('ls'), '')

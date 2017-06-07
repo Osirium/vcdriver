@@ -287,18 +287,19 @@ class VirtualMachine(object):
         :raise: TooManyObjectsFound: If more than one object is found
         :raise: NoObjectFound: If no results are found
         """
-        if self._vm_object.snapshot is not None:
-            found_snapshots = self._get_snapshots_by_name(
-                self._vm_object.snapshot.rootSnapshotList, name
-            )
-        else:
-            found_snapshots = []
-        if len(found_snapshots) > 1:
-            raise TooManyObjectsFound(vim.vm.Snapshot, name)
-        elif len(found_snapshots) == 0:
-            raise NoObjectFound(vim.vm.Snapshot, name)
-        else:
-            return found_snapshots[0].snapshot
+        if self._vm_object:
+            if self._vm_object.snapshot is not None:
+                found_snapshots = self._get_snapshots_by_name(
+                    self._vm_object.snapshot.rootSnapshotList, name
+                )
+            else:
+                found_snapshots = []
+            if len(found_snapshots) > 1:
+                raise TooManyObjectsFound(vim.vm.Snapshot, name)
+            elif len(found_snapshots) == 0:
+                raise NoObjectFound(vim.vm.Snapshot, name)
+            else:
+                return found_snapshots[0].snapshot
 
     def create_snapshot(self, name, dump_memory, description=''):
         """
@@ -307,27 +308,29 @@ class VirtualMachine(object):
         :param dump_memory: Whether to dump the memory of the vm
         :param description: A description of the snapshot
         """
-        try:
-            self.find_snapshot(name)
-        except NoObjectFound:
-            wait_for_vcenter_task(self._vm_object.CreateSnapshot(
-                name, description, dump_memory, False),
-                'Creating snapshot "{}" on "{}"'.format(name, self.name),
-                self.timeout
-            )
-        else:
-            raise TooManyObjectsFound(vim.vm.Snapshot, name)
+        if self._vm_object:
+            try:
+                self.find_snapshot(name)
+            except NoObjectFound:
+                wait_for_vcenter_task(self._vm_object.CreateSnapshot(
+                    name, description, dump_memory, False),
+                    'Creating snapshot "{}" on "{}"'.format(name, self.name),
+                    self.timeout
+                )
+            else:
+                raise TooManyObjectsFound(vim.vm.Snapshot, name)
 
     def revert_snapshot(self, name):
         """
         Revert to a snapshot of the virtual machine
         :param name: The name of the snapshot to revert to
         """
-        wait_for_vcenter_task(
-            self.find_snapshot(name).RevertToSnapshot_Task(),
-            'Restoring snapshot "{}" on "{}"'.format(name, self.name),
-            self.timeout
-        )
+        if self._vm_object:
+            wait_for_vcenter_task(
+                self.find_snapshot(name).RevertToSnapshot_Task(),
+                'Restoring snapshot "{}" on "{}"'.format(name, self.name),
+                self.timeout
+            )
 
     def remove_snapshot(self, name, remove_children=False):
         """
@@ -335,11 +338,12 @@ class VirtualMachine(object):
         :param name: The name of the snapshot to delete
         :param remove_children: Whether to remove the children snapshots or not
         """
-        wait_for_vcenter_task(
-            self.find_snapshot(name).RemoveSnapshot_Task(remove_children),
-            'Delete snapshot "{}" from "{}"'.format(name, self.name),
-            self.timeout
-        )
+        if self._vm_object:
+            wait_for_vcenter_task(
+                self.find_snapshot(name).RemoveSnapshot_Task(remove_children),
+                'Delete snapshot "{}" from "{}"'.format(name, self.name),
+                self.timeout
+            )
 
     def summary(self):
         """ Return a string summary of the virtual machine in markdown/reST """
@@ -488,12 +492,12 @@ def snapshot(vm):
     :param vm: The vm object (VirtualMachine)
     """
     snapshot_name = str(uuid.uuid4())
-    vm.create_snapshot(snapshot_name)
+    vm.create_snapshot(snapshot_name, True)
     try:
         yield vm
     finally:
-        vm.restore_snapshot(snapshot_name)
-        vm.delete_snapshot(snapshot_name, False)
+        vm.revert_snapshot(snapshot_name)
+        vm.remove_snapshot(snapshot_name, False)
 
 
 def get_all_virtual_machines():
