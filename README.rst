@@ -59,7 +59,9 @@ Documentation and examples can be found on the `wiki <https://github.com/Lantero
 Unit tests
 ==========
 
-Just run ``pytest -v test/unit``.
+#. Prepare your python environment: ``pip install -e . && pip install pytest pytest-cov mock``
+
+#. Run ``pytest --cache-clear  -v test/unit``.
 
 Integration tests
 =================
@@ -92,4 +94,4 @@ You can run some integration tests to check it works fine for your Vcenter insta
    - ``VCDRIVER_TEST_UNIX_TEMPLATE``: The name of the UNIX virtual machine template that will be cloned for the tests.
    - ``VCDRIVER_TEST_WINDOWS_TEMPLATE``: The name of the Windows Server virtual machine template that will be cloned for the tests.
 
-#. Run ``py.test -v test/integration``.
+#. Run ``pytest --cache-clear  -v test/integration``.
