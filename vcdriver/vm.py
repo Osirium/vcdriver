@@ -37,28 +37,6 @@ from vcdriver.helpers import (
 )
 
 
-def _search_snapshots_by_name(snapshots, name):
-    found_snapshots = []
-    for snapshot in snapshots:
-        if name == snapshot.name:
-            found_snapshots.append(snapshot)
-        found_snapshots = (
-            found_snapshots +
-            _search_snapshots_by_name(snapshot.childSnapshotList, name)
-        )
-    return found_snapshots
-
-
-def _get_snapshot_by_name(snapshots, name):
-    found_snapshots = _search_snapshots_by_name(snapshots, name)
-    if len(found_snapshots) > 1:
-        raise TooManyObjectsFound(vim.vm.Snapshot, name)
-    elif len(found_snapshots) == 0:
-        raise NoObjectFound(vim.vm.Snapshot, name)
-    else:
-        return found_snapshots[0]
-
-
 class VirtualMachine(object):
     def __init__(
             self,
@@ -139,37 +117,6 @@ class VirtualMachine(object):
             self._vm_object = get_vcenter_object_by_name(
                 connection(), vim.VirtualMachine, self.name
             )
-
-    def create_snapshot(self, name, dump_memory, description=''):
-        """Create a snapshot of the virtual machine.
-
-        :param name: The name of the snapshot to create.
-        :param dump_memory: Whether to dump the memory of the vm.
-        :param description: A description of the snapshot
-        """
-        wait_for_vcenter_task(self._vm_object.CreateSnapshot(
-            name, description, dump_memory, False),
-            'Creating snapshot "{}" on "{}"'.format(name, self.name),
-            self.timeout
-        )
-
-    def revert_to_snapshot(self, name):
-        """Revert to a snapshot of the virtual machine.
-
-        This assumes that the snapshot name is unique on this VM, and will
-        raise a ValueError if it isn't.
-
-        :param name: The name of the snapshot to revert to.
-        :raises ValueError: If the snapshot isn't found, or is not identifiable
-            uniquely by its name.
-        """
-        snapshot_info = _get_snapshot_by_name(
-            self._vm_object.snapshot.rootSnapshotList, name)
-        wait_for_vcenter_task(
-            snapshot_info.snapshot.RevertToSnapshot_Task(),
-            'Restoring snapshot "{}" on "{}"'.format(name, self.name),
-            self.timeout
-        )
 
     def destroy(self):
         """ Destroy the virtual machine and set the vm object to None """
@@ -330,6 +277,69 @@ class VirtualMachine(object):
             else:
                 return result.status_code, result.std_out, result.std_err
 
+    def find_snapshot(self, name):
+        """
+        Find a snapshot by name
+        :param name: The name of the snapshot
+
+        :return: The given snapshot
+
+        :raise: TooManyObjectsFound: If more than one object is found
+        :raise: NoObjectFound: If no results are found
+        """
+        if self._vm_object.snapshot is not None:
+            found_snapshots = self._get_snapshots_by_name(
+                self._vm_object.snapshot.rootSnapshotList, name
+            )
+        else:
+            found_snapshots = []
+        if len(found_snapshots) > 1:
+            raise TooManyObjectsFound(vim.vm.Snapshot, name)
+        elif len(found_snapshots) == 0:
+            raise NoObjectFound(vim.vm.Snapshot, name)
+        else:
+            return found_snapshots[0].snapshot
+
+    def create_snapshot(self, name, dump_memory, description=''):
+        """
+        Create a snapshot of the virtual machine
+        :param name: The name of the snapshot to create
+        :param dump_memory: Whether to dump the memory of the vm
+        :param description: A description of the snapshot
+        """
+        try:
+            self.find_snapshot(name)
+        except NoObjectFound:
+            wait_for_vcenter_task(self._vm_object.CreateSnapshot(
+                name, description, dump_memory, False),
+                'Creating snapshot "{}" on "{}"'.format(name, self.name),
+                self.timeout
+            )
+        else:
+            raise TooManyObjectsFound(vim.vm.Snapshot, name)
+
+    def revert_snapshot(self, name):
+        """
+        Revert to a snapshot of the virtual machine
+        :param name: The name of the snapshot to revert to
+        """
+        wait_for_vcenter_task(
+            self.find_snapshot(name).RevertToSnapshot_Task(),
+            'Restoring snapshot "{}" on "{}"'.format(name, self.name),
+            self.timeout
+        )
+
+    def delete_snapshot(self, name):
+        """
+        Delete a snapshot from the virtual machine
+        :param name: The name of the snapshot to rdelete
+        """
+        wait_for_vcenter_task(
+            self.find_snapshot(name).RemoveSnapshot_Task(),
+            'Delete snapshot "{}" from "{}"'.format(name, self.name),
+            self.timeout
+        )
+
     def summary(self):
         """ Return a string summary of the virtual machine in markdown/reST """
         ip = self.ip()
@@ -428,6 +438,25 @@ class VirtualMachine(object):
             callback=self._check_winrm_service,
             **kwargs
         )
+
+    @classmethod
+    def _get_snapshots_by_name(cls, snapshots, name):
+        """
+        Filter the snapshots by name
+        :param snapshots: The list of the snapshots
+        :param name: The name
+
+        :return: The list of snapshots filtered
+        """
+        found_snapshots = []
+        for snapshot in snapshots:
+            if name == snapshot.name:
+                found_snapshots.append(snapshot)
+            found_snapshots = (
+                found_snapshots +
+                cls._get_snapshots_by_name(snapshot.childSnapshotList, name)
+            )
+        return found_snapshots
 
     def __str__(self):
         return str(self.name)

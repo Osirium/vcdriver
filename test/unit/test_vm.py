@@ -5,6 +5,8 @@ from pyVmomi import vim
 import winrm
 
 from vcdriver.exceptions import (
+    NoObjectFound,
+    TooManyObjectsFound,
     SshError,
     DownloadError,
     UploadError,
@@ -16,8 +18,6 @@ from vcdriver.vm import (
     VirtualMachine,
     virtual_machines,
     get_all_virtual_machines,
-    _search_snapshots_by_name,
-    _get_snapshot_by_name
 )
 
 
@@ -337,91 +337,50 @@ class TestVm(unittest.TestCase):
         self.assertEqual(len(get_all_virtual_machines()), 2)
 
     @mock.patch('vcdriver.vm.wait_for_vcenter_task')
-    def test_create_snapshot(self, wfvc_mock):
-        vm = VirtualMachine(name='test_vm')
-        vm._vm_object = mock.MagicMock()
-
-        CreateSnapshot_ret_val = mock.MagicMock()
-        vm._vm_object.CreateSnapshot.return_value = CreateSnapshot_ret_val
-        vm.create_snapshot('test_snapshot', True, description='bananas')
-
-        wfvc_mock.assert_called_once_with(
-            CreateSnapshot_ret_val,
-            'Creating snapshot test_snapshot on test_vm',
-            vm.timeout
-        )
-        vm._vm_object.CreateSnapshot.assert_called_once_with(
-            'test_snapshot', 'bananas', True, False)
+    def test_find_snapshot(self, wait_for_vcenter_task):
+        fake_snapshots = [mock.MagicMock(), mock.MagicMock(), mock.MagicMock()]
+        for snapshot in fake_snapshots[:-1]:
+            snapshot.name = 'snapshot'
+            snapshot.childSnapshotList = []
+        fake_snapshots[-1].name = 'other'
+        fake_snapshots[-1].childSnapshotList = []
+        vm = VirtualMachine()
+        vm_object_mock = mock.MagicMock()
+        vm.__setattr__('_vm_object', vm_object_mock)
+        vm_object_mock.snapshot.rootSnapshotList = []
+        with self.assertRaises(NoObjectFound):
+            vm.find_snapshot('snapshot')
+        vm_object_mock.snapshot.rootSnapshotList = fake_snapshots[:-2]
+        vm.find_snapshot('snapshot')
+        vm_object_mock.snapshot.rootSnapshotList = fake_snapshots
+        with self.assertRaises(TooManyObjectsFound):
+            vm.find_snapshot('snapshot')
+        vm_object_mock.snapshot = None
+        with self.assertRaises(NoObjectFound):
+            vm.find_snapshot('snapshot')
 
     @mock.patch('vcdriver.vm.wait_for_vcenter_task')
-    def test_revert_snapshot(self, wfvc_mock):
-        vm = VirtualMachine(name='test_vm')
-        vm._vm_object = mock.MagicMock()
-        vm._vm_object.snapshot.rootSnapshotList = get_snapshot_structure()
+    def test_create_snapshot(self, wait_for_vcenter_task):
+        fake_snapshot = mock.MagicMock()
+        fake_snapshot.name = 'snapshot'
+        fake_snapshot.childSnapshotList = []
+        vm = VirtualMachine()
+        vm_object_mock = mock.MagicMock()
+        vm_object_mock.snapshot.rootSnapshotList = []
+        vm.__setattr__('_vm_object', vm_object_mock)
+        vm.create_snapshot('snapshot', True)
+        vm_object_mock.snapshot.rootSnapshotList = [fake_snapshot]
+        with self.assertRaises(TooManyObjectsFound):
+            vm.create_snapshot('snapshot', True)
 
-        vm.revert_to_snapshot('f')
+    @mock.patch('vcdriver.vm.wait_for_vcenter_task')
+    def test_revert_snapshot(self, wait_for_vcenter_task):
+        vm = VirtualMachine()
+        vm.find_snapshot = mock.MagicMock()
+        vm.revert_snapshot('snapshot')
 
-        wfvc_mock.assert_called_once_with(
-            mock.ANY, 'Restoring snapshot f on test_vm',
-            vm.timeout
-        )
-
-
-def get_snapshot_structure():
-    return [
-        SnapshotStub(
-            'a',
-            [
-                SnapshotStub('b', []), SnapshotStub(
-                    'c', [SnapshotStub('d', [])])
-            ]
-        ),
-        SnapshotStub('e', [SnapshotStub('f', [])]),
-        SnapshotStub('dupe', [SnapshotStub('dupe', [])])
-    ]
-
-
-class SnapshotStub(object):
-    def __init__(self, name, children):
-        self.name = name
-        self.childSnapshotList = children
-        self.snapshot = mock.MagicMock()
-
-
-class TestGetSnapshotsByName(unittest.TestCase):
-    def setUp(self):
-        self.snapshots = get_snapshot_structure()
-
-    def test_get_singular(self):
-        self.assertEqual(_get_snapshot_by_name(self.snapshots, 'f').name, 'f')
-
-    def test_get_missing_raises(self):
-        self.assertRaisesRegexp(
-            ValueError, 'not found', _get_snapshot_by_name,
-            self.snapshots, '?'
-        )
-
-    def test_get_duplicate_raises(self):
-        self.assertRaisesRegexp(
-            ValueError, 'not unique', _get_snapshot_by_name,
-            self.snapshots, 'dupe'
-        )
-
-
-class TestSearchSnapshotsByName(unittest.TestCase):
-
-    def check_search_result_found(self, snapshots, name):
-        result = _search_snapshots_by_name(snapshots, name)
-        self.assertEqual(len(result), 1)
-        self.assertEqual(result[0].name, name)
-
-    def check_search_result_not_found(self, snapshots, name):
-        result = _search_snapshots_by_name(snapshots, name)
-        self.assertEqual(len(result), 0)
-
-    def test_search(self):
-        snapshots = get_snapshot_structure()
-        for name in 'abcdef':
-            self.check_search_result_found(snapshots, name)
-        for name in 'gh123':
-            self.check_search_result_not_found(snapshots, name)
+    @mock.patch('vcdriver.vm.wait_for_vcenter_task')
+    def test_delete_snapshot(self, wait_for_vcenter_task):
+        vm = VirtualMachine()
+        vm.find_snapshot = mock.MagicMock()
+        vm.delete_snapshot('snapshot')
