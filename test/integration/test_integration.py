@@ -6,6 +6,7 @@ import time
 
 from vcdriver.exceptions import (
     NoObjectFound,
+    TooManyObjectsFound,
     DownloadError,
     UploadError,
     SshError,
@@ -120,14 +121,6 @@ class TestIntegration(unittest.TestCase):
         with self.assertRaises(SshError):
             self.unix.ssh('wrong-command-seriously')
 
-    def test_snapshot_create_and_revert(self):
-        self.unix.create()
-        self.unix.create_snapshot('test_snapshot', True)
-        self.assertEqual(self.unix.ssh('touch banana').return_code, 0)
-        self.assertEqual(self.unix.ssh('ls'), 'banana')
-        self.unix.revert_to_snapshot('test_snapshot')
-        self.assertEqual(self.unix.ssh('ls'), '')
-
     def test_upload_and_download(self):
         self.unix.create()
         self.assertEqual(
@@ -164,3 +157,19 @@ class TestIntegration(unittest.TestCase):
         self.windows.winrm('ipconfig /all')
         with self.assertRaises(WinRmError):
             self.windows.winrm('ipconfig-wrong /wrong')
+
+    def test_snapshots(self):
+        snapshot_name = 'test_snapshot'
+        for vm in self.all_vms:
+            vm.create()
+            with self.assertRaises(NoObjectFound):
+                vm.find_snapshot(snapshot_name)
+            vm.create_snapshot(snapshot_name, True)
+            with self.assertRaises(TooManyObjectsFound):
+                vm.create_snapshot(snapshot_name, True)
+            vm.find_snapshot(snapshot_name)
+        self.assertEqual(self.unix.ssh('touch banana').return_code, 0)
+        self.assertEqual(self.unix.ssh('ls'), 'banana')
+        for vm in self.all_vms:
+            vm.revert_snapshot(snapshot_name)
+        self.assertEqual(self.unix.ssh('ls'), '')
