@@ -23,7 +23,9 @@ from vcdriver.exceptions import (
     WinRmError,
     UploadError,
     DownloadError,
-    MissingCredentialsError
+    MissingCredentialsError,
+    NoObjectFound,
+    TooManyObjectsFound
 )
 from vcdriver.helpers import (
     get_all_vcenter_objects,
@@ -50,9 +52,9 @@ def _search_snapshots_by_name(snapshots, name):
 def _get_snapshot_by_name(snapshots, name):
     found_snapshots = _search_snapshots_by_name(snapshots, name)
     if len(found_snapshots) > 1:
-        raise ValueError('Supplied snapshot name is not unique.')
+        raise TooManyObjectsFound(vim.vm.Snapshot, name)
     elif len(found_snapshots) == 0:
-        raise ValueError('Supplied snapshot name not found.')
+        raise NoObjectFound(vim.vm.Snapshot, name)
     else:
         return found_snapshots[0]
 
