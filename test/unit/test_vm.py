@@ -301,9 +301,9 @@ class TestVm(unittest.TestCase):
     @mock.patch('vcdriver.vm.wait_for_vcenter_task')
     def test_virtual_machine_find_snapshot(self, wait_for_vcenter_task):
         fake_snapshots = [mock.MagicMock(), mock.MagicMock(), mock.MagicMock()]
-        for snapshot in fake_snapshots[:-1]:
-            snapshot.name = 'snapshot'
-            snapshot.childSnapshotList = []
+        for fake_snapshot in fake_snapshots[:-1]:
+            fake_snapshot.name = 'snapshot'
+            fake_snapshot.childSnapshotList = []
         fake_snapshots[-1].name = 'other'
         fake_snapshots[-1].childSnapshotList = []
         vm = VirtualMachine()
