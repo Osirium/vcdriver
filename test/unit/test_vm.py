@@ -341,10 +341,10 @@ class TestVm(unittest.TestCase):
         vm.revert_snapshot('snapshot')
 
     @mock.patch('vcdriver.vm.wait_for_vcenter_task')
-    def test_virtual_machine_delete_snapshot(self, wait_for_vcenter_task):
+    def test_virtual_machine_remove_snapshot(self, wait_for_vcenter_task):
         vm = VirtualMachine()
         vm.find_snapshot = mock.MagicMock()
-        vm.delete_snapshot('snapshot')
+        vm.remove_snapshot('snapshot')
 
     @mock.patch('vcdriver.vm.connection')
     def test_virtual_machine_summary(self, connection):

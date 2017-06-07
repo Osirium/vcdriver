@@ -329,13 +329,14 @@ class VirtualMachine(object):
             self.timeout
         )
 
-    def delete_snapshot(self, name):
+    def remove_snapshot(self, name, remove_children=False):
         """
         Delete a snapshot from the virtual machine
-        :param name: The name of the snapshot to rdelete
+        :param name: The name of the snapshot to delete
+        :param remove_children: Whether to remove the children snapshots or not
         """
         wait_for_vcenter_task(
-            self.find_snapshot(name).RemoveSnapshot_Task(),
+            self.find_snapshot(name).RemoveSnapshot_Task(remove_children),
             'Delete snapshot "{}" from "{}"'.format(name, self.name),
             self.timeout
         )
@@ -475,13 +476,24 @@ def virtual_machines(vms):
         vm.create()
     try:
         yield
+    finally:
         for vm in vms:
             vm.destroy()
-    except:
-        print('An exception has been thrown, cleaning up virtual machines:')
-        for vm in vms:
-            vm.destroy()
-        raise
+
+
+@contextlib.contextmanager
+def snapshot(vm):
+    """
+    Ensure that you run something and restore the VM to its initial state
+    :param vm: The vm object (VirtualMachine)
+    """
+    snapshot_name = str(uuid.uuid4())
+    vm.create_snapshot(snapshot_name)
+    try:
+        yield vm
+    finally:
+        vm.restore_snapshot(snapshot_name)
+        vm.delete_snapshot(snapshot_name, False)
 
 
 def get_all_virtual_machines():
