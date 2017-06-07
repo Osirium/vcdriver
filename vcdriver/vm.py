@@ -143,7 +143,7 @@ class VirtualMachine(object):
     def create_snapshot(self, name, dump_memory, description=''):
         """Create a snapshot of the virtual machine.
 
-        :param name: The name of the snapshot to revert to.
+        :param name: The name of the snapshot to create.
         :param dump_memory: Whether to dump the memory of the vm.
         :param description: A description of the snapshot
         """
