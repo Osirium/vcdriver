@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 
 setup(
-    version='2.7.4',
+    version='2.7.5',
     name='vcdriver',
     description='A vcenter driver based on pyvmomi, fabric and pywinrm',
     url='https://github.com/Lantero/vcdriver',

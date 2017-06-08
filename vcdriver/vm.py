@@ -494,7 +494,7 @@ def snapshot(vm):
     snapshot_name = str(uuid.uuid4())
     vm.create_snapshot(snapshot_name, True)
     try:
-        yield vm
+        yield
     finally:
         vm.revert_snapshot(snapshot_name)
         vm.remove_snapshot(snapshot_name, False)

@@ -174,7 +174,7 @@ class TestIntegration(unittest.TestCase):
         for vm in self.all_vms:
             vm.revert_snapshot(snapshot_name)
         self.assertEqual(self.unix.ssh('ls'), '')
-        with snapshot(self.unix) as vm:
-            vm.ssh('touch banana')
-            self.assertEqual(vm.ssh('ls'), 'banana')
+        with snapshot(self.unix):
+            self.unix.ssh('touch banana')
+            self.assertEqual(self.unix.ssh('ls'), 'banana')
         self.assertEqual(self.unix.ssh('ls'), '')
