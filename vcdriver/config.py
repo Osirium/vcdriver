@@ -38,7 +38,7 @@ _config = {
 
 def create_config_file(path, **kwargs):
     """
-    Create a configuration file our of the current configuration
+    Create a configuration file out of the current configuration
     :param path: The configuration file path
     :param kwargs: Override any values
     """
