@@ -1,0 +1,10 @@
+# Change Log
+All notable changes to this project will be documented in this file.
+
+The format is based on [Keep a Changelog](http://keepachangelog.com/)
+and this project adheres to [Semantic Versioning](http://semver.org/).
+
+## [Unreleased]
+### Changed
+- Service checks (SSH and WinRM) are now quiet and don't print anything
+- MissingCredentialsError has been removed in favour of the new configuration
