@@ -9,7 +9,7 @@ setup(
     author='Carlos Ruiz Lantero',
     author_email='carlos.ruiz.lantero@gmail.com',
     license='MIT',
-    install_requires=['colorama', 'Fabric3', 'pyvmomi', 'pywinrm'],
+    install_requires=['colorama', 'Fabric3', 'pyvmomi', 'pywinrm', 'six'],
     packages=find_packages(),
     classifiers=[
         'Development Status :: 5 - Production/Stable',
