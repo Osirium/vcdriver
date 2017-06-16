@@ -1,7 +1,7 @@
 import os
 import unittest
 
-from vcdriver.config import create_config_file, get, load, reset
+from vcdriver.config import export, get, load, reset
 
 
 class TestConfig(unittest.TestCase):
@@ -10,9 +10,9 @@ class TestConfig(unittest.TestCase):
         cls.config_file_1 = 'config_file_1.cfg'
         cls.config_file_2 = 'config_file_2.cfg'
         cls.config_file_3 = 'config_file_3.cfg'
-        create_config_file(cls.config_file_1)
-        create_config_file(cls.config_file_2, VCDRIVER_USERNAME='Sinatra')
-        create_config_file(cls.config_file_3, VCDRIVER_PASSWORD='myway')
+        export(cls.config_file_1)
+        export(cls.config_file_2, VCDRIVER_USERNAME='Sinatra')
+        export(cls.config_file_3, VCDRIVER_PASSWORD='myway')
 
     @classmethod
     def tearDownClass(cls):

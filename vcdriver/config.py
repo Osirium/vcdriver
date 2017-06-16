@@ -36,7 +36,7 @@ _config = {
 }
 
 
-def create_config_file(path, **kwargs):
+def export(path, **kwargs):
     """
     Create a configuration file out of the current configuration
     :param path: The configuration file path
