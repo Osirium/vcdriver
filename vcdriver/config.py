@@ -51,7 +51,7 @@ def create_config_file(path, **kwargs):
                 config.set(section_key, subsection_key, kwargs[subsection_key])
             else:
                 config.set(section_key, subsection_key, '')
-    with open(path, 'wb') as cf:
+    with open(path, 'w') as cf:
         config.write(cf)
 
 
