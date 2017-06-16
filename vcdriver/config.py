@@ -44,6 +44,7 @@ def export(path, **kwargs):
     """
     global _config
     config = configparser.RawConfigParser()
+    config.optionxform = str
     for section_key, section_dict in _config.items():
         config.add_section(section_key)
         for subsection_key in section_dict.keys():
