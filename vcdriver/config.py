@@ -42,6 +42,7 @@ def create_config_file(path, **kwargs):
     :param path: The configuration file path
     :param kwargs: Any pre-populated values
     """
+    global _config
     config = configparser.RawConfigParser()
     for section_key, section_dict in _config.items():
         config.add_section(section_key)
