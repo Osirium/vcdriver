@@ -11,8 +11,7 @@ from vcdriver.exceptions import (
     DownloadError,
     UploadError,
     WinRmError,
-    TimeoutError,
-    MissingCredentialsError
+    TimeoutError
 )
 from vcdriver.vm import (
     VirtualMachine,
@@ -280,23 +279,6 @@ class TestVm(unittest.TestCase):
         run_ps.side_effect = Exception
         with self.assertRaises(TimeoutError):
             vm.winrm('script')
-
-    @mock.patch('vcdriver.vm.connection')
-    def test_virtual_machine_missing_credentials(self, connection):
-        vm_object_mock = mock.MagicMock()
-        vm_object_mock.summary.guest.ipAddress = '127.0.0.1'
-        vm = VirtualMachine()
-        vm.__setattr__('_vm_object', vm_object_mock)
-        with self.assertRaises(MissingCredentialsError):
-            vm.winrm('')
-        with self.assertRaises(MissingCredentialsError):
-            vm.ssh('')
-        vm = VirtualMachine(ssh_username='', winrm_password='')
-        vm.__setattr__('_vm_object', vm_object_mock)
-        with self.assertRaises(MissingCredentialsError):
-            vm.winrm('')
-        with self.assertRaises(MissingCredentialsError):
-            vm.ssh('')
 
     @mock.patch('vcdriver.vm.wait_for_vcenter_task')
     def test_virtual_machine_find_snapshot(self, wait_for_vcenter_task):
