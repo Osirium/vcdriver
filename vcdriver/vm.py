@@ -23,7 +23,6 @@ from vcdriver.exceptions import (
     WinRmError,
     UploadError,
     DownloadError,
-    MissingCredentialsError,
     NoObjectFound,
     TooManyObjectsFound
 )
@@ -385,20 +384,8 @@ class VirtualMachine(object):
         ):
             yield
 
-    def _check_credentials(self, keys):
-        """
-        Check if a given set credentials is set for the instance
-        :param keys: The list with the credential keys
-
-        :raise MissingCredentialsError: If any value is missing
-        """
-        values = [self.__getattribute__(key) for key in keys]
-        if values.count(None) > 0:
-            raise MissingCredentialsError(keys)
-
     def _check_ssh_service(self):
         """ Check whether the ssh service is up or not """
-        self._check_credentials(['ssh_username', 'ssh_password'])
         try:
             with hide_std():
                 with self._fabric_context():
@@ -412,7 +399,6 @@ class VirtualMachine(object):
         Check whether the winrm service is up or not
         :param kwargs: pywinrm Protocol kwargs
         """
-        self._check_credentials(['winrm_username', 'winrm_password'])
         try:
             with hide_std():
                 winrm.Session(

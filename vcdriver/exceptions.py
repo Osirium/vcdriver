@@ -62,11 +62,3 @@ class UploadError(FileTransferError):
 
 class DownloadError(FileTransferError):
     pass
-
-
-class MissingCredentialsError(Exception):
-    def __init__(self, credentials):
-        super(MissingCredentialsError, self).__init__(
-            'Your virtual machine object needs the following attributes: {}'
-            ''.format(credentials)
-        )
