@@ -38,9 +38,9 @@ _config = {
 
 def create_config_file(path, **kwargs):
     """
-    Create an empty configuration file
+    Create a configuration file our of the current configuration
     :param path: The configuration file path
-    :param kwargs: Any pre-populated values
+    :param kwargs: Override any values
     """
     global _config
     config = configparser.RawConfigParser()
