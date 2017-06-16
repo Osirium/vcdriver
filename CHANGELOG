@@ -7,4 +7,5 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ## [Unreleased]
 ### Changed
 - Service checks (SSH and WinRM) are now quiet and don't print anything
+- New configuration engine that allows the usage of INI files and environment
 - MissingCredentialsError has been removed in favour of the new configuration
