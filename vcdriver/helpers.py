@@ -1,5 +1,7 @@
 from __future__ import print_function
+import contextlib
 import datetime
+import os
 import socket
 import sys
 import time
@@ -87,8 +89,22 @@ def styled_print(styles):
     return lambda msg: print(''.join(styles) + msg + Style.RESET_ALL)
 
 
+@contextlib.contextmanager
+def hide_std():
+    stdout = sys.stdout
+    stderr = sys.stderr
+    with open(os.devnull, 'wb') as null:
+        sys.stdout = sys.stderr = null
+        try:
+            yield
+        finally:
+            sys.stdout = stdout
+            sys.stderr = stderr
+
+
 def timeout_loop(
-        timeout, description, callback, wait_until_retry=1, *args, **kwargs
+        timeout, description, callback, wait_until_retry=1, quiet=False,
+        *args, **kwargs
 ):
     """
     Wait inside a blocking loop for a task to complete
@@ -96,13 +112,15 @@ def timeout_loop(
     :param description: The task description
     :param callback: If this function is True, the while loop will break
     :param wait_until_retry: Seconds you wait before re-checking the callback
+    :param quiet: If true, the benchmark time will not be printed
     :param args: The positional arguments of the callback
     :param kwargs: The keyword arguments of the callback
 
     :raise: TimeoutError: If the timeout is reached
     """
-    print('Waiting for [{}] ... '.format(description), end='')
-    sys.stdout.flush()
+    if not quiet:
+        print('Waiting for [{}] ... '.format(description), end='')
+        sys.stdout.flush()
     countdown = timeout
     start = time.time()
     while countdown >= 0:
@@ -114,7 +132,8 @@ def timeout_loop(
         countdown = countdown - wait_until_retry - callback_time
     if countdown <= 0:
         raise TimeoutError(description, timeout)
-    print(datetime.timedelta(seconds=time.time() - start))
+    if not quiet:
+        print(datetime.timedelta(seconds=time.time() - start))
 
 
 def validate_ip(ip):

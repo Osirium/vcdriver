@@ -4,7 +4,7 @@ import uuid
 
 from colorama import Style, Fore
 from fabric.api import sudo, run, get, put
-from fabric.context_managers import settings, hide
+from fabric.context_managers import settings
 from pyVmomi import vim
 import winrm
 
@@ -30,6 +30,7 @@ from vcdriver.exceptions import (
 from vcdriver.helpers import (
     get_all_vcenter_objects,
     get_vcenter_object_by_name,
+    hide_std,
     styled_print,
     timeout_loop,
     validate_ip,
@@ -399,8 +400,8 @@ class VirtualMachine(object):
         """ Check whether the ssh service is up or not """
         self._check_credentials(['ssh_username', 'ssh_password'])
         try:
-            with self._fabric_context():
-                with hide():
+            with hide_std():
+                with self._fabric_context():
                     run('')
                 return True
         except:
@@ -413,11 +414,12 @@ class VirtualMachine(object):
         """
         self._check_credentials(['winrm_username', 'winrm_password'])
         try:
-            winrm.Session(
-                target=self.ip(),
-                auth=(self.winrm_username, self.winrm_password),
-                **kwargs
-            ).run_ps('')
+            with hide_std():
+                winrm.Session(
+                    target=self.ip(),
+                    auth=(self.winrm_username, self.winrm_password),
+                    **kwargs
+                ).run_ps('')
             return True
         except:
             return False
@@ -428,7 +430,8 @@ class VirtualMachine(object):
         timeout_loop(
             timeout=self.timeout,
             description='Check SSH service',
-            callback=self._check_ssh_service
+            callback=self._check_ssh_service,
+            quiet=True,
         )
 
     def _wait_for_winrm_service(self, **kwargs):
@@ -441,6 +444,7 @@ class VirtualMachine(object):
             timeout=self.timeout,
             description='Check WinRM service',
             callback=self._check_winrm_service,
+            quiet=True,
             **kwargs
         )
 
