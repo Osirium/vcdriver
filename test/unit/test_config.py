@@ -5,7 +5,6 @@ from vcdriver.config import create_config_file, get, load, reset
 
 
 class TestConfig(unittest.TestCase):
-    maxDiff = None
     @classmethod
     def setUpClass(cls):
         cls.config_file_1 = 'config_file_1.cfg'
