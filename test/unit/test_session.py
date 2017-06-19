@@ -9,12 +9,12 @@ class TestAuth(unittest.TestCase):
     @mock.patch('vcdriver.session.Disconnect')
     def test_session(self, disconnect, connect):
         connection(
-            VCDRIVER_USERNAME='something', VCDRIVER_PASSWORD='something',
-            VCDRIVER_HOST='something', VCDRIVER_PORT='something'
+            vcdriver_username='something', vcdriver_password='something',
+            vcdriver_host='something', vcdriver_port='something'
         )
         connection(
-            VCDRIVER_USERNAME='something', VCDRIVER_PASSWORD='something',
-            VCDRIVER_HOST='something', VCDRIVER_PORT='something'
+            vcdriver_username='something', vcdriver_password='something',
+            vcdriver_host='something', vcdriver_port='something'
         )
         id()
         close()

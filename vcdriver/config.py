@@ -7,21 +7,21 @@ from vcdriver.exceptions import MissingConfigValues
 
 _config = {
     'Vsphere Session': {
-        'VCDRIVER_HOST': None,
-        'VCDRIVER_PORT': None,
-        'VCDRIVER_USERNAME': None,
-        'VCDRIVER_PASSWORD': None
+        'vcdriver_host': None,
+        'vcdriver_port': None,
+        'vcdriver_username': None,
+        'vcdriver_password': None
     },
     'Virtual Machine Deployment': {
-        'VCDRIVER_RESOURCE_POOL': None,
-        'VCDRIVER_DATA_STORE': None,
-        'VCDRIVER_FOLDER': None
+        'vcdriver_resource_pool': None,
+        'vcdriver_data_store': None,
+        'vcdriver_folder': None
     },
     'Virtual Machine Remote Management': {
-        'VCDRIVER_VM_SSH_USERNAME': None,
-        'VCDRIVER_VM_SSH_PASSWORD': None,
-        'VCDRIVER_VM_WINRM_USERNAME': None,
-        'VCDRIVER_VM_WINRM_PASSWORD': None
+        'vcdriver_vm_ssh_username': None,
+        'vcdriver_vm_ssh_password': None,
+        'vcdriver_vm_winrm_username': None,
+        'vcdriver_vm_winrm_password': None
     }
 }
 

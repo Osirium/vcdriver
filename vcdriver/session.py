@@ -21,22 +21,32 @@ def close():
 
 
 @configurable([
-    ('Vsphere Session', 'VCDRIVER_HOST'),
-    ('Vsphere Session', 'VCDRIVER_PORT'),
-    ('Vsphere Session', 'VCDRIVER_USERNAME'),
-    ('Vsphere Session', 'VCDRIVER_PASSWORD'),
+    ('Vsphere Session', 'vcdriver_host'),
+    ('Vsphere Session', 'vcdriver_port'),
+    ('Vsphere Session', 'vcdriver_username'),
+    ('Vsphere Session', 'vcdriver_password'),
 ])
-def connection(**kwargs):
-    """ Open the session if it does not exist and return the connection """
+def connection(
+        vcdriver_host, vcdriver_port, vcdriver_username, vcdriver_password
+):
+    """
+    Open the session if it does not exist and return the connection
+    :param vcdriver_host: Vsphere host
+    :param vcdriver_port: Vsphere port
+    :param vcdriver_username: Vsphere username
+    :param vcdriver_password: Vsphere password
+
+    :return
+    """
     global _session_id, _connection_obj
     if not _connection_obj:
         context = ssl.SSLContext(ssl.PROTOCOL_SSLv23)
         context.verify_mode = ssl.CERT_NONE
         _connection_obj = SmartConnect(
-            host=kwargs['VCDRIVER_HOST'],
-            port=kwargs['VCDRIVER_PORT'],
-            user=kwargs['VCDRIVER_USERNAME'],
-            pwd=kwargs['VCDRIVER_PASSWORD'],
+            host=vcdriver_host,
+            port=vcdriver_port,
+            user=vcdriver_username,
+            pwd=vcdriver_password,
             sslContext=context
         )
         _session_id = _connection_obj.content.sessionManager.currentSession.key
@@ -46,6 +56,10 @@ def connection(**kwargs):
 
 
 def id():
-    """ Return the session id """
+    """
+    Get the session id
+
+    :return: The session id
+    """
     global _session_id
     return _session_id

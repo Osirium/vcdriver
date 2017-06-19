@@ -11,15 +11,17 @@ class TestConfig(unittest.TestCase):
     def require_nothing(self, **kwargs):
         pass
 
-    @configurable([('Vsphere Session', 'VCDRIVER_USERNAME')])
-    def require_username(self, **kwargs):
+    @configurable([('Vsphere Session', 'vcdriver_username')])
+    def require_username(self, vcdriver_username):
         pass
 
     @configurable([
-        ('Vsphere Session', 'VCDRIVER_USERNAME'),
-        ('Vsphere Session', 'VCDRIVER_PASSWORD')
+        ('Vsphere Session', 'vcdriver_username'),
+        ('Vsphere Session', 'vcdriver_password')
     ])
-    def require_username_and_password(self, **kwargs):
+    def require_username_and_password(
+            self, vcdriver_username, vcdriver_password
+    ):
         pass
 
     @configurable([('Bad', 'Wrong')])
@@ -30,37 +32,37 @@ class TestConfig(unittest.TestCase):
     def config_file(path, prepopulated_data=None):
         config = configparser.RawConfigParser()
         config.add_section('Vsphere Session')
-        config.set('Vsphere Session', 'VCDRIVER_HOST', '')
-        config.set('Vsphere Session', 'VCDRIVER_PORT', '')
-        config.set('Vsphere Session', 'VCDRIVER_USERNAME', '')
-        config.set('Vsphere Session', 'VCDRIVER_PASSWORD', '')
+        config.set('Vsphere Session', 'vcdriver_host', '')
+        config.set('Vsphere Session', 'vcdriver_port', '')
+        config.set('Vsphere Session', 'vcdriver_username', '')
+        config.set('Vsphere Session', 'vcdriver_password', '')
         config.add_section('Virtual Machine Deployment')
         config.set(
             'Virtual Machine Deployment',
-            'VCDRIVER_RESOURCE_POOL',
+            'vcdriver_resource_pool',
             ''
         )
-        config.set('Virtual Machine Deployment', 'VCDRIVER_DATA_STORE', '')
-        config.set('Virtual Machine Deployment', 'VCDRIVER_FOLDER', '')
+        config.set('Virtual Machine Deployment', 'vcdriver_data_store', '')
+        config.set('Virtual Machine Deployment', 'vcdriver_folder', '')
         config.add_section('Virtual Machine Remote Management')
         config.set(
             'Virtual Machine Remote Management',
-            'VCDRIVER_VM_SSH_USERNAME',
+            'vcdriver_vm_ssh_username',
             ''
         )
         config.set(
             'Virtual Machine Remote Management',
-            'VCDRIVER_VM_SSH_PASSWORD',
+            'vcdriver_vm_ssh_password',
             ''
         )
         config.set(
             'Virtual Machine Remote Management',
-            'VCDRIVER_VM_WINRM_USERNAME',
+            'vcdriver_vm_winrm_username',
             ''
         )
         config.set(
             'Virtual Machine Remote Management',
-            'VCDRIVER_VM_WINRM_PASSWORD',
+            'vcdriver_vm_winrm_password',
             ''
         )
         if prepopulated_data:
@@ -74,11 +76,11 @@ class TestConfig(unittest.TestCase):
         cls.config_file('config_file_1.cfg')
         cls.config_file(
             'config_file_2.cfg',
-            [['Vsphere Session', 'VCDRIVER_USERNAME', 'Sinatra']]
+            [['Vsphere Session', 'vcdriver_username', 'Sinatra']]
         )
         cls.config_file(
             'config_file_3.cfg',
-            [['Vsphere Session', 'VCDRIVER_PASSWORD', 'myway']]
+            [['Vsphere Session', 'vcdriver_password', 'myway']]
         )
 
     @classmethod
@@ -105,13 +107,13 @@ class TestConfig(unittest.TestCase):
             self.require_username()
         with self.assertRaises(MissingConfigValues):
             self.require_username_and_password()
-        os.environ['VCDRIVER_USERNAME'] = 'Sinatra'
+        os.environ['vcdriver_username'] = 'Sinatra'
         load()
         self.require_nothing()
         self.require_username()
         with self.assertRaises(MissingConfigValues):
             self.require_username_and_password()
-        os.environ['VCDRIVER_USERNAME'] = ''
+        os.environ['vcdriver_username'] = ''
         load()
         self.require_nothing()
         with self.assertRaises(MissingConfigValues):
@@ -129,12 +131,12 @@ class TestConfig(unittest.TestCase):
             self.require_username()
         with self.assertRaises(MissingConfigValues):
             self.require_username_and_password()
-        os.environ['VCDRIVER_USERNAME'] = 'Sinatra'
+        os.environ['vcdriver_username'] = 'Sinatra'
         load('config_file_3.cfg')
         self.require_nothing()
         self.require_username()
         self.require_username_and_password()
-        os.environ['VCDRIVER_USERNAME'] = ''
+        os.environ['vcdriver_username'] = ''
         load()
         self.require_nothing()
         with self.assertRaises(MissingConfigValues):
@@ -142,8 +144,8 @@ class TestConfig(unittest.TestCase):
         with self.assertRaises(MissingConfigValues):
             self.require_username_and_password()
         self.require_username_and_password(
-            VCDRIVER_USERNAME='Sinatra',
-            VCDRIVER_PASSWORD='myway'
+            vcdriver_username='Sinatra',
+            vcdriver_password='myway'
         )
         with self.assertRaises(MissingConfigValues):
             self.require_bad_section()
