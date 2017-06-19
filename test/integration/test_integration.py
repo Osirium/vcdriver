@@ -19,6 +19,7 @@ from vcdriver.vm import (
     get_all_virtual_machines
 )
 from vcdriver.folder import destroy_virtual_machines
+from vcdriver.config import load
 
 
 class TestIntegration(unittest.TestCase):
@@ -28,6 +29,7 @@ class TestIntegration(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
+        load(os.getenv('vcdriver_test_config_file'))
         os.makedirs(os.path.join('dir-0', 'dir-1', 'dir-2'))
         cls.touch('file-0')
         cls.touch(os.path.join('dir-0', 'file-1'))
@@ -48,13 +50,11 @@ class TestIntegration(unittest.TestCase):
     def setUp(self):
         self.unix = VirtualMachine(
             name='test-integration-vcdriver-unix',
-            template=os.getenv('VCDRIVER_TEST_UNIX_TEMPLATE'),
-            folder=os.getenv('VCDRIVER_TEST_FOLDER')
+            template=os.getenv('vcdriver_test_unix_template')
         )
         self.windows = VirtualMachine(
             name='test-integration-vcdriver-windows',
-            template=os.getenv('VCDRIVER_TEST_WINDOWS_TEMPLATE'),
-            folder=os.getenv('VCDRIVER_TEST_FOLDER')
+            template=os.getenv('vcdriver_test_windows_template')
         )
         self.all_vms = [self.unix, self.windows]
 
@@ -107,7 +107,7 @@ class TestIntegration(unittest.TestCase):
     def test_destroy_virtual_machines(self):
         for vm in self.all_vms:
             vm.create()
-        for vm in destroy_virtual_machines(os.getenv('VCDRIVER_TEST_FOLDER')):
+        for vm in destroy_virtual_machines(os.getenv('vcdriver_test_folder')):
             with self.assertRaises(NoObjectFound):
                 vm.find()
 
@@ -155,9 +155,9 @@ class TestIntegration(unittest.TestCase):
 
     def test_winrm(self):
         self.windows.create()
-        self.windows.winrm('ipconfig /all')
+        self.windows.winrm('ipconfig /all', dict())
         with self.assertRaises(WinRmError):
-            self.windows.winrm('ipconfig-wrong /wrong')
+            self.windows.winrm('ipconfig-wrong /wrong', dict())
 
     def test_snapshots(self):
         snapshot_name = 'test_snapshot'

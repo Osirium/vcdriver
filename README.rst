@@ -72,9 +72,6 @@ Integration tests
 As you might expect, the unit tests can only test the logic of the driver, as all the vcenter components have to be mocked out.
 You can run some integration tests to check it works fine for your Vcenter instance. To do so:
 
-#. Read through the `configuration section <https://github.com/Lantero/vcdriver/wiki/Configuration>`_.
-   You'll need to have the SSH and WINRM username and password environment variables.
-
 #. You need the following Vcenter resources:
 
    - An empty folder which will serve as a sandbox environment for the tests.
@@ -91,10 +88,12 @@ You can run some integration tests to check it works fine for your Vcenter insta
        winrm set winrm/config/service/auth @{Basic="true"}
        winrm set winrm/config/service @{AllowUnencrypted="true"}
 
-#. Provide the following environment variables:
+#. Read through the `configuration section <https://github.com/Lantero/vcdriver/wiki/Configuration>`_ and set up all the configuration in a file.
+   Provide the following environment variables:
 
-   - ``VCDRIVER_TEST_FOLDER``: The name of the sandbox folder that will be used for the tests.
-   - ``VCDRIVER_TEST_UNIX_TEMPLATE``: The name of the UNIX virtual machine template that will be cloned for the tests.
-   - ``VCDRIVER_TEST_WINDOWS_TEMPLATE``: The name of the Windows Server virtual machine template that will be cloned for the tests.
+   - ``vcdriver_test_config_file``: The path to your file config.
+   - ``vcdriver_test_unix_template``: The name of the UNIX virtual machine template that will be cloned for the tests.
+   - ``vcdriver_test_windows_template``: The name of the Windows Server virtual machine template that will be cloned for the tests.
+   - ``vcdriver_test_folder``: An empty vm folder to perform the tests in it.
 
 #. Run ``pytest --cache-clear -s -v test/integration``.
