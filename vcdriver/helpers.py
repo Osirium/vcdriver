@@ -7,7 +7,10 @@ import sys
 import time
 
 from colorama import init, Style
+from fabric.api import run
+from fabric.context_managers import settings
 from pyVmomi import vim
+import winrm
 
 from vcdriver.exceptions import (
     TooManyObjectsFound,
@@ -208,3 +211,55 @@ def wait_for_vcenter_task(task, task_description, timeout):
     else:
         if task.info.error is not None:
             raise task.info.error
+
+
+@contextlib.contextmanager
+def fabric_context(host, username, password):
+    """
+    Set the ssh context for fabric
+    :param host: SSH host
+    :param username: SSH username
+    :param password: SSH password
+    """
+    ip_version = validate_ip(host)['version']
+    if ip_version == 6:
+        host = '[{}]'.format(host)
+    with settings(
+            host_string="{}@{}".format(username, host),
+            password=password,
+            warn_only=True,
+            disable_known_hosts=True
+    ):
+        yield
+
+
+def check_ssh_service(host, username, password):
+    """
+    Check whether the ssh service is up or not on the target host
+    :param host: SSH host
+    :param username: SSH username
+    :param password: SSH password
+    """
+    try:
+        with hide_std():
+            with fabric_context(host, username, password):
+                run('')
+            return True
+    except:
+        return False
+
+
+def check_winrm_service(host, username, password, **kwargs):
+    """
+    Check whether the winrm service is up or not on the target host
+    :param host: WinRM host
+    :param username: WinRM username
+    :param password: WinRM password
+    :param kwargs: pywinrm Protocol kwargs
+    """
+    try:
+        with hide_std():
+            winrm.Session(host, (username, password), **kwargs).run_ps('')
+        return True
+    except:
+        return False

@@ -4,20 +4,11 @@ import uuid
 
 from colorama import Style, Fore
 from fabric.api import sudo, run, get, put
-from fabric.context_managers import settings
 from pyVmomi import vim
 import winrm
 
 from vcdriver.session import connection
-from vcdriver.config import (
-    DATA_STORE,
-    RESOURCE_POOL,
-    FOLDER,
-    VM_SSH_USERNAME,
-    VM_SSH_PASSWORD,
-    VM_WINRM_USERNAME,
-    VM_WINRM_PASSWORD
-)
+from vcdriver.config import configurable
 from vcdriver.exceptions import (
     SshError,
     WinRmError,
@@ -29,11 +20,13 @@ from vcdriver.exceptions import (
 from vcdriver.helpers import (
     get_all_vcenter_objects,
     get_vcenter_object_by_name,
-    hide_std,
     styled_print,
     timeout_loop,
     validate_ip,
-    wait_for_vcenter_task
+    wait_for_vcenter_task,
+    fabric_context,
+    check_ssh_service,
+    check_winrm_service
 )
 
 
@@ -368,63 +361,27 @@ class VirtualMachine(object):
             )
         )
 
-    @contextlib.contextmanager
-    def _fabric_context(self):
-        """ Set the ssh context for fabric """
-        ip = self.ip()
-        ip_version = validate_ip(ip)['version']
-        if ip_version == 6:
-            ip = '[{}]'.format(ip)
-        with settings(
-                host_string="{}@{}".format(self.ssh_username, ip),
-                password=self.ssh_password,
-                warn_only=True,
-                disable_known_hosts=True
-        ):
-            yield
-
-    def _check_ssh_service(self):
-        """ Check whether the ssh service is up or not """
-        try:
-            with hide_std():
-                with self._fabric_context():
-                    run('')
-                return True
-        except:
-            return False
-
-    def _check_winrm_service(self, **kwargs):
+    def _wait_for_ssh_service(self, username, password):
         """
-        Check whether the winrm service is up or not
-        :param kwargs: pywinrm Protocol kwargs
+        Wait until ssh service is ready
+        :param username: SSH username
+        :param password: SSH password
         """
-        try:
-            with hide_std():
-                winrm.Session(
-                    target=self.ip(),
-                    auth=(self.winrm_username, self.winrm_password),
-                    **kwargs
-                ).run_ps('')
-            return True
-        except:
-            return False
-
-    def _wait_for_ssh_service(self):
-        """ Wait until ssh service is ready """
-        self.ip()
         timeout_loop(
-            self.timeout, 'Check SSH service', 1, True, self._check_ssh_service
+            self.timeout, 'Check SSH service', 1, True,
+            check_ssh_service, self.ip(), username, password
         )
 
-    def _wait_for_winrm_service(self, **kwargs):
+    def _wait_for_winrm_service(self, username, password, **kwargs):
         """
         Wait until winrm service is ready
+        :param username: WinRM username
+        :param password: WinRM password
         :param kwargs: pywinrm Protocol kwargs
         """
-        self.ip()
         timeout_loop(
             self.timeout, 'Check WinRM service', 1, True,
-            self._check_winrm_service, **kwargs
+            check_winrm_service, self.ip(), username, password, **kwargs
         )
 
     @classmethod
