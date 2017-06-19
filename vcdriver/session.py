@@ -26,27 +26,17 @@ def close():
     ('Vsphere Session', 'vcdriver_username'),
     ('Vsphere Session', 'vcdriver_password'),
 ])
-def connection(
-        vcdriver_host, vcdriver_port, vcdriver_username, vcdriver_password
-):
-    """
-    Open the session if it does not exist and return the connection
-    :param vcdriver_host: Vsphere host
-    :param vcdriver_port: Vsphere port
-    :param vcdriver_username: Vsphere username
-    :param vcdriver_password: Vsphere password
-
-    :return
-    """
+def connection(**kwargs):
+    """ Open the session if it does not exist and return the connection """
     global _session_id, _connection_obj
     if not _connection_obj:
         context = ssl.SSLContext(ssl.PROTOCOL_SSLv23)
         context.verify_mode = ssl.CERT_NONE
         _connection_obj = SmartConnect(
-            host=vcdriver_host,
-            port=vcdriver_port,
-            user=vcdriver_username,
-            pwd=vcdriver_password,
+            host=kwargs['vcdriver_host'],
+            port=kwargs['vcdriver_port'],
+            user=kwargs['vcdriver_username'],
+            pwd=kwargs['vcdriver_password'],
             sslContext=context
         )
         _session_id = _connection_obj.content.sessionManager.currentSession.key

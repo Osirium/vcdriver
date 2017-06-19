@@ -1,4 +1,5 @@
 import mock
+import os
 import unittest
 
 from pyVmomi import vim
@@ -19,6 +20,7 @@ from vcdriver.vm import (
     snapshot,
     get_all_virtual_machines,
 )
+from vcdriver.config import load
 
 
 class TestVm(unittest.TestCase):
@@ -35,6 +37,10 @@ class TestVm(unittest.TestCase):
             get_vcenter_object_by_name,
             connection
     ):
+        os.environ['vcdriver_resource_pool'] = 'something'
+        os.environ['vcdriver_data_store'] = 'something'
+        os.environ['vcdriver_folder'] = 'something'
+        load()
         vm = VirtualMachine()
         vm.create()
         vm.create()
@@ -147,10 +153,14 @@ class TestVm(unittest.TestCase):
     @mock.patch('vcdriver.vm.connection')
     @mock.patch('vcdriver.vm.sudo')
     @mock.patch('vcdriver.vm.run')
+    @mock.patch('vcdriver.helpers.run')
     def test_virtual_machine_ssh_success(
-            self, run, sudo, connection
+            self, helpers_run, vm_run, sudo, connection
     ):
-        vm = VirtualMachine(ssh_username='', ssh_password='')
+        os.environ['vcdriver_vm_ssh_username'] = 'user'
+        os.environ['vcdriver_vm_ssh_password'] = 'pass'
+        load()
+        vm = VirtualMachine()
         self.assertEqual(vm.ssh('whatever'), None)
         vm_object_mock = mock.MagicMock()
         vm_object_mock.summary.guest.ipAddress = '127.0.0.1'
@@ -158,16 +168,23 @@ class TestVm(unittest.TestCase):
         result_mock = mock.MagicMock()
         result_mock.return_code = 3
         result_mock.failed = False
-        run.return_value = result_mock
+        helpers_run.return_value = result_mock
+        vm_run.return_value = result_mock
         sudo.return_value = result_mock
         self.assertEqual(vm.ssh('whatever', use_sudo=False).return_code, 3)
         self.assertEqual(vm.ssh('whatever', use_sudo=True).return_code, 3)
 
     @mock.patch('vcdriver.vm.connection')
-    @mock.patch('vcdriver.vm.run')
     @mock.patch('vcdriver.vm.sudo')
-    def test_virtual_machine_ssh_fail(self, sudo, run, connection):
-        vm = VirtualMachine(ssh_username='', ssh_password='')
+    @mock.patch('vcdriver.vm.run')
+    @mock.patch('vcdriver.helpers.run')
+    def test_virtual_machine_ssh_fail(
+            self, sudo, helpers_run, vm_run, connection
+    ):
+        os.environ['vcdriver_vm_ssh_username'] = 'user'
+        os.environ['vcdriver_vm_ssh_password'] = 'pass'
+        load()
+        vm = VirtualMachine()
         vm_object_mock = mock.MagicMock()
         vm_object_mock.summary.guest.ipAddress = 'fe80::250:56ff:febf:1a0a'
         vm.__setattr__('_vm_object', vm_object_mock)
@@ -176,22 +193,33 @@ class TestVm(unittest.TestCase):
 
     @mock.patch('vcdriver.vm.connection')
     @mock.patch('vcdriver.vm.run')
-    def test_virtual_machine_ssh_timeout(self, run, connection):
-        vm = VirtualMachine(ssh_username='', ssh_password='', timeout=1)
+    @mock.patch('vcdriver.helpers.run')
+    def test_virtual_machine_ssh_timeout(
+            self, helpers_run, vm_run, connection
+    ):
+        os.environ['vcdriver_vm_ssh_username'] = 'user'
+        os.environ['vcdriver_vm_ssh_password'] = 'pass'
+        load()
+        vm = VirtualMachine(timeout=1)
         vm_object_mock = mock.MagicMock()
         vm_object_mock.summary.guest.ipAddress = '127.0.0.1'
         vm.__setattr__('_vm_object', vm_object_mock)
-        run.side_effect = Exception
+        helpers_run.side_effect = Exception
+        vm_run.side_effect = Exception
         with self.assertRaises(TimeoutError):
             vm.ssh('whatever', use_sudo=True)
 
     @mock.patch('vcdriver.vm.connection')
     @mock.patch('vcdriver.vm.put')
     @mock.patch('vcdriver.vm.run')
+    @mock.patch('vcdriver.helpers.run')
     def test_virtual_machine_upload_success(
-            self, run, put, connection
+            self, helpers_run, vm_run, put, connection
     ):
-        vm = VirtualMachine(ssh_username='', ssh_password='')
+        os.environ['vcdriver_vm_ssh_username'] = 'user'
+        os.environ['vcdriver_vm_ssh_password'] = 'pass'
+        load()
+        vm = VirtualMachine()
         self.assertEqual(vm.upload('from', 'to'), None)
         vm_object_mock = mock.MagicMock()
         vm_object_mock.summary.guest.ipAddress = '127.0.0.1'
@@ -204,10 +232,14 @@ class TestVm(unittest.TestCase):
     @mock.patch('vcdriver.vm.connection')
     @mock.patch('vcdriver.vm.put')
     @mock.patch('vcdriver.vm.run')
+    @mock.patch('vcdriver.helpers.run')
     def test_virtual_machine_upload_fail(
-            self, run, put, connection
+            self, helpers_run, vm_run, put, connection
     ):
-        vm = VirtualMachine(ssh_username='', ssh_password='')
+        os.environ['vcdriver_vm_ssh_username'] = 'user'
+        os.environ['vcdriver_vm_ssh_password'] = 'pass'
+        load()
+        vm = VirtualMachine()
         vm_object_mock = mock.MagicMock()
         vm_object_mock.summary.guest.ipAddress = '127.0.0.1'
         vm.__setattr__('_vm_object', vm_object_mock)
@@ -217,10 +249,14 @@ class TestVm(unittest.TestCase):
     @mock.patch('vcdriver.vm.connection')
     @mock.patch('vcdriver.vm.get')
     @mock.patch('vcdriver.vm.run')
+    @mock.patch('vcdriver.helpers.run')
     def test_virtual_machine_download_success(
-            self, run, get, session
+            self, helpers_run, vm_run, get, session
     ):
-        vm = VirtualMachine(ssh_username='', ssh_password='')
+        os.environ['vcdriver_vm_ssh_username'] = 'user'
+        os.environ['vcdriver_vm_ssh_password'] = 'pass'
+        load()
+        vm = VirtualMachine()
         self.assertEqual(vm.download('from', 'to'), None)
         vm_object_mock = mock.MagicMock()
         vm_object_mock.summary.guest.ipAddress = '127.0.0.1'
@@ -233,10 +269,14 @@ class TestVm(unittest.TestCase):
     @mock.patch('vcdriver.vm.connection')
     @mock.patch('vcdriver.vm.get')
     @mock.patch('vcdriver.vm.run')
+    @mock.patch('vcdriver.helpers.run')
     def test_virtual_machine_download_fail(
-            self, run, get, session
+            self, helpers_run, vm_run, get, session
     ):
-        vm = VirtualMachine(ssh_username='', ssh_password='')
+        os.environ['vcdriver_vm_ssh_username'] = 'user'
+        os.environ['vcdriver_vm_ssh_password'] = 'pass'
+        load()
+        vm = VirtualMachine()
         vm_object_mock = mock.MagicMock()
         vm_object_mock.summary.guest.ipAddress = '127.0.0.1'
         vm.__setattr__('_vm_object', vm_object_mock)
@@ -246,39 +286,46 @@ class TestVm(unittest.TestCase):
     @mock.patch('vcdriver.vm.connection')
     @mock.patch.object(winrm.Session, 'run_ps')
     def test_virtual_machine_winrm_success(self, run_ps, connection):
-        vm = VirtualMachine(winrm_username='user', winrm_password='pass')
-        self.assertEqual(vm.winrm('whatever'), None)
+        os.environ['vcdriver_vm_winrm_username'] = 'user'
+        os.environ['vcdriver_vm_winrm_password'] = 'pass'
+        load()
+        vm = VirtualMachine()
+        self.assertEqual(vm.winrm('whatever', dict()), None)
         vm_object_mock = mock.MagicMock()
         vm_object_mock.summary.guest.ipAddress = '127.0.0.1'
         vm.__setattr__('_vm_object', vm_object_mock)
         run_ps.return_value.status_code = 0
-        vm.winrm('script')
+        vm.winrm('script', dict())
         run_ps.assert_called_with('script')
         self.assertEqual(run_ps.call_count, 2)
 
     @mock.patch('vcdriver.vm.connection')
     @mock.patch.object(winrm.Session, 'run_ps')
     def test_virtual_machine_winrm_fail(self, run_ps, connection):
-        vm = VirtualMachine(winrm_username='user', winrm_password='pass')
+        os.environ['vcdriver_vm_winrm_username'] = 'user'
+        os.environ['vcdriver_vm_winrm_password'] = 'pass'
+        load()
+        vm = VirtualMachine()
         vm_object_mock = mock.MagicMock()
         vm_object_mock.summary.guest.ipAddress = '127.0.0.1'
         vm.__setattr__('_vm_object', vm_object_mock)
         run_ps.return_value.status_code = 1
         with self.assertRaises(WinRmError):
-            vm.winrm('script')
+            vm.winrm('script', dict())
 
     @mock.patch('vcdriver.vm.connection')
     @mock.patch.object(winrm.Session, 'run_ps')
     def test_virtual_machine_winrm_timeout(self, run_ps, connection):
-        vm = VirtualMachine(
-            winrm_username='user', winrm_password='pass', timeout=1
-        )
+        os.environ['vcdriver_vm_winrm_username'] = 'user'
+        os.environ['vcdriver_vm_winrm_password'] = 'pass'
+        load()
+        vm = VirtualMachine(timeout=1)
         vm_object_mock = mock.MagicMock()
         vm_object_mock.summary.guest.ipAddress = '127.0.0.1'
         vm.__setattr__('_vm_object', vm_object_mock)
         run_ps.side_effect = Exception
         with self.assertRaises(TimeoutError):
-            vm.winrm('script')
+            vm.winrm('script', dict())
 
     @mock.patch('vcdriver.vm.wait_for_vcenter_task')
     def test_virtual_machine_find_snapshot(self, wait_for_vcenter_task):
