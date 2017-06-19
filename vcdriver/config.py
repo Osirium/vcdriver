@@ -1,8 +1,10 @@
-import copy
+import functools
 import os
 from six.moves import configparser
 
-# FIXME: Deprecated
+from vcdriver.exceptions import MissingConfigValues
+
+# FIXME: Deprecated (Remove)
 HOST = os.getenv('VCDRIVER_HOST')
 PORT = os.getenv('VCDRIVER_PORT')
 USERNAME = os.getenv('VCDRIVER_USERNAME')
@@ -14,6 +16,7 @@ VM_SSH_USERNAME = os.getenv('VCDRIVER_VM_SSH_USERNAME')
 VM_SSH_PASSWORD = os.getenv('VCDRIVER_VM_SSH_PASSWORD')
 VM_WINRM_USERNAME = os.getenv('VCDRIVER_VM_WINRM_USERNAME')
 VM_WINRM_PASSWORD = os.getenv('VCDRIVER_VM_WINRM_PASSWORD')
+# End of FIXME
 
 _config = {
     'Vsphere Session': {
@@ -36,56 +39,53 @@ _config = {
 }
 
 
-def export(path, **kwargs):
-    """
-    Create a configuration file out of the current configuration
-    :param path: The configuration file path
-    :param kwargs: Override any values
-    """
-    global _config
-    config = configparser.RawConfigParser()
-    config.optionxform = str
-    for section_key, section_dict in _config.items():
-        config.add_section(section_key)
-        for subsection_key in section_dict.keys():
-            if subsection_key in kwargs.keys():
-                config.set(section_key, subsection_key, kwargs[subsection_key])
-            else:
-                config.set(section_key, subsection_key, '')
-    with open(path, 'w') as cf:
-        config.write(cf)
-
-
-def get():
-    """ Return the current configuration values (Read only) """
-    global _config
-    return copy.deepcopy(_config)
-
-
 def load(path=None):
     """
-    Will load the configuration from a INI file, or the env otherwise
+    Will load the configuration from a INI file or the environment
     :param path: The configuration file path
     """
     global _config
     if path:
         config = configparser.RawConfigParser()
         config.read(path)
-    for section_key, section_dict in _config.items():
-        for subsection_key in section_dict.keys():
+    for section_key, section_content in _config.items():
+        for config_key in section_content.keys():
             if path:
-                _config[section_key][subsection_key] = config.get(
-                    section_key, subsection_key
-                ) or os.getenv(subsection_key)
+                _config[section_key][config_key] = config.get(
+                    section_key, config_key
+                ) or os.getenv(config_key)
             else:
-                _config[section_key][subsection_key] = os.getenv(
-                    subsection_key
-                )
+                _config[section_key][config_key] = os.getenv(config_key)
 
 
-def reset():
-    """ Reset all configuration values to None """
+def required(section_keys):
+    """
+    Ensure that a configuration value is present in the kwargs or the config
+    :param section_keys: An iterable of the required section-key pairs
+
+    :return: The decorated function
+
+    :raise: MissingConfigValues: If any configuration values are missing
+    """
     global _config
-    for section_key, section_dict in _config.items():
-        for subsection_key in section_dict.keys():
-            _config[section_key][subsection_key] = None
+
+    def decorator(function):
+        @functools.wraps(function)
+        def wrapper(*args, **kwargs):
+            missing_keys = []
+            for section, key in section_keys:
+                if not kwargs.get(key, None):
+                    config_section = _config.get(section)
+                    if config_section:
+                        config_value = config_section.get(key)
+                    else:
+                        config_value = None
+                    if config_value:
+                        kwargs[key] = config_value
+                    else:
+                        missing_keys.append(key)
+            if missing_keys:
+                raise MissingConfigValues(missing_keys)
+            return function(*args, **kwargs)
+        return wrapper
+    return decorator

@@ -62,3 +62,10 @@ class UploadError(FileTransferError):
 
 class DownloadError(FileTransferError):
     pass
+
+
+class MissingConfigValues(Exception):
+    def __init__(self, keys):
+        super(MissingConfigValues, self).__init__(
+            'Missing configuration values: {}'.format(keys)
+        )
