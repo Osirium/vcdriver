@@ -8,8 +8,14 @@ class TestAuth(unittest.TestCase):
     @mock.patch('vcdriver.session.SmartConnect')
     @mock.patch('vcdriver.session.Disconnect')
     def test_session(self, disconnect, connect):
-        connection()
-        connection()
+        connection(
+            VCDRIVER_USERNAME='something', VCDRIVER_PASSWORD='something',
+            VCDRIVER_HOST='something', VCDRIVER_PORT='something'
+        )
+        connection(
+            VCDRIVER_USERNAME='something', VCDRIVER_PASSWORD='something',
+            VCDRIVER_HOST='something', VCDRIVER_PORT='something'
+        )
         id()
         close()
         close()

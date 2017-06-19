@@ -3,7 +3,7 @@ import ssl
 
 from pyVim.connect import SmartConnect, Disconnect
 
-from vcdriver.config import HOST, PORT, USERNAME, PASSWORD
+from vcdriver.config import required
 
 
 _session_id = None
@@ -20,17 +20,23 @@ def close():
         _connection_obj = None
 
 
-def connection():
+@required([
+    ('Vsphere Session', 'VCDRIVER_HOST'),
+    ('Vsphere Session', 'VCDRIVER_PORT'),
+    ('Vsphere Session', 'VCDRIVER_USERNAME'),
+    ('Vsphere Session', 'VCDRIVER_PASSWORD'),
+])
+def connection(**kwargs):
     """ Open the session if it does not exist and return the connection """
     global _session_id, _connection_obj
     if not _connection_obj:
         context = ssl.SSLContext(ssl.PROTOCOL_SSLv23)
         context.verify_mode = ssl.CERT_NONE
         _connection_obj = SmartConnect(
-            host=HOST,
-            port=PORT,
-            user=USERNAME,
-            pwd=PASSWORD,
+            host=kwargs['VCDRIVER_HOST'],
+            port=kwargs['VCDRIVER_PORT'],
+            user=kwargs['VCDRIVER_USERNAME'],
+            pwd=kwargs['VCDRIVER_PASSWORD'],
             sslContext=context
         )
         _session_id = _connection_obj.content.sessionManager.currentSession.key
