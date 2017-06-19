@@ -3,7 +3,7 @@ import ssl
 
 from pyVim.connect import SmartConnect, Disconnect
 
-from vcdriver.config import required
+from vcdriver.config import configurable
 
 
 _session_id = None
@@ -20,7 +20,7 @@ def close():
         _connection_obj = None
 
 
-@required([
+@configurable([
     ('Vsphere Session', 'VCDRIVER_HOST'),
     ('Vsphere Session', 'VCDRIVER_PORT'),
     ('Vsphere Session', 'VCDRIVER_USERNAME'),

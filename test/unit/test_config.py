@@ -3,7 +3,7 @@ import unittest
 
 from six.moves import configparser
 
-from vcdriver.config import load, required
+from vcdriver.config import load, configurable
 from vcdriver.exceptions import MissingConfigValues
 
 
@@ -11,18 +11,18 @@ class TestConfig(unittest.TestCase):
     def require_nothing(self, **kwargs):
         pass
 
-    @required([('Vsphere Session', 'VCDRIVER_USERNAME')])
+    @configurable([('Vsphere Session', 'VCDRIVER_USERNAME')])
     def require_username(self, **kwargs):
         pass
 
-    @required([
+    @configurable([
         ('Vsphere Session', 'VCDRIVER_USERNAME'),
         ('Vsphere Session', 'VCDRIVER_PASSWORD')
     ])
     def require_username_and_password(self, **kwargs):
         pass
 
-    @required([('Bad', 'Wrong')])
+    @configurable([('Bad', 'Wrong')])
     def require_bad_section(self, **kwargs):
         pass
 

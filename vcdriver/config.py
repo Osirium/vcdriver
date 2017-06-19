@@ -45,7 +45,7 @@ def load(path=None):
                 _config[section_key][config_key] = os.getenv(config_key)
 
 
-def required(section_keys):
+def configurable(section_keys):
     """
     Ensure that a configuration value is present in the kwargs or the config
     :param section_keys: An iterable of the required section-key pairs
