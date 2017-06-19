@@ -350,11 +350,6 @@ class VirtualMachine(object):
                     for element in [
                         ['Name', self.name],
                         ['Template', self.template],
-                        ['Resource pool', self.resource_pool],
-                        ['Data store', self.data_store],
-                        ['Folder', self.folder],
-                        ['SSH Username', self.ssh_username],
-                        ['WinRM Username', self.winrm_username],
                         ['IP', ip]
                     ]
                 ])
