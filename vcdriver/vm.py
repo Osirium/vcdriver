@@ -33,52 +33,43 @@ from vcdriver.helpers import (
 class VirtualMachine(object):
     def __init__(
             self,
-            resource_pool=RESOURCE_POOL,
-            data_store=DATA_STORE,
-            folder=FOLDER,
             name=str(uuid.uuid4()),
             template=None,
-            timeout=3600,
-            ssh_username=VM_SSH_USERNAME,
-            ssh_password=VM_SSH_PASSWORD,
-            winrm_username=VM_WINRM_USERNAME,
-            winrm_password=VM_WINRM_PASSWORD
+            timeout=3600
     ):
         """
-        :param resource_pool: The vcenter resource pool name
-        :param data_store: The vcenter data store name
-        :param folder: The vcenter folder name
         :param name: The virtual machine name
         :param template: The virtual machine template name to be cloned
         :param timeout: The timeout for the tasks
-        :param ssh_username: The ssh username to manage the virtual machine
-        :param ssh_password: The ssh password to manage the virtual machine
-        :param winrm_username: The winrm username to manage the virtual machine
-        :param winrm_password: The winrm password to manage the virtual machine
 
         _vm_object: An internal instance of the vcenter vm object
         """
-        self.resource_pool = resource_pool
-        self.data_store = data_store
-        self.folder = folder
         self.name = name
         self.template = template
         self.timeout = timeout
-        self.ssh_username = ssh_username
-        self.ssh_password = ssh_password
-        self.winrm_username = winrm_username
-        self.winrm_password = winrm_password
         self._vm_object = None
 
-    def create(self):
-        """ Create the virtual machine and update the vm object """
+    @configurable([
+        ('Virtual Machine Deployment', 'vcdriver_resource_pool'),
+        ('Virtual Machine Deployment', 'vcdriver_data_store'),
+        ('Virtual Machine Deployment', 'vcdriver_folder')
+    ])
+    def create(
+            self, vcdriver_resource_pool, vcdriver_data_store, vcdriver_folder
+    ):
+        """
+        Create the virtual machine and update the vm object
+        :param vcdriver_resource_pool: Vsphere resource pool
+        :param vcdriver_data_store: Vsphere data store
+        :param vcdriver_folder: Vsphere folder
+        """
         if not self._vm_object:
             self._vm_object = wait_for_vcenter_task(
                 get_vcenter_object_by_name(
                     connection(), vim.VirtualMachine, self.template
                 ).CloneVM_Task(
                     folder=get_vcenter_object_by_name(
-                        connection(), vim.Folder, self.folder
+                        connection(), vim.Folder, vcdriver_folder
                     ),
                     name=self.name,
                     spec=vim.vm.CloneSpec(
@@ -86,12 +77,12 @@ class VirtualMachine(object):
                             datastore=get_vcenter_object_by_name(
                                 connection(),
                                 vim.Datastore,
-                                self.data_store
+                                vcdriver_data_store
                             ),
                             pool=get_vcenter_object_by_name(
                                 connection(),
                                 vim.ResourcePool,
-                                self.resource_pool
+                                vcdriver_resource_pool
                             )
                         ),
                         powerOn=True,
@@ -165,9 +156,18 @@ class VirtualMachine(object):
             validate_ip(ip)
             return ip
 
-    def ssh(self, command, use_sudo=False):
+    @configurable([
+        ('Virtual Machine Remote Management', 'vcdriver_vm_ssh_username'),
+        ('Virtual Machine Remote Management', 'vcdriver_vm_ssh_password')
+    ])
+    def ssh(
+            self, vcdriver_vm_ssh_username, vcdriver_vm_ssh_password,
+            command, use_sudo=False
+    ):
         """
         Executes a shell command through ssh
+        :param vcdriver_vm_ssh_username: SSH username
+        :param vcdriver_vm_ssh_password: SSH password
         :param command: The command to be executed
         :param use_sudo: If True, it runs as sudo
 
@@ -176,8 +176,13 @@ class VirtualMachine(object):
         :raise: SshError: If the command fails
         """
         if self._vm_object:
-            self._wait_for_ssh_service()
-            with self._fabric_context():
+            self._wait_for_ssh_service(
+                vcdriver_vm_ssh_username, vcdriver_vm_ssh_password
+            )
+            with fabric_context(
+                    self.ip(),
+                    vcdriver_vm_ssh_username, vcdriver_vm_ssh_password
+            ):
                 if use_sudo:
                     result = sudo(command)
                 else:
@@ -186,9 +191,18 @@ class VirtualMachine(object):
                     raise SshError(command, result.return_code)
                 return result
 
-    def upload(self, remote_path, local_path, use_sudo=False):
+    @configurable([
+        ('Virtual Machine Remote Management', 'vcdriver_vm_ssh_username'),
+        ('Virtual Machine Remote Management', 'vcdriver_vm_ssh_password')
+    ])
+    def upload(
+            self, vcdriver_vm_ssh_username, vcdriver_vm_ssh_password,
+            remote_path, local_path, use_sudo=False
+    ):
         """
         Upload a file or directory to the virtual machine
+        :param vcdriver_vm_ssh_username: SSH username
+        :param vcdriver_vm_ssh_password: SSH password
         :param remote_path: The remote location
         :param local_path: The local local
         :param use_sudo: If True, it runs as sudo
@@ -198,8 +212,13 @@ class VirtualMachine(object):
         :raise: UploadError: If the task fails
         """
         if self._vm_object:
-            self._wait_for_ssh_service()
-            with self._fabric_context():
+            self._wait_for_ssh_service(
+                vcdriver_vm_ssh_username, vcdriver_vm_ssh_password
+            )
+            with fabric_context(
+                    self.ip(),
+                    vcdriver_vm_ssh_username, vcdriver_vm_ssh_password
+            ):
                 result = put(
                     remote_path=remote_path,
                     local_path=local_path,
@@ -213,9 +232,18 @@ class VirtualMachine(object):
                 else:
                     return result
 
-    def download(self, remote_path, local_path, use_sudo=False):
+    @configurable([
+        ('Virtual Machine Remote Management', 'vcdriver_vm_ssh_username'),
+        ('Virtual Machine Remote Management', 'vcdriver_vm_ssh_password')
+    ])
+    def download(
+            self, vcdriver_vm_ssh_username, vcdriver_vm_ssh_password,
+            remote_path, local_path, use_sudo=False
+    ):
         """
         Download a file or directory from the virtual machine
+        :param vcdriver_vm_ssh_username: SSH username
+        :param vcdriver_vm_ssh_password: SSH password
         :param remote_path: The remote location
         :param local_path: The local local
         :param use_sudo: If True, it runs as sudo
@@ -225,8 +253,13 @@ class VirtualMachine(object):
         :raise: DownloadError: If the task fails
         """
         if self._vm_object:
-            self._wait_for_ssh_service()
-            with self._fabric_context():
+            self._wait_for_ssh_service(
+                vcdriver_vm_ssh_username, vcdriver_vm_ssh_password
+            )
+            with fabric_context(
+                    self.ip(),
+                    vcdriver_vm_ssh_username, vcdriver_vm_ssh_password
+            ):
                 result = get(
                     remote_path=remote_path,
                     local_path=local_path,
@@ -240,9 +273,18 @@ class VirtualMachine(object):
                 else:
                     return result
 
-    def winrm(self, script, **kwargs):
+    @configurable([
+        ('Virtual Machine Remote Management', 'vcdriver_vm_winrm_username'),
+        ('Virtual Machine Remote Management', 'vcdriver_vm_winrm_password')
+    ])
+    def winrm(
+            self, vcdriver_vm_winrm_username, vcdriver_vm_winrm_password,
+            script, **kwargs
+    ):
         """
         Executes a remote windows powershell script
+        :param vcdriver_vm_winrm_username: WinRM username
+        :param vcdriver_vm_winrm_password: WinRM password
         :param script: A string with the powershell script
         :param kwargs: The pywinrm Protocol class kwargs
 
@@ -251,12 +293,15 @@ class VirtualMachine(object):
         :raise: WinRmError: If the command fails
         """
         if self._vm_object:
-            self._wait_for_winrm_service(**kwargs)
+            self._wait_for_winrm_service(
+                vcdriver_vm_winrm_username, vcdriver_vm_winrm_password,
+                **kwargs
+            )
             print('Executing remotely on {} ...'.format(self.ip()))
             styled_print(Style.DIM)(script)
             result = winrm.Session(
                 target=self.ip(),
-                auth=(self.winrm_username, self.winrm_password),
+                auth=(vcdriver_vm_winrm_username, vcdriver_vm_winrm_password),
                 read_timeout_sec=self.timeout+1,
                 operation_timeout_sec=self.timeout,
                 **kwargs
