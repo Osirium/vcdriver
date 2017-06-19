@@ -67,5 +67,8 @@ class DownloadError(FileTransferError):
 class MissingConfigValues(Exception):
     def __init__(self, keys):
         super(MissingConfigValues, self).__init__(
-            'Missing configuration values: {}'.format(keys)
+            'Missing configuration values: {}. You can provide these values '
+            'either as a kwarg, using an environment variable or through the '
+            'configuration file, as explained in the documentation'
+            ''.format(keys)
         )
