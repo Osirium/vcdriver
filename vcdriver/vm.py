@@ -165,9 +165,8 @@ class VirtualMachine(object):
         if self._vm_object:
             if not self._vm_object.summary.guest.ipAddress:
                 timeout_loop(
-                    timeout=self.timeout,
-                    description='Get IP',
-                    callback=lambda: self._vm_object.summary.guest.ipAddress
+                    self.timeout, 'Get IP', 1, False,
+                    lambda: self._vm_object.summary.guest.ipAddress
                 )
             ip = self._vm_object.summary.guest.ipAddress
             validate_ip(ip)
@@ -414,10 +413,7 @@ class VirtualMachine(object):
         """ Wait until ssh service is ready """
         self.ip()
         timeout_loop(
-            timeout=self.timeout,
-            description='Check SSH service',
-            callback=self._check_ssh_service,
-            quiet=True,
+            self.timeout, 'Check SSH service', 1, True, self._check_ssh_service
         )
 
     def _wait_for_winrm_service(self, **kwargs):
@@ -427,11 +423,8 @@ class VirtualMachine(object):
         """
         self.ip()
         timeout_loop(
-            timeout=self.timeout,
-            description='Check WinRM service',
-            callback=self._check_winrm_service,
-            quiet=True,
-            **kwargs
+            self.timeout, 'Check WinRM service', 1, True,
+            self._check_winrm_service, **kwargs
         )
 
     @classmethod

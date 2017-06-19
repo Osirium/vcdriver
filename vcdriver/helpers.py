@@ -103,18 +103,18 @@ def hide_std():
 
 
 def timeout_loop(
-        timeout, description, callback, wait_until_retry=1, quiet=False,
-        *args, **kwargs
+        timeout, description, seconds_until_retry, quiet,
+        callback, *callback_args, **callback_kwargs
 ):
     """
     Wait inside a blocking loop for a task to complete
     :param timeout: The timeout, in seconds
     :param description: The task description
-    :param callback: If this function is True, the while loop will break
-    :param wait_until_retry: Seconds you wait before re-checking the callback
+    :param seconds_until_retry: Seconds before re-checking the callback
     :param quiet: If true, the benchmark time will not be printed
-    :param args: The positional arguments of the callback
-    :param kwargs: The keyword arguments of the callback
+    :param callback: If this function is True, the while loop will break
+    :param callback_args: The positional arguments of the callback
+    :param callback_kwargs: The keyword arguments of the callback
 
     :raise: TimeoutError: If the timeout is reached
     """
@@ -125,11 +125,11 @@ def timeout_loop(
     start = time.time()
     while countdown >= 0:
         callback_start = time.time()
-        if callback(*args, **kwargs):
+        if callback(*callback_args, **callback_kwargs):
             break
         callback_time = time.time() - callback_start
-        time.sleep(wait_until_retry)
-        countdown = countdown - wait_until_retry - callback_time
+        time.sleep(seconds_until_retry)
+        countdown = countdown - seconds_until_retry - callback_time
     if countdown <= 0:
         raise TimeoutError(description, timeout)
     if not quiet:
@@ -200,8 +200,7 @@ def wait_for_vcenter_task(task, task_description, timeout):
     :raise: TimeoutError: If the timeout is reached
     """
     timeout_loop(
-        timeout=timeout,
-        description=task_description,
+        timeout, task_description, 1, False,
         callback=lambda: task.info.state != vim.TaskInfo.State.running,
     )
     if task.info.state == vim.TaskInfo.State.success:

@@ -70,11 +70,11 @@ class TestHelpers(unittest.TestCase):
             )
 
     def test_timeout_loop_success(self):
-        timeout_loop(1, '', lambda: True)
+        timeout_loop(1, '', 1, False, lambda: True)
 
     def test_timeout_loop_fail(self):
         with self.assertRaises(TimeoutError):
-            timeout_loop(1, '', lambda: False)
+            timeout_loop(1, '', 1, False, lambda: False)
 
     def test_validate_ip_success_version_4(self):
         self.assertEqual(
