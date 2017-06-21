@@ -1,6 +1,5 @@
 import mock
 import pytest
-
 from pyVmomi import vim
 
 from vcdriver.exceptions import (

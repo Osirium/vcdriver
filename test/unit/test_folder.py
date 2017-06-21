@@ -1,5 +1,4 @@
 import mock
-
 from pyVmomi import vim
 
 from vcdriver.folder import destroy_virtual_machines
