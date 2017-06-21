@@ -4,9 +4,28 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## [3.0.2] - 2017-06-21
+
+### Changed
+- Tests have been migrated from unittest to pytest
+- README has been updated
+
+## [3.0.1] - 2017-06-21
+
+### Added
+- A read function for the configuration
+
+### Changed
+- Default config uses empty string instead of None to be consistent
+
 ## [3.0.0] - 2017-06-19
+
+### Added
+- New configuration engine that allows the usage of INI files and environment
+
 ### Changed
 - Service checks (SSH and WinRM) are now quiet and don't print anything
 - Retrieving objects from vcenter is also a quiet function now
-- New configuration engine that allows the usage of INI files and environment
+
+### Removed
 - MissingCredentialsError has been removed in favour of the new configuration
