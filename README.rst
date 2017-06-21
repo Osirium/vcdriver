@@ -19,11 +19,11 @@ About
 Vcdriver is a wrapper around pyvmomi that lets you create, find and destroy virtual machines on your
 Vcenter/Vsphere instance. It also lets you manage those virtual machines:
 
-- SSH protocol for remote commands (Only for Unix, Requires the SSH service)
+- SSH protocol for remote commands (Only for Unix, Requires the SSH service).
 
-- SFTP protocol for file transfers (Only for Unix, Requires the SSH service)
+- SFTP protocol for file transfers (Only for Unix, Requires the SSH service).
 
-- WinRM protocol for remote commands on Windows machines (Only for Windows, requires the WinRM service)
+- WinRM protocol for remote commands on Windows machines (Only for Windows, requires the WinRM service).
 
 How does it work underneath?
 ============================
@@ -59,12 +59,12 @@ Documentation and examples can be found on the `wiki <https://github.com/Lantero
 Test Environment
 ================
 
-#. Prepare your python environment: ``pip install -e . && pip install pytest pytest-cov mock``
+- Prepare your python environment: ``pip install -e . && pip install pytest pytest-cov mock``.
 
 Unit tests
 ==========
 
-#. Run ``pytest --cache-clear -v test/unit``.
+- Run ``pytest --cache-clear -v test/unit``.
 
 Integration tests
 =================
