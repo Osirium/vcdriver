@@ -10,7 +10,7 @@ install:
   - pip install pytest pytest-cov mock flake8 --upgrade
 script:
   - flake8 .
-  - pytest -v --cov=vcdriver test/unit
+  - pytest -v --cov=vcdriver --cov-fail-under 100 test/unit
 after_script: bash <(curl -s https://codecov.io/bash)
 deploy:
   provider: pypi

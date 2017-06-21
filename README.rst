@@ -64,7 +64,7 @@ Test Environment
 Unit tests
 ==========
 
-- Run ``pytest --cache-clear -v test/unit``.
+- Run ``pytest -v --cov=vcdriver --cov-fail-under 100 test/unit``.
 
 Integration tests
 =================
@@ -96,4 +96,4 @@ You can run some integration tests to check it works fine for your Vcenter insta
    - ``vcdriver_test_windows_template``: The name of the Windows Server virtual machine template that will be cloned for the tests.
    - ``vcdriver_test_folder``: An empty vm folder to perform the tests in it.
 
-#. Run ``pytest --cache-clear -s -v test/integration``.
+#. Run ``pytest -v -s test/integration``.
