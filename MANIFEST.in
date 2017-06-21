@@ -1,2 +1,4 @@
-include README.md
+include CHANGELOG
+include LICENSE
+include README.rst
 include requirements.txt
