@@ -1,3 +1,4 @@
+import copy
 import functools
 import os
 from six.moves import configparser
@@ -7,23 +8,32 @@ from vcdriver.exceptions import MissingConfigValues
 
 _config = {
     'Vsphere Session': {
-        'vcdriver_host': None,
-        'vcdriver_port': None,
-        'vcdriver_username': None,
-        'vcdriver_password': None
+        'vcdriver_host': '',
+        'vcdriver_port': '',
+        'vcdriver_username': '',
+        'vcdriver_password': ''
     },
     'Virtual Machine Deployment': {
-        'vcdriver_resource_pool': None,
-        'vcdriver_data_store': None,
-        'vcdriver_folder': None
+        'vcdriver_resource_pool': '',
+        'vcdriver_data_store': '',
+        'vcdriver_folder': ''
     },
     'Virtual Machine Remote Management': {
-        'vcdriver_vm_ssh_username': None,
-        'vcdriver_vm_ssh_password': None,
-        'vcdriver_vm_winrm_username': None,
-        'vcdriver_vm_winrm_password': None
+        'vcdriver_vm_ssh_username': '',
+        'vcdriver_vm_ssh_password': '',
+        'vcdriver_vm_winrm_username': '',
+        'vcdriver_vm_winrm_password': ''
     }
 }
+
+
+def read():
+    """
+    Read the state of the config dictionary
+    :return: A deep copy (Which acts as read only) of the config dictionary
+    """
+    global _config
+    return copy.deepcopy(_config)
 
 
 def load(path=None):
@@ -40,9 +50,9 @@ def load(path=None):
             if path:
                 _config[section_key][config_key] = config.get(
                     section_key, config_key
-                ) or os.getenv(config_key)
+                ) or os.getenv(config_key, '')
             else:
-                _config[section_key][config_key] = os.getenv(config_key)
+                _config[section_key][config_key] = os.getenv(config_key, '')
 
 
 def configurable(section_keys):

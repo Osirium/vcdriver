@@ -3,7 +3,7 @@ import unittest
 
 from six.moves import configparser
 
-from vcdriver.config import load, configurable
+from vcdriver.config import load, configurable, read
 from vcdriver.exceptions import MissingConfigValues
 
 
@@ -89,7 +89,55 @@ class TestConfig(unittest.TestCase):
         os.remove('config_file_2.cfg')
         os.remove('config_file_3.cfg')
 
-    def test_config(self):
+    def test_read(self):
+        self.maxDiff = None
+        self.assertEqual(
+            read(),
+            {
+                'Vsphere Session': {
+                    'vcdriver_host': '',
+                    'vcdriver_port': '',
+                    'vcdriver_username': '',
+                    'vcdriver_password': ''
+                },
+                'Virtual Machine Deployment': {
+                    'vcdriver_resource_pool': '',
+                    'vcdriver_data_store': '',
+                    'vcdriver_folder': ''
+                },
+                'Virtual Machine Remote Management': {
+                    'vcdriver_vm_ssh_username': '',
+                    'vcdriver_vm_ssh_password': '',
+                    'vcdriver_vm_winrm_username': '',
+                    'vcdriver_vm_winrm_password': ''
+                }
+            }
+        )
+        load('config_file_3.cfg')
+        self.assertEqual(
+            read(),
+            {
+                'Vsphere Session': {
+                    'vcdriver_host': '',
+                    'vcdriver_port': '',
+                    'vcdriver_username': '',
+                    'vcdriver_password': 'myway'
+                },
+                'Virtual Machine Deployment': {
+                    'vcdriver_resource_pool': '',
+                    'vcdriver_data_store': '',
+                    'vcdriver_folder': ''
+                },
+                'Virtual Machine Remote Management': {
+                    'vcdriver_vm_ssh_username': '',
+                    'vcdriver_vm_ssh_password': '',
+                    'vcdriver_vm_winrm_username': '',
+                    'vcdriver_vm_winrm_password': ''
+                }
+            }
+        )
+
+    def test_configurable(self):
         self.require_nothing()
         with self.assertRaises(MissingConfigValues):
             self.require_username()
