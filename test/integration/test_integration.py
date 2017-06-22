@@ -11,7 +11,8 @@ from vcdriver.exceptions import (
     DownloadError,
     UploadError,
     SshError,
-    WinRmError
+    WinRmError,
+    NotEnoughDiskSpace
 )
 from vcdriver.vm import (
     VirtualMachine,
@@ -73,6 +74,8 @@ def test_idempotent_methods(vms):
         with pytest.raises(NoObjectFound):
             vm.find()
         assert vm.__getattribute__('_vm_object') is None
+        with pytest.raises(NotEnoughDiskSpace):
+            vm.create(vcdriver_data_store_threshold=99)
         vm.create()
         vm.reset()
         time.sleep(20)  # Need some time to load vmware tools for reboot
