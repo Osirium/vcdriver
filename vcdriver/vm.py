@@ -52,6 +52,7 @@ class VirtualMachine(object):
     @configurable([
         ('Virtual Machine Deployment', 'vcdriver_resource_pool'),
         ('Virtual Machine Deployment', 'vcdriver_data_store'),
+        ('Virtual Machine Deployment', 'vcdriver_data_store_threshold'),
         ('Virtual Machine Deployment', 'vcdriver_folder')
     ])
     def create(self, **kwargs):

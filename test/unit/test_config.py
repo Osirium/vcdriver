@@ -45,6 +45,11 @@ def config_file(path, prepopulated_data=None):
         ''
     )
     config.set('Virtual Machine Deployment', 'vcdriver_data_store', '')
+    config.set(
+        'Virtual Machine Deployment',
+        'vcdriver_data_store_threshold',
+        ''
+    )
     config.set('Virtual Machine Deployment', 'vcdriver_folder', '')
     config.add_section('Virtual Machine Remote Management')
     config.set(
@@ -102,6 +107,7 @@ def test_read(config_files):
         'Virtual Machine Deployment': {
             'vcdriver_resource_pool': '',
             'vcdriver_data_store': '',
+            'vcdriver_data_store_threshold': '',
             'vcdriver_folder': ''
         },
         'Virtual Machine Remote Management': {
@@ -122,6 +128,7 @@ def test_read(config_files):
         'Virtual Machine Deployment': {
             'vcdriver_resource_pool': '',
             'vcdriver_data_store': '',
+            'vcdriver_data_store_threshold': '',
             'vcdriver_folder': ''
         },
         'Virtual Machine Remote Management': {

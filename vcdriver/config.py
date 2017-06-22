@@ -16,6 +16,7 @@ _config = {
     'Virtual Machine Deployment': {
         'vcdriver_resource_pool': '',
         'vcdriver_data_store': '',
+        'vcdriver_data_store_threshold': '',
         'vcdriver_folder': ''
     },
     'Virtual Machine Remote Management': {
