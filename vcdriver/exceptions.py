@@ -72,3 +72,11 @@ class MissingConfigValues(Exception):
             'configuration file, as explained in the documentation'
             ''.format(keys)
         )
+
+
+class NotEnoughDiskSpace(Exception):
+    def __init__(self, data_store, threshold):
+        super(NotEnoughDiskSpace, self).__init__(
+            'Data store "{}" is under the allowed disk space limit ({}%)'
+            ''.format(data_store, threshold)
+        )
