@@ -1,8 +1,9 @@
 import os
 import shutil
 import socket
-import unittest
 import time
+
+import pytest
 
 from vcdriver.exceptions import (
     NoObjectFound,
@@ -22,159 +23,157 @@ from vcdriver.folder import destroy_virtual_machines
 from vcdriver.config import load
 
 
-class TestIntegration(unittest.TestCase):
-    @staticmethod
-    def touch(file_name):
-        open(file_name, 'wb').close()
+def touch(file_name):
+    open(file_name, 'wb').close()
 
-    @classmethod
-    def setUpClass(cls):
-        load(os.getenv('vcdriver_test_config_file'))
-        os.makedirs(os.path.join('dir-0', 'dir-1', 'dir-2'))
-        cls.touch('file-0')
-        cls.touch(os.path.join('dir-0', 'file-1'))
-        cls.touch(os.path.join('dir-0', 'dir-1', 'file-2'))
-        cls.touch(os.path.join('dir-0', 'dir-1', 'dir-2', 'file-3'))
 
-    @classmethod
-    def tearDownClass(cls):
-        try:
-            shutil.rmtree('dir-0')
-        except:
-            pass
-        try:
-            os.remove('file-0')
-        except:
-            pass
-
-    def setUp(self):
-        self.unix = VirtualMachine(
-            name='test-integration-vcdriver-unix',
-            template=os.getenv('vcdriver_test_unix_template')
-        )
-        self.windows = VirtualMachine(
-            name='test-integration-vcdriver-windows',
-            template=os.getenv('vcdriver_test_windows_template')
-        )
-        self.all_vms = [self.unix, self.windows]
-
-    def tearDown(self):
-        for vm in self.all_vms:
-            try:
-                vm.find()
-                vm.destroy()
-            except:
-                pass
-
-    def test_idempotent_methods(self):
-        for vm in self.all_vms:
-            with self.assertRaises(NoObjectFound):
-                vm.find()
-            with self.assertRaises(NoObjectFound):
-                vm.find()
-            self.assertIsNone(vm.__getattribute__('_vm_object'))
-            vm.create()
-            vm.reset()
-            time.sleep(20)  # Need some time to load vmware tools for reboot
-            vm.reboot()
-            vm.create()
-            self.assertIsNotNone(vm.__getattribute__('_vm_object'))
-            vm.__setattr__('_vm_object', None)
-            vm.find()
-            vm.find()
-            self.assertIsNotNone(vm.__getattribute__('_vm_object'))
-            vm.destroy()
-            vm.reset()
-            vm.reboot()
-            vm.destroy()
-            self.assertIsNone(vm.__getattribute__('_vm_object'))
-
-    def test_context_manager(self):
-        for vm in self.all_vms:
-            with self.assertRaises(NoObjectFound):
-                vm.find()
-        with virtual_machines(self.all_vms):
-            for vm in self.all_vms:
-                vm.find()
-        for vm in self.all_vms:
-            with self.assertRaises(NoObjectFound):
-                vm.find()
-
-    def test_get_all_virtual_machines(self):
-        self.unix.create()
-        self.assertGreaterEqual(len(get_all_virtual_machines()), 1)
-
-    def test_destroy_virtual_machines(self):
-        for vm in self.all_vms:
-            vm.create()
-        for vm in destroy_virtual_machines(os.getenv('vcdriver_test_folder')):
-            with self.assertRaises(NoObjectFound):
-                vm.find()
-
-    def test_ip(self):
-        for vm in self.all_vms:
-            vm.create()
-            socket.inet_aton(vm.ip())
-
-    def test_ssh(self):
-        self.unix.create()
-        self.assertEqual(self.unix.ssh('ls').return_code, 0)
-        with self.assertRaises(SshError):
-            self.unix.ssh('wrong-command-seriously')
-
-    def test_upload_and_download(self):
-        self.unix.create()
-        self.assertEqual(
-            len(self.unix.upload(local_path='file-0', remote_path='file-0')), 1
-        )
-        self.assertEqual(
-            len(self.unix.upload(local_path='file-0', remote_path='.')), 1
-        )
-        self.assertEqual(
-            len(self.unix.upload(local_path='dir-0', remote_path='.')), 3
-        )
-        os.remove('file-0')
+@pytest.fixture(scope='module')
+def files():
+    load(os.getenv('vcdriver_test_config_file'))
+    os.makedirs(os.path.join('dir-0', 'dir-1', 'dir-2'))
+    touch('file-0')
+    touch(os.path.join('dir-0', 'file-1'))
+    touch(os.path.join('dir-0', 'dir-1', 'file-2'))
+    touch(os.path.join('dir-0', 'dir-1', 'dir-2', 'file-3'))
+    yield
+    try:
         shutil.rmtree('dir-0')
-        self.assertEqual(
-            len(self.unix.download(local_path='file-0', remote_path='file-0')),
-            1
-        )
-        self.assertEqual(
-            len(self.unix.download(local_path='.', remote_path='file-0')), 1
-        )
-        self.assertEqual(
-            len(self.unix.download(local_path='dir-0', remote_path='dir-0')), 3
-        )
-        self.assertEqual(
-            len(self.unix.download(local_path='.', remote_path='dir-0')), 3
-        )
-        with self.assertRaises(DownloadError):
-            self.unix.download(local_path='file-0', remote_path='wrong-path')
-        with self.assertRaises(UploadError):
-            self.unix.upload(local_path='dir-0', remote_path='wrong-path')
+    except:
+        pass
+    try:
+        os.remove('file-0')
+    except:
+        pass
 
-    def test_winrm(self):
-        self.windows.create()
-        self.windows.winrm('ipconfig /all', dict())
-        with self.assertRaises(WinRmError):
-            self.windows.winrm('ipconfig-wrong /wrong', dict())
 
-    def test_snapshots(self):
-        snapshot_name = 'test_snapshot'
-        for vm in self.all_vms:
-            vm.create()
-            with self.assertRaises(NoObjectFound):
-                vm.find_snapshot(snapshot_name)
-            vm.create_snapshot(snapshot_name, True)
-            with self.assertRaises(TooManyObjectsFound):
-                vm.create_snapshot(snapshot_name, True)
+@pytest.fixture(scope='function')
+def vms():
+    unix = VirtualMachine(
+        name='test-integration-vcdriver-unix',
+        template=os.getenv('vcdriver_test_unix_template')
+    )
+    windows = VirtualMachine(
+        name='test-integration-vcdriver-windows',
+        template=os.getenv('vcdriver_test_windows_template')
+    )
+    vms = {'unix': unix, 'windows': windows}
+    yield vms
+    for vm in vms.values():
+        try:
+            vm.find()
+            vm.destroy()
+        except:
+            pass
+
+
+def test_idempotent_methods(vms):
+    for vm in vms.values():
+        with pytest.raises(NoObjectFound):
+            vm.find()
+        with pytest.raises(NoObjectFound):
+            vm.find()
+        assert vm.__getattribute__('_vm_object') is None
+        vm.create()
+        vm.reset()
+        time.sleep(20)  # Need some time to load vmware tools for reboot
+        vm.reboot()
+        vm.create()
+        assert vm.__getattribute__('_vm_object') is not None
+        vm.__setattr__('_vm_object', None)
+        vm.find()
+        vm.find()
+        assert vm.__getattribute__('_vm_object') is not None
+        vm.destroy()
+        vm.reset()
+        vm.reboot()
+        vm.destroy()
+        assert vm.__getattribute__('_vm_object') is None
+
+
+def test_context_manager(vms):
+    for vm in vms.values():
+        with pytest.raises(NoObjectFound):
+            vm.find()
+    with virtual_machines(vms.values()):
+        for vm in vms.values():
+            vm.find()
+    for vm in vms.values():
+        with pytest.raises(NoObjectFound):
+            vm.find()
+
+
+def test_get_all_virtual_machines(vms):
+    vms['unix'].create()
+    assert len(get_all_virtual_machines()) >= 1
+
+
+def test_destroy_virtual_machines(vms):
+    for vm in vms.values():
+        vm.create()
+    for vm in destroy_virtual_machines(os.getenv('vcdriver_test_folder')):
+        with pytest.raises(NoObjectFound):
+            vm.find()
+
+
+def test_ip(vms):
+    for vm in vms.values():
+        vm.create()
+        socket.inet_aton(vm.ip())
+
+
+def test_ssh(vms):
+    vms['unix'].create()
+    assert vms['unix'].ssh('ls').return_code == 0
+    with pytest.raises(SshError):
+        vms['unix'].ssh('wrong-command-seriously')
+
+
+def test_upload_and_download(files, vms):
+    vms['unix'].create()
+    assert len(
+        vms['unix'].upload(local_path='file-0', remote_path='file-0')
+    ) == 1
+    assert len(vms['unix'].upload(local_path='file-0', remote_path='.')) == 1
+    assert len(vms['unix'].upload(local_path='dir-0', remote_path='.')) == 3
+    os.remove('file-0')
+    shutil.rmtree('dir-0')
+    assert len(
+        vms['unix'].download(local_path='file-0', remote_path='file-0')
+    ) == 1
+    assert len(vms['unix'].download(local_path='.', remote_path='file-0')) == 1
+    assert len(
+        vms['unix'].download(local_path='dir-0', remote_path='dir-0')
+    ) == 3
+    assert len(vms['unix'].download(local_path='.', remote_path='dir-0')) == 3
+    with pytest.raises(DownloadError):
+        vms['unix'].download(local_path='file-0', remote_path='wrong-path')
+    with pytest.raises(UploadError):
+        vms['unix'].upload(local_path='dir-0', remote_path='wrong-path')
+
+
+def test_winrm(vms):
+    vms['windows'].create()
+    vms['windows'].winrm('ipconfig /all', dict())
+    with pytest.raises(WinRmError):
+        vms['windows'].winrm('ipconfig-wrong /wrong', dict())
+
+
+def test_snapshots(vms):
+    snapshot_name = 'test_snapshot'
+    for vm in vms.values():
+        vm.create()
+        with pytest.raises(NoObjectFound):
             vm.find_snapshot(snapshot_name)
-        self.assertEqual(self.unix.ssh('touch banana').return_code, 0)
-        self.assertEqual(self.unix.ssh('ls'), 'banana')
-        for vm in self.all_vms:
-            vm.revert_snapshot(snapshot_name)
-        self.assertEqual(self.unix.ssh('ls'), '')
-        with snapshot(self.unix):
-            self.unix.ssh('touch banana')
-            self.assertEqual(self.unix.ssh('ls'), 'banana')
-        self.assertEqual(self.unix.ssh('ls'), '')
+        vm.create_snapshot(snapshot_name, True)
+        with pytest.raises(TooManyObjectsFound):
+            vm.create_snapshot(snapshot_name, True)
+        vm.find_snapshot(snapshot_name)
+    assert vms['unix'].ssh('touch banana').return_code == 0
+    assert vms['unix'].ssh('ls') == 'banana'
+    for vm in vms.values():
+        vm.revert_snapshot(snapshot_name)
+    assert vms['unix'].ssh('ls') == ''
+    with snapshot(vms['unix']):
+        vms['unix'].ssh('touch banana')
+        assert vms['unix'].ssh('ls') == 'banana'
+    assert vms['unix'].ssh('ls') == ''

@@ -79,7 +79,7 @@ def config_file(path, prepopulated_data=None):
         config.write(cf)
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture(scope='module')
 def config_files():
     config_file('config_file_1.cfg')
     config_file(
