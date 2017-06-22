@@ -30,7 +30,6 @@ def touch(file_name):
 
 @pytest.fixture(scope='module')
 def files():
-    load(os.getenv('vcdriver_test_config_file'))
     os.makedirs(os.path.join('dir-0', 'dir-1', 'dir-2'))
     touch('file-0')
     touch(os.path.join('dir-0', 'file-1'))
@@ -49,6 +48,7 @@ def files():
 
 @pytest.fixture(scope='function')
 def vms():
+    load(os.getenv('vcdriver_test_config_file'))
     unix = VirtualMachine(
         name='test-integration-vcdriver-unix',
         template=os.getenv('vcdriver_test_unix_template')
