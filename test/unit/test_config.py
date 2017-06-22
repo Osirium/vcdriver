@@ -35,7 +35,7 @@ def config_file(path, prepopulated_data=None):
     config = configparser.RawConfigParser()
     config.add_section('Vsphere Session')
     config.set('Vsphere Session', 'vcdriver_host', '')
-    config.set('Vsphere Session', 'vcdriver_port', '')
+    config.set('Vsphere Session', 'vcdriver_port', '443')
     config.set('Vsphere Session', 'vcdriver_username', '')
     config.set('Vsphere Session', 'vcdriver_password', '')
     config.add_section('Virtual Machine Deployment')
@@ -48,7 +48,7 @@ def config_file(path, prepopulated_data=None):
     config.set(
         'Virtual Machine Deployment',
         'vcdriver_data_store_threshold',
-        ''
+        '0'
     )
     config.set('Virtual Machine Deployment', 'vcdriver_folder', '')
     config.add_section('Virtual Machine Remote Management')
@@ -100,14 +100,14 @@ def test_read(config_files):
     assert read() == {
         'Vsphere Session': {
             'vcdriver_host': '',
-            'vcdriver_port': '',
+            'vcdriver_port': '443',
             'vcdriver_username': '',
             'vcdriver_password': ''
         },
         'Virtual Machine Deployment': {
             'vcdriver_resource_pool': '',
             'vcdriver_data_store': '',
-            'vcdriver_data_store_threshold': '',
+            'vcdriver_data_store_threshold': '0',
             'vcdriver_folder': ''
         },
         'Virtual Machine Remote Management': {
@@ -121,14 +121,14 @@ def test_read(config_files):
     assert read() == {
         'Vsphere Session': {
             'vcdriver_host': '',
-            'vcdriver_port': '',
+            'vcdriver_port': '443',
             'vcdriver_username': '',
             'vcdriver_password': 'myway'
         },
         'Virtual Machine Deployment': {
             'vcdriver_resource_pool': '',
             'vcdriver_data_store': '',
-            'vcdriver_data_store_threshold': '',
+            'vcdriver_data_store_threshold': '0',
             'vcdriver_folder': ''
         },
         'Virtual Machine Remote Management': {

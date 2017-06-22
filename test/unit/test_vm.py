@@ -37,6 +37,7 @@ def test_virtual_machine_create(
 ):
     os.environ['vcdriver_resource_pool'] = 'something'
     os.environ['vcdriver_data_store'] = 'something'
+    os.environ['vcdriver_data_store_threshold'] = '20'
     os.environ['vcdriver_folder'] = 'something'
     load()
     vm = VirtualMachine()

@@ -9,14 +9,14 @@ from vcdriver.exceptions import MissingConfigValues
 _config = {
     'Vsphere Session': {
         'vcdriver_host': '',
-        'vcdriver_port': '',
+        'vcdriver_port': '443',
         'vcdriver_username': '',
         'vcdriver_password': ''
     },
     'Virtual Machine Deployment': {
         'vcdriver_resource_pool': '',
         'vcdriver_data_store': '',
-        'vcdriver_data_store_threshold': '',
+        'vcdriver_data_store_threshold': '0',
         'vcdriver_folder': ''
     },
     'Virtual Machine Remote Management': {

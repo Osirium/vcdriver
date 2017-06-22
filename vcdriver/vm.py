@@ -58,6 +58,7 @@ class VirtualMachine(object):
     def create(self, **kwargs):
         """ Create the virtual machine and update the vm object """
         if not self._vm_object:
+
             self._vm_object = wait_for_vcenter_task(
                 get_vcenter_object_by_name(
                     connection(), vim.VirtualMachine, self.template
