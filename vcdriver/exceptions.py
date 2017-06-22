@@ -75,8 +75,10 @@ class MissingConfigValues(Exception):
 
 
 class NotEnoughDiskSpace(Exception):
-    def __init__(self, data_store, threshold):
+    def __init__(self, data_store_name, threshold, free_percentage):
         super(NotEnoughDiskSpace, self).__init__(
-            'Data store "{}" is under the allowed disk space limit ({}%)'
-            ''.format(data_store, threshold)
+            'Data store "{}" is under the allowed disk space limit (Threshold '
+            'is {}%, but it has only {}% free)'.format(
+                data_store_name, threshold, free_percentage
+            )
         )

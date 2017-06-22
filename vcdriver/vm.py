@@ -69,8 +69,10 @@ class VirtualMachine(object):
             free_space = float(data_store.summary.freeSpace)
             free_percentage = 100 * free_space / capacity
             threshold = kwargs['vcdriver_data_store_threshold']
-            if free_percentage < threshold:
-                raise NotEnoughDiskSpace(data_store_name, threshold)
+            if free_percentage < float(threshold):
+                raise NotEnoughDiskSpace(
+                    data_store_name, threshold, free_percentage
+                )
             self._vm_object = wait_for_vcenter_task(
                 get_vcenter_object_by_name(
                     connection(), vim.VirtualMachine, self.template
