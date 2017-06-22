@@ -15,7 +15,8 @@ from vcdriver.exceptions import (
     UploadError,
     DownloadError,
     NoObjectFound,
-    TooManyObjectsFound
+    TooManyObjectsFound,
+    NotEnoughDiskSpace
 )
 from vcdriver.helpers import (
     get_all_vcenter_objects,
@@ -58,7 +59,18 @@ class VirtualMachine(object):
     def create(self, **kwargs):
         """ Create the virtual machine and update the vm object """
         if not self._vm_object:
-
+            data_store_name = kwargs['vcdriver_data_store']
+            data_store = get_vcenter_object_by_name(
+                connection(),
+                vim.Datastore,
+                data_store_name
+            )
+            capacity = float(data_store.summary.capacity)
+            free_space = float(data_store.summary.freeSpace)
+            free_percentage = 100 * free_space / capacity
+            threshold = kwargs['vcdriver_data_store_threshold']
+            if free_percentage < threshold:
+                raise NotEnoughDiskSpace(data_store_name, threshold)
             self._vm_object = wait_for_vcenter_task(
                 get_vcenter_object_by_name(
                     connection(), vim.VirtualMachine, self.template
@@ -69,11 +81,7 @@ class VirtualMachine(object):
                     name=self.name,
                     spec=vim.vm.CloneSpec(
                         location=vim.vm.RelocateSpec(
-                            datastore=get_vcenter_object_by_name(
-                                connection(),
-                                vim.Datastore,
-                                kwargs['vcdriver_data_store']
-                            ),
+                            datastore=data_store,
                             pool=get_vcenter_object_by_name(
                                 connection(),
                                 vim.ResourcePool,
