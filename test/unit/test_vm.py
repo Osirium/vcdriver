@@ -12,7 +12,8 @@ from vcdriver.exceptions import (
     DownloadError,
     UploadError,
     WinRmError,
-    TimeoutError
+    TimeoutError,
+    NotEnoughDiskSpace
 )
 from vcdriver.vm import (
     VirtualMachine,
@@ -45,6 +46,30 @@ def test_virtual_machine_create(
     vm.create()
     assert vm.__getattribute__('_vm_object') is not None
     assert wait_for_vcenter_task.call_count == 1
+
+
+@mock.patch('vcdriver.vm.connection')
+@mock.patch('vcdriver.vm.get_vcenter_object_by_name')
+@mock.patch('vcdriver.vm.vim.vm.CloneSpec')
+@mock.patch('vcdriver.vm.vim.vm.RelocateSpec')
+@mock.patch('vcdriver.vm.wait_for_vcenter_task')
+def test_virtual_machine_create_not_enough_disk_space(
+        wait_for_vcenter_task,
+        relocate_spec,
+        clone_spec,
+        get_vcenter_object_by_name,
+        connection
+):
+    os.environ['vcdriver_resource_pool'] = 'something'
+    os.environ['vcdriver_data_store'] = 'something'
+    os.environ['vcdriver_data_store_threshold'] = '120'
+    os.environ['vcdriver_folder'] = 'something'
+    load()
+    vm = VirtualMachine()
+    with pytest.raises(NotEnoughDiskSpace):
+        vm.create()
+    assert vm.__getattribute__('_vm_object') is None
+    assert wait_for_vcenter_task.call_count == 0
 
 
 @mock.patch('vcdriver.vm.connection')
