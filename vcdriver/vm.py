@@ -109,6 +109,29 @@ class VirtualMachine(object):
 
     def destroy(self):
         """ Destroy the virtual machine and set the vm object to None """
+        self.power_off()
+        if self._vm_object:
+            wait_for_vcenter_task(
+                self._vm_object.Destroy_Task(),
+                'Destroy virtual machine "{}"'.format(self.name),
+                self.timeout
+            )
+            self._vm_object = None
+
+    def power_on(self):
+        """ Power on the virtual machine """
+        if self._vm_object:
+            try:
+                wait_for_vcenter_task(
+                    self._vm_object.PowerOnVM_Task(),
+                    'Power on virtual machine "{}"'.format(self.name),
+                    self.timeout
+                )
+            except vim.fault.InvalidPowerState:
+                pass
+
+    def power_off(self):
+        """ Power off the virtual machine """
         if self._vm_object:
             try:
                 wait_for_vcenter_task(
@@ -118,12 +141,6 @@ class VirtualMachine(object):
                 )
             except vim.fault.InvalidPowerState:
                 pass
-            wait_for_vcenter_task(
-                self._vm_object.Destroy_Task(),
-                'Destroy virtual machine "{}"'.format(self.name),
-                self.timeout
-            )
-            self._vm_object = None
 
     def reset(self):
         """ Reset the virtual machine """
@@ -142,6 +159,23 @@ class VirtualMachine(object):
         if self._vm_object:
             try:
                 self._vm_object.RebootGuest()
+            except vim.fault.InvalidPowerState:
+                pass
+
+    def shutdown(self):
+        """
+        Shutdown the guest operating system
+        Need Vmware tools installed in the virtual machine
+        """
+        if self._vm_object:
+            try:
+                self._vm_object.ShutdownGuest()
+                timeout_loop(
+                    self.timeout,
+                    'Shutdown vitual machine "{}"'.format(self.name), 1, False,
+                    lambda:
+                    self._vm_object.summary.runtime.powerState == 'poweredOff'
+                )
             except vim.fault.InvalidPowerState:
                 pass
 

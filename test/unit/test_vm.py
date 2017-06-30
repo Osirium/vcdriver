@@ -133,12 +133,71 @@ def test_virtual_machine_reboot_wrong_power_state(connection):
 
 
 @mock.patch('vcdriver.vm.connection')
+def test_virtual_machine_shutdown(connection):
+    vm = VirtualMachine()
+    vm_object_mock = mock.MagicMock()
+    shutdown_mock = mock.MagicMock()
+    vm_object_mock.ShutdownGuest = shutdown_mock
+    vm_object_mock.summary.runtime.powerState = 'poweredOff'
+    vm.shutdown()
+    vm.__setattr__('_vm_object', vm_object_mock)
+    vm.shutdown()
+    assert shutdown_mock.call_count == 1
+
+
+@mock.patch('vcdriver.vm.connection')
+def test_virtual_machine_shutdown_wrong_power_state(connection):
+    vm = VirtualMachine()
+    vm_object_mock = mock.MagicMock()
+    shutdown_mock = mock.MagicMock()
+    shutdown_mock.side_effect = vim.fault.InvalidPowerState
+    vm_object_mock.ShutdownGuest = shutdown_mock
+    vm_object_mock.summary.runtime.powerState = 'poweredOff'
+    vm.shutdown()
+    vm.__setattr__('_vm_object', vm_object_mock)
+    vm.shutdown()
+    assert shutdown_mock.call_count == 1
+
+
+@mock.patch('vcdriver.vm.connection')
+@mock.patch('vcdriver.vm.wait_for_vcenter_task')
+def test_virtual_machine_power_on(wait_for_vcenter_task, connection):
+    vm = VirtualMachine()
+    vm.power_on()
+    vm.__setattr__('_vm_object', mock.MagicMock())
+    vm.power_on()
+    assert wait_for_vcenter_task.call_count == 1
+
+
+@mock.patch('vcdriver.vm.connection')
+@mock.patch('vcdriver.vm.wait_for_vcenter_task')
+def test_virtual_machine_power_on_wrong_power_state(
+        wait_for_vcenter_task, connection
+):
+    wait_for_vcenter_task.side_effect = vim.fault.InvalidPowerState
+    vm = VirtualMachine()
+    vm.power_on()
+    vm.__setattr__('_vm_object', mock.MagicMock())
+    vm.power_on()
+    assert wait_for_vcenter_task.call_count == 1
+
+
+@mock.patch('vcdriver.vm.connection')
+@mock.patch('vcdriver.vm.wait_for_vcenter_task')
+def test_virtual_machine_power_off(wait_for_vcenter_task, connection):
+    vm = VirtualMachine()
+    vm.power_off()
+    vm.__setattr__('_vm_object', mock.MagicMock())
+    vm.power_off()
+    assert wait_for_vcenter_task.call_count == 1
+
+
+@mock.patch('vcdriver.vm.connection')
 @mock.patch('vcdriver.vm.wait_for_vcenter_task')
 def test_virtual_machine_reset(wait_for_vcenter_task, connection):
     vm = VirtualMachine()
     vm.reset()
-    vm_object_mock = mock.MagicMock()
-    vm.__setattr__('_vm_object', vm_object_mock)
+    vm.__setattr__('_vm_object', mock.MagicMock())
     vm.reset()
     assert wait_for_vcenter_task.call_count == 1
 

@@ -77,6 +77,13 @@ def test_idempotent_methods(vms):
         with pytest.raises(NotEnoughDiskSpace):
             vm.create(vcdriver_data_store_threshold=99)
         vm.create()
+        vm.power_off()
+        vm.power_off()
+        vm.power_on()
+        vm.power_on()
+        vm.shutdown()
+        vm.shutdown()
+        vm.power_on()
         vm.reset()
         time.sleep(20)  # Need some time to load vmware tools for reboot
         vm.reboot()
