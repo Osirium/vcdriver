@@ -67,40 +67,49 @@ def vms():
             pass
 
 
-def test_idempotent_methods(vms):
+def test_create_delete(vms):
     for vm in vms.values():
-        with pytest.raises(NoObjectFound):
-            vm.find()
-        with pytest.raises(NoObjectFound):
-            vm.find()
         assert vm.__getattribute__('_vm_object') is None
         with pytest.raises(NotEnoughDiskSpace):
             vm.create(vcdriver_data_store_threshold=99)
         vm.create()
-        vm.power_off()
-        vm.power_off()
-        vm.power_on()
-        vm.power_on()
-        vm.shutdown()
-        vm.shutdown()
-        vm.power_on()
-        vm.reset()
-        time.sleep(20)  # Need some time to load vmware tools for reboot
-        vm.reboot()
+        assert vm.__getattribute__('_vm_object') is not None
         vm.create()
         assert vm.__getattribute__('_vm_object') is not None
-        vm.__setattr__('_vm_object', None)
-        vm.find()
-        vm.find()
-        assert vm.__getattribute__('_vm_object') is not None
         vm.destroy()
-        vm.reset()
-        vm.reboot()
+        assert vm.__getattribute__('_vm_object') is None
         vm.destroy()
         assert vm.__getattribute__('_vm_object') is None
 
 
-def test_context_manager(vms):
+def test_boot_methods(vms):
+    with virtual_machines(vms.values()):
+        for vm in vms.values():
+            vm_object = vm.__getattribute__('_vm_object')
+            assert vm_object.summary.runtime.powerState == 'poweredOn'
+            vm.power_on()
+            assert vm_object.summary.runtime.powerState == 'poweredOn'
+            vm.power_off()
+            assert vm_object.summary.runtime.powerState == 'poweredOff'
+            vm.power_off()
+            assert vm_object.summary.runtime.powerState == 'poweredOff'
+            vm.reset()
+            assert vm_object.summary.runtime.powerState == 'poweredOn'
+            vm.reset()
+            assert vm_object.summary.runtime.powerState == 'poweredOn'
+            vm.shutdown()
+            assert vm_object.summary.runtime.powerState == 'poweredOff'
+            vm.shutdown()
+            assert vm_object.summary.runtime.powerState == 'poweredOff'
+            vm.power_on()
+            assert vm_object.summary.runtime.powerState == 'poweredOn'
+            time.sleep(20)  # Need some time to load vmware tools for reboot
+            vm.reboot()
+            time.sleep(20)  # Reboot is async and OS dependant
+            assert vm_object.summary.runtime.powerState == 'poweredOn'
+
+
+def test_virtual_machines(vms):
     for vm in vms.values():
         with pytest.raises(NoObjectFound):
             vm.find()
