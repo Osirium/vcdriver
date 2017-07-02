@@ -145,11 +145,14 @@ class VirtualMachine(object):
     def reset(self):
         """ Reset the virtual machine """
         if self._vm_object:
-            wait_for_vcenter_task(
-                self._vm_object.ResetVM_Task(),
-                'Reset virtual machine "{}"'.format(self.name),
-                self.timeout
-            )
+            try:
+                wait_for_vcenter_task(
+                    self._vm_object.ResetVM_Task(),
+                    'Reset virtual machine "{}"'.format(self.name),
+                    self.timeout
+                )
+            except vim.fault.InvalidPowerState:
+                pass
 
     def reboot(self):
         """

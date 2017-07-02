@@ -203,6 +203,19 @@ def test_virtual_machine_reset(wait_for_vcenter_task, connection):
 
 
 @mock.patch('vcdriver.vm.connection')
+@mock.patch('vcdriver.vm.wait_for_vcenter_task')
+def test_virtual_machine_reset_wrong_power_state(
+        wait_for_vcenter_task, connection
+):
+    wait_for_vcenter_task.side_effect = vim.fault.InvalidPowerState
+    vm = VirtualMachine()
+    vm.reset()
+    vm.__setattr__('_vm_object', mock.MagicMock())
+    vm.reset()
+    assert wait_for_vcenter_task.call_count == 1
+
+
+@mock.patch('vcdriver.vm.connection')
 def test_virtual_machine_ip(connection):
     vm = VirtualMachine()
     vm_object_mock = mock.MagicMock()

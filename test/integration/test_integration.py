@@ -90,20 +90,21 @@ def test_boot_methods(vms):
             vm.power_on()
             assert vm_object.summary.runtime.powerState == 'poweredOn'
             vm.power_off()
+            time.sleep(1)
             assert vm_object.summary.runtime.powerState == 'poweredOff'
             vm.power_off()
             assert vm_object.summary.runtime.powerState == 'poweredOff'
+            vm.power_on()
             vm.reset()
-            assert vm_object.summary.runtime.powerState == 'poweredOn'
-            vm.reset()
+            time.sleep(20)  # Need some time to load vmware tools
             assert vm_object.summary.runtime.powerState == 'poweredOn'
             vm.shutdown()
+            time.sleep(1)
             assert vm_object.summary.runtime.powerState == 'poweredOff'
             vm.shutdown()
             assert vm_object.summary.runtime.powerState == 'poweredOff'
             vm.power_on()
-            assert vm_object.summary.runtime.powerState == 'poweredOn'
-            time.sleep(20)  # Need some time to load vmware tools for reboot
+            time.sleep(20)  # Need some time to load vmware tools
             vm.reboot()
             time.sleep(20)  # Reboot is async and OS dependant
             assert vm_object.summary.runtime.powerState == 'poweredOn'
