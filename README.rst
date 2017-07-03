@@ -13,11 +13,19 @@
 .. image:: https://img.shields.io/pypi/pyversions/Django.svg?style=flat
   :target: https://github.com/Lantero/vcdriver
 
+*****
 About
-=====
+*****
 
-Vcdriver is a wrapper around pyvmomi that lets you create, find and destroy virtual machines on your
-Vcenter/Vsphere instance. It also lets you manage those virtual machines:
+Vcdriver is a wrapper around pyvmomi that lets you manage virtual machines on your Vsphere in an easy way.
+
+- Create, find or destroy virtual machines.
+
+- Power on/off, shutdown, reboot and reset them.
+
+- Snapshot management.
+
+- Export OVA's.
 
 - SSH protocol for remote commands (Only for Unix, Requires the SSH service).
 
@@ -34,37 +42,41 @@ How does it work underneath?
   `pywinrm <https://pypi.python.org/pypi/pywinrm>`_.
 
 - It currently supports Python **2.7**, **3.3**, **3.4**, **3.5** and **3.6**.
-    
+
+- It works with latest versions of Vsphere, **6.0** and **6.5**.
+
 Why would I use vcdriver instead of using pyvmomi directly?
 ===========================================================
 
-- **Simplicity**: Write tests or scripts that are both easy to write and read. Pyvmomi is powerful, but its
-  learning curve is overkill for most of the tasks you might want to execute programatically with Vcenter.
+Pyvmomi is powerful but its learning curve is overkill for most of the tasks you might want to
+execute programmatically with Vcenter. All the complexity has been abstracted out so you can do
+in 5 lines of vcdriver code what you would do in 50 lines of pyvmomi code.
+That makes your testing and automation scripts way easier to read and maintain.
 
-- **Maintainability**: If your Vcenter and pyvmomi versions get out of sync and something stops working, you don't
-  need to change every single test or script you have, you just need to update the driver.
-
+************
 Installation
-============
+************
 
 .. code-block::
 
   pip install vcdriver
 
+*************
 Documentation
-=============
+*************
 
 Documentation and examples can be found on the `wiki <https://github.com/Lantero/vcdriver/wiki>`_.
 
-Test Environment
-================
+*******
+Testing
+*******
 
-- Prepare your python environment: ``pip install -e . && pip install pytest pytest-cov mock``.
+Prepare your python environment: ``pip install -e . && pip install pytest pytest-cov mock``.
 
 Unit tests
 ==========
 
-- Run ``pytest -v --cov=vcdriver --cov-fail-under 100 test/unit``.
+#. Run ``pytest -v --cov=vcdriver --cov-fail-under 100 test/unit``.
 
 Integration tests
 =================
@@ -77,16 +89,8 @@ You can run some integration tests to check it works fine for your Vcenter insta
    - An empty folder which will serve as a sandbox environment for the tests.
    - A Unix virtual machine template with the SSH service allowing remote username/password SSH/SFTP connections.
    - A Windows Server virtual machine template with the WinRM service allowing remote username/password WinRM connections.
-     This might not be non-trivial, so here is an snippet you can run on the CMD console to set it up on a Windows Server 2012,
-     which probably works for other versions too. Remember this is not a production config, you can read a bit more about different
-     WinRM setups on the `WinRM section of the wiki <https://github.com/Lantero/vcdriver/wiki/Documentation#5-manage-virtual-machines-winrm-windows>`_.
-
-     .. code-block::
-
-       winrm quickconfig
-       winrm set winrm/config/client/auth @{Basic="true"}
-       winrm set winrm/config/service/auth @{Basic="true"}
-       winrm set winrm/config/service @{AllowUnencrypted="true"}
+     The ansible people have done a great job about this, and you can set it up with their script:
+     `ConfigureRemotingForAnsible.ps1 <https://github.com/ansible/ansible/blob/devel/examples/scripts/ConfigureRemotingForAnsible.ps1>`_.
 
 #. Read through the `configuration section <https://github.com/Lantero/vcdriver/wiki/Configuration>`_ and set up all the configuration in a file.
    Provide the following environment variables:
