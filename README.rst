@@ -25,8 +25,6 @@ Vcdriver is a wrapper around pyvmomi that lets you manage virtual machines on yo
 
 - Snapshot management.
 
-- Export OVA's.
-
 - SSH protocol for remote commands (Only for Unix, Requires the SSH service).
 
 - SFTP protocol for file transfers (Only for Unix, Requires the SSH service).
@@ -36,7 +34,7 @@ Vcdriver is a wrapper around pyvmomi that lets you manage virtual machines on yo
 How does it work underneath?
 ============================
 
-- Vcenter is driven using its official python API, `pyvmomi <https://github.com/vmware/pyvmomi>`_.
+- Vsphere is driven using its official python API, `pyvmomi <https://github.com/vmware/pyvmomi>`_.
 
 - The virtual machines are manipulated with `Fabric3 <https://pypi.python.org/pypi/Fabric3>`_ and
   `pywinrm <https://pypi.python.org/pypi/pywinrm>`_.
@@ -49,7 +47,7 @@ Why would I use vcdriver instead of using pyvmomi directly?
 ===========================================================
 
 Pyvmomi is powerful but its learning curve is overkill for most of the tasks you might want to
-execute programmatically with Vcenter. All the complexity has been abstracted out so you can do
+execute programmatically with Vsphere. All the complexity has been abstracted out so you can do
 in 5 lines of vcdriver code what you would do in 50 lines of pyvmomi code.
 That makes your testing and automation scripts way easier to read and maintain.
 
@@ -82,9 +80,9 @@ Integration tests
 =================
 
 As you might expect, the unit tests can only test the logic of the driver, as all the vcenter components have to be mocked out.
-You can run some integration tests to check it works fine for your Vcenter instance. To do so:
+You can run some integration tests to check it works fine for your Vsphere instance. To do so:
 
-#. You need the following Vcenter resources:
+#. You need the following Vsphere resources:
 
    - An empty folder which will serve as a sandbox environment for the tests.
    - A Unix virtual machine template with the SSH service allowing remote username/password SSH/SFTP connections.
@@ -92,8 +90,9 @@ You can run some integration tests to check it works fine for your Vcenter insta
      The ansible people have done a great job about this, and you can set it up with their script:
      `ConfigureRemotingForAnsible.ps1 <https://github.com/ansible/ansible/blob/devel/examples/scripts/ConfigureRemotingForAnsible.ps1>`_.
 
-#. Read through the `configuration section <https://github.com/Lantero/vcdriver/wiki/Configuration>`_ and set up all the configuration in a file.
-   Provide the following environment variables:
+#. Read through the `setup section <https://github.com/Lantero/vcdriver/wiki/Example-1>`_ and create your configuration file.
+
+#. Provide the following extra environment variables:
 
    - ``vcdriver_test_config_file``: The path to your file config.
    - ``vcdriver_test_unix_template``: The name of the UNIX virtual machine template that will be cloned for the tests.
