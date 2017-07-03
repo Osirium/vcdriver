@@ -6,13 +6,16 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [3.2.1] - 2017-07-2
 
+### Changed
+- Reset function is now idempotent
+- Fix integration tests
+
+## [3.2.0] - 2017-06-30
+
 ### Added
 - Power on function
 - Power off function
 - Shutdown function
-
-### Changed
-- Reset function is now idempotent
 
 ## [3.1.0] - 2017-06-22
 
