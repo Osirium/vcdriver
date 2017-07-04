@@ -1,10 +1,10 @@
 import os
 
+import mock
 import pytest
 from six.moves import configparser
 
 from vcdriver.config import load, configurable, read
-from vcdriver.exceptions import MissingConfigValues
 
 
 def require_nothing(**kwargs):
@@ -141,47 +141,72 @@ def test_read(config_files):
 
 
 def test_configurable(config_files):
-    require_nothing()
-    with pytest.raises(MissingConfigValues):
-        require_username()
-    with pytest.raises(MissingConfigValues):
-        require_username_and_password()
-    load('config_file_1.cfg')
-    require_nothing()
-    with pytest.raises(MissingConfigValues):
-        require_username()
-    with pytest.raises(MissingConfigValues):
-        require_username_and_password()
     load()
     require_nothing()
-    with pytest.raises(MissingConfigValues):
+    with mock.patch('vcdriver.config.raw_input') as input_mock:
         require_username()
-    with pytest.raises(MissingConfigValues):
-        require_username_and_password()
+        input_mock.assert_called_once()
+    with mock.patch('vcdriver.config.raw_input') as input_mock:
+        with mock.patch('vcdriver.config.getpass.getpass') as getpass_mock:
+            require_username_and_password()
+            input_mock.assert_called_once()
+            getpass_mock.assert_called_once()
+    load('config_file_1.cfg')
+    require_nothing()
+    with mock.patch('vcdriver.config.raw_input') as input_mock:
+        require_username()
+        input_mock.assert_called_once()
+    with mock.patch('vcdriver.config.raw_input') as input_mock:
+        with mock.patch('vcdriver.config.getpass.getpass') as getpass_mock:
+            require_username_and_password()
+            input_mock.assert_called_once()
+            getpass_mock.assert_called_once()
+    load()
+    require_nothing()
+    with mock.patch('vcdriver.config.raw_input') as input_mock:
+        require_username()
+        input_mock.assert_called_once()
+    with mock.patch('vcdriver.config.raw_input') as input_mock:
+        with mock.patch('vcdriver.config.getpass.getpass') as getpass_mock:
+            require_username_and_password()
+            input_mock.assert_called_once()
+            getpass_mock.assert_called_once()
     os.environ['vcdriver_username'] = 'Sinatra'
     load()
     require_nothing()
     require_username()
-    with pytest.raises(MissingConfigValues):
-        require_username_and_password()
+    with mock.patch('vcdriver.config.raw_input') as input_mock:
+        with mock.patch('vcdriver.config.getpass.getpass') as getpass_mock:
+            require_username_and_password()
+            getpass_mock.assert_called_once()
     os.environ['vcdriver_username'] = ''
     load()
     require_nothing()
-    with pytest.raises(MissingConfigValues):
+    with mock.patch('vcdriver.config.raw_input') as input_mock:
         require_username()
-    with pytest.raises(MissingConfigValues):
-        require_username_and_password()
+        input_mock.assert_called_once()
+    with mock.patch('vcdriver.config.raw_input') as input_mock:
+        with mock.patch('vcdriver.config.getpass.getpass') as getpass_mock:
+            require_username_and_password()
+            input_mock.assert_called_once()
+            getpass_mock.assert_called_once()
     load('config_file_2.cfg')
     require_nothing()
     require_username()
-    with pytest.raises(MissingConfigValues):
-        require_username_and_password()
+    with mock.patch('vcdriver.config.raw_input') as input_mock:
+        with mock.patch('vcdriver.config.getpass.getpass') as getpass_mock:
+            require_username_and_password()
+            getpass_mock.assert_called_once()
     load()
     require_nothing()
-    with pytest.raises(MissingConfigValues):
+    with mock.patch('vcdriver.config.raw_input') as input_mock:
         require_username()
-    with pytest.raises(MissingConfigValues):
-        require_username_and_password()
+        input_mock.assert_called_once()
+    with mock.patch('vcdriver.config.raw_input') as input_mock:
+        with mock.patch('vcdriver.config.getpass.getpass') as getpass_mock:
+            require_username_and_password()
+            input_mock.assert_called_once()
+            getpass_mock.assert_called_once()
     os.environ['vcdriver_username'] = 'Sinatra'
     load('config_file_3.cfg')
     require_nothing()
@@ -190,13 +215,18 @@ def test_configurable(config_files):
     os.environ['vcdriver_username'] = ''
     load()
     require_nothing()
-    with pytest.raises(MissingConfigValues):
+    with mock.patch('vcdriver.config.raw_input') as input_mock:
         require_username()
-    with pytest.raises(MissingConfigValues):
-        require_username_and_password()
+        input_mock.assert_called_once()
+    with mock.patch('vcdriver.config.raw_input') as input_mock:
+        with mock.patch('vcdriver.config.getpass.getpass') as getpass_mock:
+            require_username_and_password()
+            input_mock.assert_called_once()
+            getpass_mock.assert_called_once()
     require_username_and_password(
         vcdriver_username='Sinatra',
         vcdriver_password='myway'
     )
-    with pytest.raises(MissingConfigValues):
+    with mock.patch('vcdriver.config.raw_input') as input_mock:
         require_bad_section()
+        input_mock.assert_called_once()

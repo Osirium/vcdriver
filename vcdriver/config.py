@@ -1,9 +1,8 @@
 import copy
 import functools
+import getpass
 import os
 from six.moves import configparser
-
-from vcdriver.exceptions import MissingConfigValues
 
 
 _config = {
@@ -26,6 +25,19 @@ _config = {
         'vcdriver_vm_winrm_password': ''
     }
 }
+
+SECRETS = {
+    'vcdriver_password',
+    'vcdriver_vm_ssh_password',
+    'vcdriver_vm_winrm_password'
+}
+
+
+def _get_input_function(key):
+    if key in SECRETS:
+        return getpass.getpass
+    else:
+        return raw_input
 
 
 def read():
@@ -62,8 +74,6 @@ def configurable(section_keys):
     :param section_keys: An iterable of the required section-key pairs
 
     :return: The decorated function
-
-    :raise: MissingConfigValues: If any configuration values are missing
     """
     global _config
 
@@ -82,8 +92,8 @@ def configurable(section_keys):
                         kwargs[key] = config_value
                     else:
                         missing_keys.append(key)
-            if missing_keys:
-                raise MissingConfigValues(missing_keys)
+            for key in missing_keys:
+                kwargs[key] = _get_input_function(key)('{}: '.format(key))
             return function(*args, **kwargs)
         return wrapper
     return decorator
