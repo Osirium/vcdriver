@@ -113,6 +113,8 @@ def test_virtual_machine_reboot(connection):
     vm_object_mock = mock.MagicMock()
     reboot_mock = mock.MagicMock()
     vm_object_mock.RebootGuest = reboot_mock
+    vm_object_mock.summary.runtime.powerState = 'poweredOn'
+    vm_object_mock.summary.guest.toolsRunningStatus = 'guestToolsRunning'
     vm.reboot()
     vm.__setattr__('_vm_object', vm_object_mock)
     vm.reboot()
@@ -124,12 +126,13 @@ def test_virtual_machine_reboot_wrong_power_state(connection):
     vm = VirtualMachine()
     vm_object_mock = mock.MagicMock()
     reboot_mock = mock.MagicMock()
-    reboot_mock.side_effect = vim.fault.InvalidPowerState
+    vm_object_mock.summary.runtime.powerState = 'poweredOff'
+    vm_object_mock.summary.guest.toolsRunningStatus = 'guestToolsRunning'
     vm_object_mock.RebootGuest = reboot_mock
     vm.reboot()
     vm.__setattr__('_vm_object', vm_object_mock)
     vm.reboot()
-    assert reboot_mock.call_count == 1
+    assert reboot_mock.call_count == 0
 
 
 @mock.patch('vcdriver.vm.connection')
@@ -138,7 +141,8 @@ def test_virtual_machine_shutdown(connection):
     vm_object_mock = mock.MagicMock()
     shutdown_mock = mock.MagicMock()
     vm_object_mock.ShutdownGuest = shutdown_mock
-    vm_object_mock.summary.runtime.powerState = 'poweredOff'
+    vm_object_mock.summary.runtime.powerState = 'poweredOn'
+    vm_object_mock.summary.guest.toolsRunningStatus = 'guestToolsRunning'
     vm.shutdown()
     vm.__setattr__('_vm_object', vm_object_mock)
     vm.shutdown()
@@ -150,13 +154,13 @@ def test_virtual_machine_shutdown_wrong_power_state(connection):
     vm = VirtualMachine()
     vm_object_mock = mock.MagicMock()
     shutdown_mock = mock.MagicMock()
-    shutdown_mock.side_effect = vim.fault.InvalidPowerState
     vm_object_mock.ShutdownGuest = shutdown_mock
     vm_object_mock.summary.runtime.powerState = 'poweredOff'
+    vm_object_mock.summary.guest.toolsRunningStatus = 'guestToolsRunning'
     vm.shutdown()
     vm.__setattr__('_vm_object', vm_object_mock)
     vm.shutdown()
-    assert shutdown_mock.call_count == 1
+    assert shutdown_mock.call_count == 0
 
 
 @mock.patch('vcdriver.vm.connection')

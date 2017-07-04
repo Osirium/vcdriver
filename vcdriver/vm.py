@@ -160,27 +160,19 @@ class VirtualMachine(object):
         Need Vmware tools installed in the virtual machine
         """
         if self._vm_object:
-            try:
+            if self._vm_object.summary.runtime.powerState == 'poweredOn':
+                self._wait_for_vmware_tools()
                 self._vm_object.RebootGuest()
-            except vim.fault.InvalidPowerState:
-                pass
 
     def shutdown(self):
         """
-        Shutdown the guest operating system
+        Shutdown the guest operating system in an async fashion
         Need Vmware tools installed in the virtual machine
         """
         if self._vm_object:
-            try:
+            if self._vm_object.summary.runtime.powerState == 'poweredOn':
+                self._wait_for_vmware_tools()
                 self._vm_object.ShutdownGuest()
-                timeout_loop(
-                    self.timeout,
-                    'Shutdown vitual machine "{}"'.format(self.name), 1, False,
-                    lambda:
-                    self._vm_object.summary.runtime.powerState == 'poweredOff'
-                )
-            except vim.fault.InvalidPowerState:
-                pass
 
     def ip(self):
         """
@@ -454,6 +446,14 @@ class VirtualMachine(object):
         timeout_loop(
             self.timeout, 'Check WinRM service', 1, True,
             check_winrm_service, self.ip(), username, password, **kwargs
+        )
+
+    def _wait_for_vmware_tools(self):
+        """ Wait until vmware tools is ready """
+        timeout_loop(
+            self.timeout, 'Vmware tools readiness', 1, False,
+            lambda: self._vm_object.summary.guest.toolsRunningStatus ==
+            'guestToolsRunning'
         )
 
     @classmethod

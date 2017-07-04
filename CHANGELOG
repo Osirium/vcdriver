@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## [3.2.2] - 2017-07-4
+
+### Changed
+- Reboot and shutdown now wait until vmware tools is ready or timeout
+- Reboot and shutdown are now both async for consistency
+- Fix integration tests
+
 ## [3.2.1] - 2017-07-2
 
 ### Changed

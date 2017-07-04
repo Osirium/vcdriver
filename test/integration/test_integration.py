@@ -1,7 +1,6 @@
 import os
 import shutil
 import socket
-import time
 
 import pytest
 
@@ -22,10 +21,17 @@ from vcdriver.vm import (
 )
 from vcdriver.folder import destroy_virtual_machines
 from vcdriver.config import load
+from vcdriver.helpers import timeout_loop
 
 
 def touch(file_name):
     open(file_name, 'wb').close()
+
+
+def wait_for_power_state_or_die(vm_object, state):
+    timeout_loop(
+        30, '', 1, True, lambda: vm_object.summary.runtime.powerState == state
+    )
 
 
 @pytest.fixture(scope='module')
@@ -86,27 +92,30 @@ def test_boot_methods(vms):
     with virtual_machines(vms.values()):
         for vm in vms.values():
             vm_object = vm.__getattribute__('_vm_object')
+            wait_for_power_state_or_die(vm_object, 'poweredOn')
             assert vm_object.summary.runtime.powerState == 'poweredOn'
             vm.power_on()
+            wait_for_power_state_or_die(vm_object, 'poweredOn')
             assert vm_object.summary.runtime.powerState == 'poweredOn'
             vm.power_off()
-            time.sleep(1)
+            wait_for_power_state_or_die(vm_object, 'poweredOff')
             assert vm_object.summary.runtime.powerState == 'poweredOff'
             vm.power_off()
+            wait_for_power_state_or_die(vm_object, 'poweredOff')
             assert vm_object.summary.runtime.powerState == 'poweredOff'
             vm.power_on()
             vm.reset()
-            time.sleep(20)  # Need some time to load vmware tools
+            wait_for_power_state_or_die(vm_object, 'poweredOn')
             assert vm_object.summary.runtime.powerState == 'poweredOn'
             vm.shutdown()
-            time.sleep(1)
+            wait_for_power_state_or_die(vm_object, 'poweredOff')
             assert vm_object.summary.runtime.powerState == 'poweredOff'
             vm.shutdown()
+            wait_for_power_state_or_die(vm_object, 'poweredOff')
             assert vm_object.summary.runtime.powerState == 'poweredOff'
             vm.power_on()
-            time.sleep(20)  # Need some time to load vmware tools
             vm.reboot()
-            time.sleep(20)  # Reboot is async and OS dependant
+            wait_for_power_state_or_die(vm_object, 'poweredOn')
             assert vm_object.summary.runtime.powerState == 'poweredOn'
 
 
