@@ -2,7 +2,7 @@ import copy
 import functools
 import getpass
 import os
-from six.moves import configparser
+from six.moves import configparser, input
 
 
 _config = {
@@ -37,7 +37,7 @@ def _get_input_function(key):
     if key in SECRETS:
         return getpass.getpass
     else:
-        return raw_input
+        return input
 
 
 def read():
