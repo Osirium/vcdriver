@@ -119,16 +119,32 @@ def test_validate_ipv6_fail():
     assert not validate_ipv6('127.0.0.1')
 
 
-def test_wait_for_vcenter_task_success():
-    task = mock.MagicMock()
-    task.info.state = vim.TaskInfo.State.success
-    task.info.result = 'hello'
-    assert wait_for_vcenter_task(task, 'description', timeout=1) == 'hello'
+def test_wait_for_vcenter_task_wait_for_success():
+    task = mock.Mock(vim.Task)
+
+    class TaskInfoTimeline:
+        def __init__(self, states, result):
+            self.result = result
+            self._state_iter = iter(states)
+
+        @property
+        def state(self):
+            return next(self._state_iter)
+    task.info = TaskInfoTimeline(
+        result='hello', states=(
+            vim.TaskInfo.State.queued, vim.TaskInfo.State.running,
+            # Need success twice (ATM) since it is looked up again after poll
+            # loop
+            vim.TaskInfo.State.success, vim.TaskInfo.State.success))
+    assert wait_for_vcenter_task(
+        task, 'description', timeout=2, _poll_interval=0) == 'hello'
+    with pytest.raises(StopIteration):
+        task.info.state
 
 
 def test_wait_for_vcenter_task_fail():
     task = mock.MagicMock()
-    task.info.state = 'Error'
+    task.info.state = vim.TaskInfo.State.error
     task.info.error = Exception
     with pytest.raises(Exception):
         wait_for_vcenter_task(task, 'description', timeout=1)
@@ -136,7 +152,7 @@ def test_wait_for_vcenter_task_fail():
 
 def test_wait_for_vcenter_task_fail_no_exception():
     task = mock.MagicMock()
-    task.info.state = 'Error'
+    task.info.state = vim.TaskInfo.State.error
     task.info.error = None
     wait_for_vcenter_task(task, 'description', timeout=1)
 
