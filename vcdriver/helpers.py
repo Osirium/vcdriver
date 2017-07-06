@@ -186,7 +186,7 @@ _TERMINAL_STATES = frozenset(
     (vim.TaskInfo.State.success, vim.TaskInfo.State.error))
 
 
-def wait_for_vcenter_task(task, task_description, timeout):
+def wait_for_vcenter_task(task, task_description, timeout, _poll_interval=1):
     """
     Wait for a vcenter task to finish
     :param task: A vcenter task object
@@ -198,7 +198,7 @@ def wait_for_vcenter_task(task, task_description, timeout):
     :raise: TimeoutError: If the timeout is reached
     """
     timeout_loop(
-        timeout, task_description, 1, False,
+        timeout, task_description, _poll_interval, False,
         callback=lambda: task.info.state in _TERMINAL_STATES,
     )
     if task.info.state == vim.TaskInfo.State.success:
