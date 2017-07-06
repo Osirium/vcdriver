@@ -182,6 +182,10 @@ def validate_ipv6(ip):
     return True
 
 
+_TERMINAL_STATES = frozenset(
+    (vim.TaskInfo.State.success, vim.TaskInfo.State.error))
+
+
 def wait_for_vcenter_task(task, task_description, timeout):
     """
     Wait for a vcenter task to finish
@@ -195,7 +199,7 @@ def wait_for_vcenter_task(task, task_description, timeout):
     """
     timeout_loop(
         timeout, task_description, 1, False,
-        callback=lambda: task.info.state != vim.TaskInfo.State.running,
+        callback=lambda: task.info.state in _TERMINAL_STATES,
     )
     if task.info.state == vim.TaskInfo.State.success:
         return task.info.result
