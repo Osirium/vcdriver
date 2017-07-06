@@ -136,7 +136,7 @@ def test_wait_for_vcenter_task_fail():
 
 def test_wait_for_vcenter_task_fail_no_exception():
     task = mock.MagicMock()
-    task.info.state = 'Error'
+    task.info.state = vim.TaskInfo.State.error
     task.info.error = None
     wait_for_vcenter_task(task, 'description', timeout=1)
 
