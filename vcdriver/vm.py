@@ -58,10 +58,11 @@ class VirtualMachine(object):
     ])
     def create(self, **kwargs):
         """ Create the virtual machine and update the vm object """
+        conn = connection()
         if not self._vm_object:
             data_store_name = kwargs['vcdriver_data_store']
             data_store = get_vcenter_object_by_name(
-                connection(),
+                conn,
                 vim.Datastore,
                 data_store_name
             )
@@ -75,17 +76,17 @@ class VirtualMachine(object):
                 )
             self._vm_object = wait_for_vcenter_task(
                 get_vcenter_object_by_name(
-                    connection(), vim.VirtualMachine, self.template
+                    conn, vim.VirtualMachine, self.template
                 ).CloneVM_Task(
                     folder=get_vcenter_object_by_name(
-                        connection(), vim.Folder, kwargs['vcdriver_folder']
+                        conn, vim.Folder, kwargs['vcdriver_folder']
                     ),
                     name=self.name,
                     spec=vim.vm.CloneSpec(
                         location=vim.vm.RelocateSpec(
                             datastore=data_store,
                             pool=get_vcenter_object_by_name(
-                                connection(),
+                                conn,
                                 vim.ResourcePool,
                                 kwargs['vcdriver_resource_pool']
                             )
