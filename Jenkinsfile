@@ -64,7 +64,9 @@ pipeline {
 
         stage('Integration Tests Python 2.7.12') {
             steps {
-                withPython27Environment('vcdriver_folder=\'Vcdriver tests\' vcdriver_test_folder=\'Vcdriver tests\' pytest -v -s --junitxml=integration-python-2.7.12.xml test/integration')
+                withVcdriverConfig {
+                    withPython27Environment('vcdriver_folder=\'Vcdriver tests\' vcdriver_test_folder=\'Vcdriver tests\' pytest -v -s --junitxml=integration-python-2.7.12.xml test/integration')
+                }
             }
             post {
                 always {
@@ -75,7 +77,9 @@ pipeline {
 
         stage('Integration Tests Python 3.5.2') {
             steps {
-                withPython35Environment('vcdriver_folder=\'Vcdriver tests\' vcdriver_test_folder=\'Vcdriver tests\' pytest -v -s --junitxml=integration-python-3.5.2.xml test/integration')
+                withVcdriverConfig {
+                    withPython35Environment('vcdriver_folder=\'Vcdriver tests\' vcdriver_test_folder=\'Vcdriver tests\' pytest -v -s --junitxml=integration-python-3.5.2.xml test/integration')
+                }
             }
             post {
                 always {
