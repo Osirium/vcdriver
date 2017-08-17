@@ -87,7 +87,7 @@ def styled_print(styles):
 def hide_std():
     stdout = sys.stdout
     stderr = sys.stderr
-    with open(os.devnull, 'wb') as null:
+    with open(os.devnull, 'w') as null:
         sys.stdout = sys.stderr = null
         try:
             yield
