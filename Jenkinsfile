@@ -61,7 +61,7 @@ pipeline {
                 }
             }
         }
-        stage('Python 2.7.12 Integration Tests') {
+        stage('Integration Tests Python 2.7.12') {
             steps {
                 withVcdriverConfig {
                     withPython27Environment('pytest -v -s --junitxml=integration-python-2.7.12.xml test/integration')
@@ -73,7 +73,7 @@ pipeline {
                 }
             }
         }
-        stage('Python 3.5.2 Integration Tests') {
+        stage('Integration Tests Python 3.5.2') {
             steps {
                 withVcdriverConfig {
                     withPython35Environment('pytest -v -s --junitxml=integration-python-3.5.2.xml test/integration')
