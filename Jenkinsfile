@@ -26,13 +26,12 @@ pipeline {
     }
 
     environment {
-        vcdriver_folder = 'Vcdriver tests'
-        vcdriver_test_folder = 'Vcdriver tests'
         vcdriver_test_unix_template = 'Ubuntu-14.04-32bit'
         vcdriver_test_windows_template = 'Windows-Server-2012'
     }
 
     stages {
+
         stage('Setup') {
             steps {
                 sh 'virtualenv -p /usr/bin/python2.7 --clear ' + PYTHON_2_7_ENVIRONMENT_PATH
@@ -43,6 +42,7 @@ pipeline {
                 withPython35Environment('pip install pytest pytest-cov mock')
             }
         }
+
         stage('Unit Tests') {
             steps {
                 parallel(
@@ -61,11 +61,10 @@ pipeline {
                 }
             }
         }
+
         stage('Integration Tests Python 2.7.12') {
             steps {
-                withVcdriverConfig {
-                    withPython27Environment('pytest -v -s --junitxml=integration-python-2.7.12.xml test/integration')
-                }
+                withPython27Environment('vcdriver_folder=\'Vcdriver tests\' vcdriver_test_folder=\'Vcdriver tests\' pytest -v -s --junitxml=integration-python-2.7.12.xml test/integration')
             }
             post {
                 always {
@@ -73,11 +72,10 @@ pipeline {
                 }
             }
         }
+
         stage('Integration Tests Python 3.5.2') {
             steps {
-                withVcdriverConfig {
-                    withPython35Environment('pytest -v -s --junitxml=integration-python-3.5.2.xml test/integration')
-                }
+                withPython35Environment('vcdriver_folder=\'Vcdriver tests\' vcdriver_test_folder=\'Vcdriver tests\' pytest -v -s --junitxml=integration-python-3.5.2.xml test/integration')
             }
             post {
                 always {
@@ -85,6 +83,7 @@ pipeline {
                 }
             }
         }
+
     }
 
 }
