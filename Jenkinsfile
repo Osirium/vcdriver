@@ -25,6 +25,10 @@ pipeline {
         node 'ubuntu'
     }
 
+    triggers {
+        cron("0 0 * * *")
+    }
+
     environment {
         vcdriver_test_unix_template = 'Ubuntu-14.04-32bit'
         vcdriver_test_windows_template = 'Windows-Server-2012'
