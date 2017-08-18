@@ -43,20 +43,23 @@ pipeline {
             }
         }
 
-        stage('Unit Tests') {
+        stage('Unit Tests Python 2.7.12') {
             steps {
-                parallel(
-                    'Python 2.7.12': {
-                        withPython27Environment('pytest -v --junitxml=unit-python-2.7.12.xml --cov=vcdriver --cov-fail-under 100 test/unit')
-                    },
-                    'Python 3.5.2': {
-                        withPython35Environment('pytest -v --junitxml=unit-python-3.5.2.xml --cov=vcdriver --cov-fail-under 100 test/unit')
-                    }
-                )
+                withPython27Environment('pytest -v --junitxml=unit-python-2.7.12.xml --cov=vcdriver --cov-fail-under 100 test/unit')
             }
             post {
                 always {
                     junit 'unit-python-2.7.12.xml'
+                }
+            }
+        }
+
+        stage('Unit Tests Python 3.5.2') {
+            steps {
+                withPython35Environment('pytest -v --junitxml=unit-python-3.5.2.xml --cov=vcdriver --cov-fail-under 100 test/unit')
+            }
+            post {
+                always {
                     junit 'unit-python-3.5.2.xml'
                 }
             }
