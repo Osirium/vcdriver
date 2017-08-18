@@ -254,7 +254,7 @@ def check_winrm_service(host, username, password, **kwargs):
     """
     try:
         with hide_std():
-            winrm.Session(host, (username, password), **kwargs).run_ps('')
+            winrm.Session(host, (username, password), **kwargs).run_ps('ls')
         return True
     except:
         return False
