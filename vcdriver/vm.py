@@ -331,13 +331,16 @@ class VirtualMachine(object):
                 operation_timeout_sec=self.timeout,
                 **winrm_kwargs
             ).run_ps(script)
-            styled_print(Style.BRIGHT)('CODE: {}'.format(result.status_code))
-            styled_print(Fore.GREEN)(result.std_out)
-            if result.status_code != 0:
-                styled_print(Fore.RED)(result.std_err)
-                raise WinRmError(script, result.status_code)
+            status = result.status_code
+            stdout = result.std_out.decode('ascii')
+            stderr = result.std_err.decode('ascii')
+            styled_print(Style.BRIGHT)('CODE: {}'.format(status))
+            styled_print(Fore.GREEN)(stdout)
+            if status != 0:
+                styled_print(Fore.RED)(stderr)
+                raise WinRmError(script, status)
             else:
-                return result.status_code, result.std_out, result.std_err
+                return status, stdout, stderr
 
     def find_snapshot(self, name):
         """
