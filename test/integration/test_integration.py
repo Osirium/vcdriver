@@ -150,6 +150,11 @@ def test_ip(vms):
         socket.inet_aton(vm.ip())
 
 
+def test_autostart(vms):
+    for vm in vms.values():
+        vm.set_autostart()
+
+
 def test_ssh(vms):
     vms['unix'].create()
     assert vms['unix'].ssh('ls').return_code == 0

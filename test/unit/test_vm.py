@@ -486,6 +486,14 @@ def test_virtual_machine_remove_snapshot(wait_for_vcenter_task):
     vm.remove_snapshot('snapshot')
 
 
+@mock.patch('vcdriver.vm.vim.host.AutoStartManager.AutoPowerInfo')
+def test_set_autostart(init):
+    vm = VirtualMachine()
+    vm.set_autostart()
+    vm.__setattr__('_vm_object', mock.MagicMock())
+    vm.set_autostart()
+
+
 @mock.patch('vcdriver.vm.connection')
 def test_virtual_machine_summary(connection):
     print(VirtualMachine().summary())
