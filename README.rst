@@ -1,18 +1,3 @@
-.. image:: https://badge.fury.io/py/vcdriver.svg
-  :target: https://badge.fury.io/py/vcdriver
-
-.. image:: https://travis-ci.org/Lantero/vcdriver.svg?branch=master
-  :target: https://travis-ci.org/Lantero/vcdriver
-
-.. image:: https://codecov.io/gh/Lantero/vcdriver/branch/master/graph/badge.svg
-  :target: https://codecov.io/gh/Lantero/vcdriver
-
-.. image:: https://img.shields.io/packagist/l/doctrine/orm.svg?style=flat
-  :target: https://github.com/Lantero/vcdriver
-
-.. image:: https://img.shields.io/pypi/pyversions/Django.svg?style=flat
-  :target: https://github.com/Lantero/vcdriver
-
 *****
 About
 *****
@@ -63,7 +48,7 @@ Installation
 Documentation
 *************
 
-Documentation and examples can be found on the `wiki <https://github.com/Lantero/vcdriver/wiki>`_.
+Documentation and examples can be found on the `wiki <https://github.com/Osirium/vcdriver/wiki>`_.
 
 *******
 Testing
@@ -90,7 +75,7 @@ You can run some integration tests to check it works fine for your Vsphere insta
      The ansible people have done a great job about this, and you can set it up with their script:
      `ConfigureRemotingForAnsible.ps1 <https://github.com/ansible/ansible/blob/devel/examples/scripts/ConfigureRemotingForAnsible.ps1>`_.
 
-#. Read through the `setup section <https://github.com/Lantero/vcdriver/wiki/Example-1>`_ and create your configuration file.
+#. Read through the `setup section <https://github.com/Osirium/vcdriver/wiki/Example-1>`_ and create your configuration file.
 
 #. Provide the following extra environment variables:
 
