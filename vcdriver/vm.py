@@ -410,6 +410,26 @@ class VirtualMachine(object):
                 self.timeout
             )
 
+    def set_autostart(self, start_delay=10):
+        """ Set virtual machine ESXI autostart in a random order """
+        if self._vm_object:
+            host_default_settings = vim.host.AutoStartManager.SystemDefaults()
+            host_default_settings.enabled = True
+            host_default_settings.startDelay = start_delay
+            esxi_host = self._vm_object.summary.runtime.host
+            spec = esxi_host.configManager.autoStartManager.config
+            spec.defaults = host_default_settings
+            auto_power_info = vim.host.AutoStartManager.AutoPowerInfo()
+            auto_power_info.key = self._vm_object
+            auto_power_info.startAction = 'powerOn'
+            auto_power_info.startDelay = -1
+            auto_power_info.startOrder = -1
+            auto_power_info.stopAction = 'None'
+            auto_power_info.stopDelay = -1
+            auto_power_info.waitForHeartbeat = 'no'
+            spec.powerInfo = [auto_power_info]
+            esxi_host.configManager.autoStartManager.ReconfigureAutostart(spec)
+
     def summary(self):
         """ Return a string summary of the virtual machine in markdown/reST """
         ip = self.ip()
