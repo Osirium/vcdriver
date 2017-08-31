@@ -5,17 +5,23 @@ import os
 from six.moves import configparser, input
 
 
+DEFAULTS = {
+    'vcdriver_port': '443',
+    'vcdriver_data_store_threshold': '0'
+}
+
 _config = {
     'Vsphere Session': {
         'vcdriver_host': '',
-        'vcdriver_port': '443',
+        'vcdriver_port': DEFAULTS['vcdriver_port'],
         'vcdriver_username': '',
         'vcdriver_password': ''
     },
     'Virtual Machine Deployment': {
         'vcdriver_resource_pool': '',
         'vcdriver_data_store': '',
-        'vcdriver_data_store_threshold': '0',
+        'vcdriver_data_store_threshold':
+            DEFAULTS['vcdriver_data_store_threshold'],
         'vcdriver_folder': ''
     },
     'Virtual Machine Remote Management': {
@@ -63,9 +69,11 @@ def load(path=None):
             if path:
                 _config[section_key][config_key] = config.get(
                     section_key, config_key
-                ) or os.getenv(config_key, '')
+                ) or os.getenv(config_key, DEFAULTS.get(config_key))
             else:
-                _config[section_key][config_key] = os.getenv(config_key, '')
+                _config[section_key][config_key] = os.getenv(
+                    config_key, DEFAULTS.get(config_key)
+                )
 
 
 def configurable(section_keys):
