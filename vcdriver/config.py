@@ -5,17 +5,23 @@ import os
 from six.moves import configparser, input
 
 
-_config = {
+_DEFAULTS = {
+    'vcdriver_port': '443',
+    'vcdriver_data_store_threshold': '0'
+}
+
+_CONFIG = {
     'Vsphere Session': {
         'vcdriver_host': '',
-        'vcdriver_port': '443',
+        'vcdriver_port': _DEFAULTS['vcdriver_port'],
         'vcdriver_username': '',
         'vcdriver_password': ''
     },
     'Virtual Machine Deployment': {
         'vcdriver_resource_pool': '',
         'vcdriver_data_store': '',
-        'vcdriver_data_store_threshold': '0',
+        'vcdriver_data_store_threshold':
+            _DEFAULTS['vcdriver_data_store_threshold'],
         'vcdriver_folder': ''
     },
     'Virtual Machine Remote Management': {
@@ -26,15 +32,17 @@ _config = {
     }
 }
 
-SECRETS = {
+_SECRETS = {
     'vcdriver_password',
     'vcdriver_vm_ssh_password',
     'vcdriver_vm_winrm_password'
 }
 
+_config = copy.deepcopy(_CONFIG)
+
 
 def _get_input_function(key):
-    if key in SECRETS:
+    if key in _SECRETS:
         return getpass.getpass
     else:
         return input
@@ -63,9 +71,17 @@ def load(path=None):
             if path:
                 _config[section_key][config_key] = config.get(
                     section_key, config_key
-                ) or os.getenv(config_key, '')
+                ) or os.getenv(config_key, _DEFAULTS.get(config_key, ''))
             else:
-                _config[section_key][config_key] = os.getenv(config_key, '')
+                _config[section_key][config_key] = os.getenv(
+                    config_key, _DEFAULTS.get(config_key, '')
+                )
+
+
+def reset():
+    """ Reset configuration """
+    global _config
+    _config = copy.deepcopy(_CONFIG)
 
 
 def configurable(section_keys):
@@ -91,9 +107,10 @@ def configurable(section_keys):
                     if config_value:
                         kwargs[key] = config_value
                     else:
-                        missing_keys.append(key)
-            for key in missing_keys:
+                        missing_keys.append((section, key))
+            for section, key in missing_keys:
                 kwargs[key] = _get_input_function(key)('{}: '.format(key))
+                _config[section][key] = kwargs[key]
             return function(*args, **kwargs)
         return wrapper
     return decorator
