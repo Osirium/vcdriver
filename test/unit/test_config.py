@@ -4,7 +4,7 @@ import mock
 import pytest
 from six.moves import configparser
 
-from vcdriver.config import load, configurable, read
+from vcdriver.config import load, configurable, read, reset
 
 
 def require_nothing(**kwargs):
@@ -140,12 +140,13 @@ def test_read(config_files):
     }
 
 
-def test_configurable(config_files):
+def test_configurable_and_reset(config_files):
     load()
     require_nothing()
     with mock.patch('vcdriver.config.input') as input_mock:
         require_username()
         input_mock.assert_called_once()
+    reset()
     with mock.patch('vcdriver.config.input') as input_mock:
         with mock.patch('vcdriver.config.getpass.getpass') as getpass_mock:
             require_username_and_password()
@@ -156,6 +157,7 @@ def test_configurable(config_files):
     with mock.patch('vcdriver.config.input') as input_mock:
         require_username()
         input_mock.assert_called_once()
+    reset()
     with mock.patch('vcdriver.config.input') as input_mock:
         with mock.patch('vcdriver.config.getpass.getpass') as getpass_mock:
             require_username_and_password()
@@ -166,6 +168,7 @@ def test_configurable(config_files):
     with mock.patch('vcdriver.config.input') as input_mock:
         require_username()
         input_mock.assert_called_once()
+    reset()
     with mock.patch('vcdriver.config.input') as input_mock:
         with mock.patch('vcdriver.config.getpass.getpass') as getpass_mock:
             require_username_and_password()
@@ -185,6 +188,7 @@ def test_configurable(config_files):
     with mock.patch('vcdriver.config.input') as input_mock:
         require_username()
         input_mock.assert_called_once()
+    reset()
     with mock.patch('vcdriver.config.input') as input_mock:
         with mock.patch('vcdriver.config.getpass.getpass') as getpass_mock:
             require_username_and_password()
@@ -197,11 +201,13 @@ def test_configurable(config_files):
         with mock.patch('vcdriver.config.getpass.getpass') as getpass_mock:
             require_username_and_password()
             getpass_mock.assert_called_once()
+    reset()
     load()
     require_nothing()
     with mock.patch('vcdriver.config.input') as input_mock:
         require_username()
         input_mock.assert_called_once()
+    reset()
     with mock.patch('vcdriver.config.input') as input_mock:
         with mock.patch('vcdriver.config.getpass.getpass') as getpass_mock:
             require_username_and_password()
@@ -215,9 +221,11 @@ def test_configurable(config_files):
     os.environ['vcdriver_username'] = ''
     load()
     require_nothing()
+    reset()
     with mock.patch('vcdriver.config.input') as input_mock:
         require_username()
         input_mock.assert_called_once()
+    reset()
     with mock.patch('vcdriver.config.input') as input_mock:
         with mock.patch('vcdriver.config.getpass.getpass') as getpass_mock:
             require_username_and_password()
@@ -227,6 +235,8 @@ def test_configurable(config_files):
         vcdriver_username='Sinatra',
         vcdriver_password='myway'
     )
+    reset()
     with mock.patch('vcdriver.config.input') as input_mock:
-        require_bad_section()
+        with pytest.raises(KeyError):
+            require_bad_section()
         input_mock.assert_called_once()

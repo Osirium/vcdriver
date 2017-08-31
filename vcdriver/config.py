@@ -5,15 +5,15 @@ import os
 from six.moves import configparser, input
 
 
-DEFAULTS = {
+_DEFAULTS = {
     'vcdriver_port': '443',
     'vcdriver_data_store_threshold': '0'
 }
 
-_config = {
+_CONFIG = {
     'Vsphere Session': {
         'vcdriver_host': '',
-        'vcdriver_port': DEFAULTS['vcdriver_port'],
+        'vcdriver_port': _DEFAULTS['vcdriver_port'],
         'vcdriver_username': '',
         'vcdriver_password': ''
     },
@@ -21,7 +21,7 @@ _config = {
         'vcdriver_resource_pool': '',
         'vcdriver_data_store': '',
         'vcdriver_data_store_threshold':
-            DEFAULTS['vcdriver_data_store_threshold'],
+            _DEFAULTS['vcdriver_data_store_threshold'],
         'vcdriver_folder': ''
     },
     'Virtual Machine Remote Management': {
@@ -32,15 +32,17 @@ _config = {
     }
 }
 
-SECRETS = {
+_SECRETS = {
     'vcdriver_password',
     'vcdriver_vm_ssh_password',
     'vcdriver_vm_winrm_password'
 }
 
+_config = copy.deepcopy(_CONFIG)
+
 
 def _get_input_function(key):
-    if key in SECRETS:
+    if key in _SECRETS:
         return getpass.getpass
     else:
         return input
@@ -69,11 +71,17 @@ def load(path=None):
             if path:
                 _config[section_key][config_key] = config.get(
                     section_key, config_key
-                ) or os.getenv(config_key, DEFAULTS.get(config_key))
+                ) or os.getenv(config_key, _DEFAULTS.get(config_key, ''))
             else:
                 _config[section_key][config_key] = os.getenv(
-                    config_key, DEFAULTS.get(config_key)
+                    config_key, _DEFAULTS.get(config_key, '')
                 )
+
+
+def reset():
+    """ Reset configuration """
+    global _config
+    _config = copy.deepcopy(_CONFIG)
 
 
 def configurable(section_keys):
