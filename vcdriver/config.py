@@ -99,9 +99,10 @@ def configurable(section_keys):
                     if config_value:
                         kwargs[key] = config_value
                     else:
-                        missing_keys.append(key)
-            for key in missing_keys:
+                        missing_keys.append((section, key))
+            for section, key in missing_keys:
                 kwargs[key] = _get_input_function(key)('{}: '.format(key))
+                _config[section][key] = kwargs[key]
             return function(*args, **kwargs)
         return wrapper
     return decorator
