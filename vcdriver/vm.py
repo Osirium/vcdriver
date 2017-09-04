@@ -303,7 +303,7 @@ class VirtualMachine(object):
         ('Virtual Machine Remote Management', 'vcdriver_vm_winrm_username'),
         ('Virtual Machine Remote Management', 'vcdriver_vm_winrm_password')
     ])
-    def winrm(self, script, winrm_kwargs, **kwargs):
+    def winrm(self, script, winrm_kwargs=dict(), **kwargs):
         """
         Executes a remote windows powershell script
         :param script: A string with the powershell script
