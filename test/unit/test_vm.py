@@ -430,9 +430,12 @@ def test_virtual_machine_winrm_timeout(run_ps, connection):
 @mock.patch('vcdriver.vm.open')
 @mock.patch('vcdriver.vm.connection')
 @mock.patch.object(winrm.Session, 'run_ps')
-def test_virtual_machine_winrm_upload(run_ps, connection, open):
+def test_virtual_machine_winrm_upload_success(run_ps, connection, open):
+    code_mock = mock.Mock()
+    code_mock.status_code = 0
+    run_ps.return_value = code_mock
     read_mock = mock.Mock
-    read_mock.read = lambda x: b'\0\0'
+    read_mock.read = lambda x: b'\0\0\0'
     open.__enter__ = read_mock
     open.__exit__ = mock.Mock()
     os.environ['vcdriver_vm_winrm_username'] = 'user'
@@ -443,7 +446,29 @@ def test_virtual_machine_winrm_upload(run_ps, connection, open):
     vm_object_mock = mock.MagicMock()
     vm_object_mock.summary.guest.ipAddress = '127.0.0.1'
     vm.__setattr__('_vm_object', vm_object_mock)
-    assert vm.winrm_upload('whatever', 'whatever', step=1) is None
+    assert vm.winrm_upload('whatever', 'whatever', step=2) is None
+
+
+@mock.patch('vcdriver.vm.open')
+@mock.patch('vcdriver.vm.connection')
+@mock.patch.object(winrm.Session, 'run_ps')
+def test_virtual_machine_winrm_upload_fail(run_ps, connection, open):
+    code_mock = mock.Mock()
+    code_mock.status_code = 1
+    run_ps.return_value = code_mock
+    read_mock = mock.Mock
+    read_mock.read = lambda x: b'\0\0\0'
+    open.__enter__ = read_mock
+    open.__exit__ = mock.Mock()
+    os.environ['vcdriver_vm_winrm_username'] = 'user'
+    os.environ['vcdriver_vm_winrm_password'] = 'pass'
+    load()
+    vm = VirtualMachine()
+    vm_object_mock = mock.MagicMock()
+    vm_object_mock.summary.guest.ipAddress = '127.0.0.1'
+    vm.__setattr__('_vm_object', vm_object_mock)
+    with pytest.raises(WinRmError):
+        vm.winrm_upload('whatever', 'whatever', step=2)
 
 
 @mock.patch('vcdriver.vm.wait_for_vcenter_task')

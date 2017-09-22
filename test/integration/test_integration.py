@@ -2,6 +2,7 @@ import hashlib
 import os
 import shutil
 import socket
+import sys
 
 import pytest
 
@@ -11,7 +12,7 @@ from vcdriver.exceptions import (
     DownloadError,
     UploadError,
     SshError,
-    # WinRmError,
+    WinRmError,
     NotEnoughDiskSpace
 )
 from vcdriver.vm import (
@@ -27,7 +28,7 @@ from vcdriver.helpers import timeout_loop
 
 def touch(file_name):
     with open(file_name, 'wb') as f:
-        f.write("\0" * 50 * 1024)  # 50 kb files
+        f.write(b'\0' * 1024 * 5)  # 5 kb file
 
 
 def wait_for_power_state_or_die(vm_object, state):
@@ -190,22 +191,28 @@ def test_upload_and_download(files, vms):
 def test_winrm(files, vms):
     vms['windows'].create()
     vms['windows'].winrm('ipconfig /all')
-    with pytest.raises(Exception):
-        # FIXME:
-        # Due to this pywinrm bug: https://github.com/diyan/pywinrm/issues/111
-        # we cannot expect WinRmError, so we have to use the general Exception
-        vms['windows'].winrm('ipconfig-wrong /wrong')
-    vms['windows'].winrm_upload(
-        local_path='file-0',
-        remote_path='C:\\file-0'
-    )
-    with open('file-0', 'rb') as f:
-        expected_sha256 = hashlib.sha256(f.read()).hexdigest().upper()
-    _, resulted_sha256, _ = vms['windows'].winrm(
-        '$(Get-FileHash -Algorithm SHA256 C:\\file-0).hash'
-    )
-    assert expected_sha256 == str(resulted_sha256.strip())
-
+    # FIXME:
+    # Due to this pywinrm bug: https://github.com/diyan/pywinrm/issues/111
+    # we need to split the integration tests depending on the major version
+    # Python 2: Everything works as expected
+    # Python 3: Failed scripts throw TypeError instead of WinRmError
+    # Python 3: WinRM upload does not work :(
+    if sys.version_info[0] == 2:
+        with pytest.raises(WinRmError):
+            vms['windows'].winrm('ipconfig-wrong /wrong')
+        vms['windows'].winrm_upload(
+            local_path='file-0',
+            remote_path='C:\\file-0'
+        )
+        with open('file-0', 'rb') as f:
+            expected_sha256 = hashlib.sha256(f.read()).hexdigest().upper()
+        _, resulted_sha256, _ = vms['windows'].winrm(
+            '$(Get-FileHash -Algorithm SHA256 C:\\file-0).hash'
+        )
+        assert expected_sha256 == str(resulted_sha256.strip())
+    elif sys.version_info[0] == 3:
+        with pytest.raises(TypeError):
+            vms['windows'].winrm('ipconfig-wrong /wrong')
 
 def test_snapshots(vms):
     snapshot_name = 'test_snapshot'
