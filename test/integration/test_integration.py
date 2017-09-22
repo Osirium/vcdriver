@@ -214,6 +214,7 @@ def test_winrm(files, vms):
         with pytest.raises(TypeError):
             vms['windows'].winrm('ipconfig-wrong /wrong')
 
+
 def test_snapshots(vms):
     snapshot_name = 'test_snapshot'
     for vm in vms.values():
