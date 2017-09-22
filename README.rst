@@ -25,11 +25,11 @@ Vcdriver is a wrapper around pyvmomi that lets you manage virtual machines on yo
 
 - Snapshot management.
 
-- SSH protocol for remote commands (Only for Unix, Requires the SSH service).
+- Remote management:
 
-- SFTP protocol for file transfers (Only for Unix, Requires the SSH service).
-
-- WinRM protocol for remote commands on Windows machines (Only for Windows, requires the WinRM service).
+  - SSH protocol for remote commands (Requires the SSH service).
+  - SFTP protocol for file transfers (Requires the SSH service).
+  - WinRM protocol for remote commands and file transfer on Windows machines (Requires the WinRM service).
 
 How does it work underneath?
 ============================
