@@ -432,7 +432,7 @@ def test_virtual_machine_winrm_timeout(run_ps, connection):
 @mock.patch.object(winrm.Session, 'run_ps')
 def test_virtual_machine_winrm_upload(run_ps, connection, open):
     read_mock = mock.Mock
-    read_mock.read = lambda x: '\0\0'
+    read_mock.read = lambda x: b'\0\0'
     open.__enter__ = read_mock
     open.__exit__ = mock.Mock()
     os.environ['vcdriver_vm_winrm_username'] = 'user'
