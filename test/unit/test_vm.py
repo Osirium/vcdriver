@@ -427,6 +427,25 @@ def test_virtual_machine_winrm_timeout(run_ps, connection):
         vm.winrm('script', dict())
 
 
+@mock.patch('vcdriver.vm.open')
+@mock.patch('vcdriver.vm.connection')
+@mock.patch.object(winrm.Session, 'run_ps')
+def test_virtual_machine_winrm_upload(run_ps, connection, open):
+    read_mock = mock.Mock
+    read_mock.read = lambda x: '\0\0'
+    open.__enter__ = read_mock
+    open.__exit__ = mock.Mock()
+    os.environ['vcdriver_vm_winrm_username'] = 'user'
+    os.environ['vcdriver_vm_winrm_password'] = 'pass'
+    load()
+    vm = VirtualMachine()
+    assert vm.winrm_upload('whatever', 'whatever') is None
+    vm_object_mock = mock.MagicMock()
+    vm_object_mock.summary.guest.ipAddress = '127.0.0.1'
+    vm.__setattr__('_vm_object', vm_object_mock)
+    assert vm.winrm_upload('whatever', 'whatever', step=1) is None
+
+
 @mock.patch('vcdriver.vm.wait_for_vcenter_task')
 def test_virtual_machine_find_snapshot(wait_for_vcenter_task):
     fake_snapshots = [mock.MagicMock(), mock.MagicMock(), mock.MagicMock()]

@@ -360,32 +360,35 @@ class VirtualMachine(object):
 
         :return: A tuple with the status code, the stdout and the stderr
         """
-        winrm_session = winrm.Session(
-            target=self.ip(),
-            auth=(
-                kwargs['vcdriver_vm_winrm_username'],
-                kwargs['vcdriver_vm_winrm_password'],
-            ),
-            read_timeout_sec=self.timeout+1,
-            operation_timeout_sec=self.timeout,
-            **winrm_kwargs
-        )
-        with open(local_path, 'rb') as f:
-            contents = f.read()
-        for i in range(0, len(contents), step):
-            winrm_session.run_ps(
-                """
-$filePath = "{}"
-$s = @"
-{}
-"@
-$data = [System.Convert]::FromBase64String($s)
-add-content -value $data -encoding byte -path $filePath
-                """.format(remote_path, base64.b64encode(contents[i:i+step]))
+        if self._vm_object:
+            winrm_session = winrm.Session(
+                target=self.ip(),
+                auth=(
+                    kwargs['vcdriver_vm_winrm_username'],
+                    kwargs['vcdriver_vm_winrm_password'],
+                ),
+                read_timeout_sec=self.timeout+1,
+                operation_timeout_sec=self.timeout,
+                **winrm_kwargs
             )
-        print('{} -> {} WINRM transfer successful'.format(
-            local_path, remote_path
-        ))
+            with open(local_path, 'rb') as f:
+                contents = f.read()
+            for i in range(0, len(contents), step):
+                winrm_session.run_ps(
+                    """
+    $filePath = "{}"
+    $s = @"
+    {}
+    "@
+    $data = [System.Convert]::FromBase64String($s)
+    add-content -value $data -encoding byte -path $filePath
+                    """.format(
+                        remote_path, base64.b64encode(contents[i:i+step])
+                    )
+                )
+            print('{} -> {} WINRM transfer successful'.format(
+                local_path, remote_path
+            ))
 
     def find_snapshot(self, name):
         """
