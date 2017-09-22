@@ -1,3 +1,4 @@
+import base64
 import contextlib
 import os
 import uuid
@@ -341,6 +342,53 @@ class VirtualMachine(object):
                 raise WinRmError(script, status)
             else:
                 return status, stdout, stderr
+
+    @configurable([
+        ('Virtual Machine Remote Management', 'vcdriver_vm_winrm_username'),
+        ('Virtual Machine Remote Management', 'vcdriver_vm_winrm_password')
+    ])
+    def winrm_upload(
+            self, remote_path, local_path, step=1024, winrm_kwargs=dict(),
+            **kwargs
+    ):
+        """
+        Copy a file through winrm
+        :param remote_path: The remote location
+        :param local_path: The local local
+        :param step: Number of bytes to send in each chunk
+        :param winrm_kwargs: The pywinrm Protocol class kwargs
+
+        :return: A tuple with the status code, the stdout and the stderr
+        """
+        if self._vm_object:
+            winrm_session = winrm.Session(
+                target=self.ip(),
+                auth=(
+                    kwargs['vcdriver_vm_winrm_username'],
+                    kwargs['vcdriver_vm_winrm_password'],
+                ),
+                read_timeout_sec=self.timeout + 1,
+                operation_timeout_sec=self.timeout,
+                **winrm_kwargs
+            )
+            with open(local_path, 'rb') as f:
+                contents = f.read()
+            for i in range(0, len(contents), step):
+                winrm_session.run_ps(
+                    """
+    $filePath = "{}"
+    $s = @"
+    {}
+    "@
+    $data = [System.Convert]::FromBase64String($s)
+    add-content -value $data -encoding byte -path $filePath
+                    """.format(
+                        remote_path, base64.b64encode(contents[i:i + step])
+                    )
+                )
+            print('{} -> {} WINRM transfer successful'.format(
+                local_path, remote_path
+            ))
 
     def find_snapshot(self, name):
         """
