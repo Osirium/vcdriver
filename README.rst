@@ -10,9 +10,6 @@
 .. image:: https://img.shields.io/packagist/l/doctrine/orm.svg?style=flat
   :target: https://github.com/Lantero/vcdriver
 
-.. image:: https://img.shields.io/pypi/pyversions/Django.svg?style=flat
-  :target: https://github.com/Lantero/vcdriver
-
 *****
 About
 *****
