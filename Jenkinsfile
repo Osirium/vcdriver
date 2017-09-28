@@ -50,14 +50,14 @@ pipeline {
         stage('Unit Tests') {
             steps {
                 parallel(
-                    'Python2.7': { withPythonEnvironment(PYTHON_2_7_ENVIRONMENT_PATH, 'pytest -v --junitxml=unit-python-2.7.xml --cov=vcdriver --cov-fail-under 100 test/unit') },
-                    'python3.5': { withPythonEnvironment(PYTHON_3_5_ENVIRONMENT_PATH, 'pytest -v --junitxml=unit-python-3.5.xml --cov=vcdriver --cov-fail-under 100 test/unit') }
+                    'Python2.7': { withPythonEnvironment(PYTHON_2_7_ENVIRONMENT_PATH, 'pytest -v --junitxml=testing/unit/unit-python-2.7.xml --cov=vcdriver --cov-fail-under 100 test/unit') },
+                    'python3.5': { withPythonEnvironment(PYTHON_3_5_ENVIRONMENT_PATH, 'pytest -v --junitxml=testing/unit/unit-python-3.5.xml --cov=vcdriver --cov-fail-under 100 test/unit') }
                 )
             }
             post {
                 always {
-                    junit 'unit-python-2.7.xml'
-                    junit 'unit-python-3.5.xml'
+                    junit 'testing/unit/unit-python-2.7.xml'
+                    junit 'testing/unit/unit-python-3.5.xml'
                 }
             }
         }
@@ -70,7 +70,7 @@ pipeline {
                             withVcdriverConfig {
                                 withPythonEnvironment(
                                     PYTHON_2_7_ENVIRONMENT_PATH,
-                                    'vcdriver_test_folder="Vcdriver Tests Python 2.7" pytest -v -s --junitxml=integration-python-2.7.xml test/integration'
+                                    'vcdriver_test_folder="Vcdriver Tests Python 2.7" pytest -v -s --junitxml=../integration-python-2.7.xml ../'
                                 )
                             }
                         }
@@ -80,7 +80,7 @@ pipeline {
                             withVcdriverConfig {
                                 withPythonEnvironment(
                                     PYTHON_3_5_ENVIRONMENT_PATH,
-                                    'vcdriver_test_folder="Vcdriver Tests Python 3.5" pytest -v -s --junitxml=integration-python-3.5.xml test/integration'
+                                    'vcdriver_test_folder="Vcdriver Tests Python 3.5" pytest -v -s --junitxml=../integration-python-3.5.xml ../'
                                 )
                             }
                         }
@@ -89,8 +89,8 @@ pipeline {
             }
             post {
                 always {
-                    junit 'integration-python-2.7.xml'
-                    junit 'integration-python-3.5.xml'
+                    junit 'testing/integration/integration-python-2.7.xml'
+                    junit 'testing/integration/integration-python-3.5.xml'
                 }
             }
         }
