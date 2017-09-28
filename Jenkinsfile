@@ -66,7 +66,7 @@ pipeline {
             steps {
                 parallel(
                     'Python2.7': {
-                        cd('testing/integration/Python2.7') {
+                        dir('testing/integration/Python2.7') {
                             withVcdriverConfig {
                                 withPythonEnvironment(
                                     PYTHON_2_7_ENVIRONMENT_PATH,
@@ -76,7 +76,7 @@ pipeline {
                         }
                     },
                     'python3.5': {
-                        cd('testing/integration/Python3.5') {
+                        dir('testing/integration/Python3.5') {
                             withVcdriverConfig {
                                 withPythonEnvironment(
                                     PYTHON_3_5_ENVIRONMENT_PATH,
