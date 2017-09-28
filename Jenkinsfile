@@ -65,8 +65,8 @@ pipeline {
         stage('Integration Tests') {
             steps {
                 parallel(
-                    'Python2.7': { withPythonEnvironment(PYTHON_2_7_ENVIRONMENT_PATH, 'vcdriver_test_folder="Vcdriver Tests Python 2.7" pytest -v -s --junitxml=integration-python-2.7.xml test/integration') },
-                    'python3.5': { withPythonEnvironment(PYTHON_3_5_ENVIRONMENT_PATH, 'vcdriver_test_folder="Vcdriver Tests Python 3.5" pytest -v -s --junitxml=integration-python-3.5.xml test/integration') }
+                    'Python2.7': { withVcdriverConfig { withPythonEnvironment(PYTHON_2_7_ENVIRONMENT_PATH, 'vcdriver_test_folder="Vcdriver Tests Python 2.7" pytest -v -s --junitxml=integration-python-2.7.xml test/integration') } },
+                    'python3.5': { withVcdriverConfig { withPythonEnvironment(PYTHON_3_5_ENVIRONMENT_PATH, 'vcdriver_test_folder="Vcdriver Tests Python 3.5" pytest -v -s --junitxml=integration-python-3.5.xml test/integration') } }
                 )
             }
             post {
