@@ -47,7 +47,7 @@ pipeline {
             }
         }
 
-        stage('Unit Tests) {
+        stage('Unit Tests') {
             steps {
                 parallel(
                     'Python2.7': { withPythonEnvironment(PYTHON_2_7_ENVIRONMENT_PATH, 'pytest -v --junitxml=unit-python-2.7.xml --cov=vcdriver --cov-fail-under 100 test/unit') },
@@ -62,7 +62,7 @@ pipeline {
             }
         }
 
-        stage('Integration Tests) {
+        stage('Integration Tests') {
             steps {
                 parallel(
                     'Python2.7': { withPythonEnvironment(PYTHON_2_7_ENVIRONMENT_PATH, 'vcdriver_test_folder="Vcdriver Tests Python 2.7" pytest -v -s --junitxml=integration-python-2.7.xml test/integration') },
