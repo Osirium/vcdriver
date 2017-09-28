@@ -51,18 +51,18 @@ pipeline {
             steps {
                 parallel(
                     'Python2.7': {
-                        dir('testing/unit/Python2.7') {
+                        dir('test/unit/Python2.7') {
                             withPythonEnvironment(
                                 PYTHON_2_7_ENVIRONMENT_PATH,
-                                'pytest -v --junitxml=testing/unit/unit-python-2.7.xml --cov=vcdriver --cov-fail-under 100 test/unit'
+                                'pytest -v --junitxml=../unit-python-2.7.xml --cov=vcdriver --cov-fail-under 100 ../'
                             )
                         }
                     },
                     'python3.5': {
-                        dir('testing/unit/Python3.5') {
+                        dir('test/unit/Python3.5') {
                             withPythonEnvironment(
                                 PYTHON_3_5_ENVIRONMENT_PATH,
-                                'pytest -v --junitxml=testing/unit/unit-python-3.5.xml --cov=vcdriver --cov-fail-under 100 test/unit'
+                                'pytest -v --junitxml=../unit-python-3.5.xml --cov=vcdriver --cov-fail-under 100 ../'
                             )
                         }
                     }
@@ -70,8 +70,8 @@ pipeline {
             }
             post {
                 always {
-                    junit 'testing/unit/unit-python-2.7.xml'
-                    junit 'testing/unit/unit-python-3.5.xml'
+                    junit 'test/unit/unit-python-2.7.xml'
+                    junit 'test/unit/unit-python-3.5.xml'
                 }
             }
         }
@@ -80,7 +80,7 @@ pipeline {
             steps {
                 parallel(
                     'Python2.7': {
-                        dir('testing/integration/Python2.7') {
+                        dir('test/integration/Python2.7') {
                             withVcdriverConfig {
                                 withPythonEnvironment(
                                     PYTHON_2_7_ENVIRONMENT_PATH,
@@ -90,7 +90,7 @@ pipeline {
                         }
                     },
                     'python3.5': {
-                        dir('testing/integration/Python3.5') {
+                        dir('test/integration/Python3.5') {
                             withVcdriverConfig {
                                 withPythonEnvironment(
                                     PYTHON_3_5_ENVIRONMENT_PATH,
@@ -103,8 +103,8 @@ pipeline {
             }
             post {
                 always {
-                    junit 'testing/integration/integration-python-2.7.xml'
-                    junit 'testing/integration/integration-python-3.5.xml'
+                    junit 'test/integration/integration-python-2.7.xml'
+                    junit 'test/integration/integration-python-3.5.xml'
                 }
             }
         }
