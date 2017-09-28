@@ -33,7 +33,7 @@ def touch(file_name):
 
 def wait_for_power_state_or_die(vm_object, state):
     timeout_loop(
-        30, '', 1, True, lambda: vm_object.summary.runtime.powerState == state
+        300, '', 1, True, lambda: vm_object.summary.runtime.powerState == state
     )
 
 
