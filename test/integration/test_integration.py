@@ -71,14 +71,15 @@ def files():
             pass
 
 
-def test_ip(vms):
-    for vm in vms.values():
-        socket.inet_aton(vm.ip())
-
-
+@pytest.mark.xfail(reason='Jenkins AD user should not be allowed to do this')
 def test_autostart(vms):
     for vm in vms.values():
         vm.set_autostart()
+
+
+def test_ip(vms):
+    for vm in vms.values():
+        socket.inet_aton(vm.ip())
 
 
 def test_ssh(vms):
