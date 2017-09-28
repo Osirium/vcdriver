@@ -39,6 +39,7 @@ def wait_for_power_state_or_die(vm_object, state):
 
 @pytest.fixture(scope='module')
 def vms():
+    os.environ['vcdriver_folder'] = os.getenv('vcdriver_test_folder')
     load(os.getenv('vcdriver_test_config_file'))
     unix = VirtualMachine(template=os.getenv('vcdriver_test_unix_template'))
     windows = VirtualMachine(
