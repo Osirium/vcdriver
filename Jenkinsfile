@@ -50,8 +50,22 @@ pipeline {
         stage('Unit Tests') {
             steps {
                 parallel(
-                    'Python2.7': { withPythonEnvironment(PYTHON_2_7_ENVIRONMENT_PATH, 'pytest -v --junitxml=testing/unit/unit-python-2.7.xml --cov=vcdriver --cov-fail-under 100 test/unit') },
-                    'python3.5': { withPythonEnvironment(PYTHON_3_5_ENVIRONMENT_PATH, 'pytest -v --junitxml=testing/unit/unit-python-3.5.xml --cov=vcdriver --cov-fail-under 100 test/unit') }
+                    'Python2.7': {
+                        dir('testing/unit/Python2.7') {
+                            withPythonEnvironment(
+                                PYTHON_2_7_ENVIRONMENT_PATH,
+                                'pytest -v --junitxml=testing/unit/unit-python-2.7.xml --cov=vcdriver --cov-fail-under 100 test/unit'
+                            )
+                        }
+                    },
+                    'python3.5': {
+                        dir('testing/unit/Python3.5') {
+                            withPythonEnvironment(
+                                PYTHON_3_5_ENVIRONMENT_PATH,
+                                'pytest -v --junitxml=testing/unit/unit-python-3.5.xml --cov=vcdriver --cov-fail-under 100 test/unit'
+                            )
+                        }
+                    }
                 )
             }
             post {
