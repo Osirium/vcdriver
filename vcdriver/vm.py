@@ -38,7 +38,7 @@ from vcdriver.helpers import (
 class VirtualMachine(object):
     def __init__(
             self,
-            name=str(uuid.uuid4()),
+            name=None,
             template=None,
             timeout=3600
     ):
@@ -49,7 +49,7 @@ class VirtualMachine(object):
 
         _vm_object: An internal instance of the vcenter vm object
         """
-        self.name = name
+        self.name = name or str(uuid.uuid4())
         self.template = template
         self.timeout = timeout
         self._vm_object = None
