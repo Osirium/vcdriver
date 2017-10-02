@@ -427,15 +427,21 @@ def test_virtual_machine_winrm_timeout(run_ps, connection):
         vm.winrm('script', dict())
 
 
+@mock.patch('vcdriver.vm.os.stat')
 @mock.patch('vcdriver.vm.open')
 @mock.patch('vcdriver.vm.connection')
 @mock.patch.object(winrm.Session, 'run_ps')
-def test_virtual_machine_winrm_upload_success(run_ps, connection, open):
+def test_virtual_machine_winrm_upload_success(
+        run_ps, connection, open, os_stat
+):
+    st_size_mock = mock.Mock()
+    st_size_mock.st_size = 3
+    os_stat.return_value = st_size_mock
     code_mock = mock.Mock()
     code_mock.status_code = 0
     run_ps.return_value = code_mock
     read_mock = mock.Mock
-    read_mock.read = lambda x: b'\0\0\0'
+    read_mock.read = lambda x, y: b'\0\0\0'
     open.__enter__ = read_mock
     open.__exit__ = mock.Mock()
     os.environ['vcdriver_vm_winrm_username'] = 'user'
@@ -449,15 +455,19 @@ def test_virtual_machine_winrm_upload_success(run_ps, connection, open):
     assert vm.winrm_upload('whatever', 'whatever', step=2) is None
 
 
+@mock.patch('vcdriver.vm.os.stat')
 @mock.patch('vcdriver.vm.open')
 @mock.patch('vcdriver.vm.connection')
 @mock.patch.object(winrm.Session, 'run_ps')
-def test_virtual_machine_winrm_upload_fail(run_ps, connection, open):
+def test_virtual_machine_winrm_upload_fail(run_ps, connection, open, os_stat):
+    st_size_mock = mock.Mock()
+    st_size_mock.st_size = 3
+    os_stat.return_value = st_size_mock
     code_mock = mock.Mock()
     code_mock.status_code = 1
     run_ps.return_value = code_mock
     read_mock = mock.Mock
-    read_mock.read = lambda x: b'\0\0\0'
+    read_mock.read = lambda x, y: b'\0\0\0'
     open.__enter__ = read_mock
     open.__exit__ = mock.Mock()
     os.environ['vcdriver_vm_winrm_username'] = 'user'

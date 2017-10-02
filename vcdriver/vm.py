@@ -374,43 +374,44 @@ class VirtualMachine(object):
                 operation_timeout_sec=self.timeout,
                 **winrm_kwargs
             )
-            with open(local_path, 'rb') as f:
-                contents = f.read()
-                size = len(contents)
+            size = os.stat(local_path).st_size
             winrm_session.run_ps(
                 'if (Test-Path {0}) {{ Remove-Item {0} }}'.format(remote_path)
             )
-            for i in range(0, size, step):
-                script = (
-                    'add-content -value '
-                    '$([System.Convert]::FromBase64String("{}")) '
-                    '-encoding byte -path {}'.format(
-                        base64.b64encode(contents[i:i + step]),
-                        remote_path
+            with open(local_path, 'rb') as f:
+                for i in range(0, size, step):
+                    script = (
+                        'add-content -value '
+                        '$([System.Convert]::FromBase64String("{}")) '
+                        '-encoding byte -path {}'.format(
+                            base64.b64encode(f.read(step)),
+                            remote_path
+                        )
                     )
-                )
-                result = winrm_session.run_ps(script)
-                status_code = result.status_code
-                if status_code != 0:
-                    raise WinRmError(script, status_code)
-                transferred = i + step
-                if transferred > size:
-                    transferred = size
-                progress_blocks = transferred * 30 // size
-                percentage_string = str((100 * transferred) // size) + ' %'
-                percentage_string = (
-                    ' ' * (5 - len(percentage_string)) + percentage_string
-                )
-                print(
-                    '\r{} ... [{}{}] {}'.format(
-                        'Copying "{}" to "{}"'.format(local_path, remote_path),
-                        '=' * progress_blocks,
-                        ' ' * (30 - progress_blocks),
-                        percentage_string
-                    ),
-                    end=''
-                )
-                sys.stdout.flush()
+                    result = winrm_session.run_ps(script)
+                    status_code = result.status_code
+                    if status_code != 0:
+                        raise WinRmError(script, status_code)
+                    transferred = i + step
+                    if transferred > size:
+                        transferred = size
+                    progress_blocks = transferred * 30 // size
+                    percentage_string = str((100 * transferred) // size) + ' %'
+                    percentage_string = (
+                        ' ' * (5 - len(percentage_string)) + percentage_string
+                    )
+                    print(
+                        '\r{} ... [{}{}] {}'.format(
+                            'Copying "{}" to "{}"'.format(
+                                local_path, remote_path
+                            ),
+                            '=' * progress_blocks,
+                            ' ' * (30 - progress_blocks),
+                            percentage_string
+                        ),
+                        end=''
+                    )
+                    sys.stdout.flush()
             print('')
 
     def find_snapshot(self, name):
