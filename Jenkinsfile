@@ -45,6 +45,13 @@ pipeline {
 
     stages {
 
+        stage('Cleanup') {
+            steps {
+                sh 'git reset --hard'
+                sh 'git clean -dfx'
+            }
+        }
+
         stage('Setup') {
             steps {
                 parallel(
