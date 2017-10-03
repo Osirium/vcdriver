@@ -4,6 +4,7 @@ import base64
 import contextlib
 import os
 import sys
+import time
 import uuid
 
 from colorama import Style, Fore
@@ -20,7 +21,8 @@ from vcdriver.exceptions import (
     DownloadError,
     NoObjectFound,
     TooManyObjectsFound,
-    NotEnoughDiskSpace
+    NotEnoughDiskSpace,
+    TimeoutError
 )
 from vcdriver.helpers import (
     get_all_vcenter_objects,
@@ -367,6 +369,7 @@ class VirtualMachine(object):
                 'if (Test-Path {0}) {{ Remove-Item {0} }}'.format(remote_path)
             )
             size = os.stat(local_path).st_size
+            start = time.time()
             with open(local_path, 'rb') as f:
                 for i in range(0, size, step):
                     script = (
@@ -377,11 +380,21 @@ class VirtualMachine(object):
                             remote_path
                         )
                     )
-                    code, stdout, stderr = self._run_winrm_ps(
-                        winrm_session, script
-                    )
-                    if code != 0:
-                        raise WinRmError(script, code, stdout, stderr)
+                    while True:
+                        code, stdout, stderr = self._run_winrm_ps(
+                            winrm_session, script
+                        )
+                        if time.time() - start >= self.timeout:
+                            raise TimeoutError(
+                                'WinRM upload file transfer', self.timeout
+                            )
+                        if code == 0:
+                            break
+                        elif code == 1 and 'used by another process' in stderr:
+                            # Small delay so previous write can settle down
+                            time.sleep(0.1)
+                        else:
+                            raise WinRmError(script, code, stdout, stderr)
                     transferred = i + step
                     if transferred > size:
                         transferred = size
