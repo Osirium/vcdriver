@@ -55,7 +55,7 @@ pipeline {
                         dir('test/unit/Python2.7') {
                             withPythonEnvironment(
                                 PYTHON_2_7_ENVIRONMENT_PATH,
-                                'pytest -v --junitxml=../unit-python-2.7.xml --cov=vcdriver --cov-fail-under 100 ../'
+                                'pytest -v --junitxml=../unit-python-2.7.xml --cov=vcdriver --cov-report html --cov-fail-under 100 ../'
                             )
                         }
                     },
@@ -71,6 +71,14 @@ pipeline {
             }
             post {
                 always {
+                    publishHTML target: [
+                        allowMissing: true,
+                        alwaysLinkToLastBuild: false,
+                        keepAll: true,
+                        reportDir: 'testing/unit/Python2.7/htmlcov',
+                        reportFiles: 'index.html',
+                        reportName: 'UT Coverage'
+                    ]
                     junit 'test/unit/unit-python-2.7.xml'
                     junit 'test/unit/unit-python-3.5.xml'
                 }
@@ -85,7 +93,7 @@ pipeline {
                             withVcdriverConfig {
                                 withPythonEnvironment(
                                     PYTHON_2_7_ENVIRONMENT_PATH,
-                                    'vcdriver_test_folder="Vcdriver Tests Python 2.7" pytest -v -s --junitxml=../integration-python-2.7.xml ../'
+                                    'vcdriver_test_folder="Vcdriver Tests Python 2.7" pytest -v -s --junitxml=../integration-python-2.7.xml --cov=vcdriver --cov-report html ../'
                                 )
                             }
                         }
@@ -104,6 +112,14 @@ pipeline {
             }
             post {
                 always {
+                    publishHTML target: [
+                        allowMissing: true,
+                        alwaysLinkToLastBuild: false,
+                        keepAll: true,
+                        reportDir: 'testing/integration/Python2.7/htmlcov',
+                        reportFiles: 'index.html',
+                        reportName: 'IT Coverage'
+                    ]
                     junit 'test/integration/integration-python-2.7.xml'
                     junit 'test/integration/integration-python-3.5.xml'
                 }
