@@ -323,21 +323,14 @@ class VirtualMachine(object):
                 kwargs['vcdriver_vm_winrm_password'],
                 **winrm_kwargs
             )
+            winrm_session = self._open_winrm_session(
+                kwargs['vcdriver_vm_winrm_username'],
+                kwargs['vcdriver_vm_winrm_password'],
+                winrm_kwargs
+            )
             print('Executing remotely on {} ...'.format(self.ip()))
             styled_print(Style.DIM)(script)
-            result = winrm.Session(
-                target=self.ip(),
-                auth=(
-                    kwargs['vcdriver_vm_winrm_username'],
-                    kwargs['vcdriver_vm_winrm_password'],
-                ),
-                read_timeout_sec=self.timeout+1,
-                operation_timeout_sec=self.timeout,
-                **winrm_kwargs
-            ).run_ps(script)
-            status = result.status_code
-            stdout = result.std_out.decode('ascii')
-            stderr = result.std_err.decode('ascii')
+            status, stdout, stderr = self._run_winrm_ps(winrm_session, script)
             styled_print(Style.BRIGHT)('CODE: {}'.format(status))
             styled_print(Fore.GREEN)(stdout)
             if status != 0:
@@ -364,20 +357,16 @@ class VirtualMachine(object):
         :return: A tuple with the status code, the stdout and the stderr
         """
         if self._vm_object:
-            winrm_session = winrm.Session(
-                target=self.ip(),
-                auth=(
-                    kwargs['vcdriver_vm_winrm_username'],
-                    kwargs['vcdriver_vm_winrm_password'],
-                ),
-                read_timeout_sec=self.timeout + 1,
-                operation_timeout_sec=self.timeout,
-                **winrm_kwargs
+            winrm_session = self._open_winrm_session(
+                kwargs['vcdriver_vm_winrm_username'],
+                kwargs['vcdriver_vm_winrm_password'],
+                winrm_kwargs
             )
-            size = os.stat(local_path).st_size
-            winrm_session.run_ps(
+            self._run_winrm_ps(
+                winrm_session,
                 'if (Test-Path {0}) {{ Remove-Item {0} }}'.format(remote_path)
             )
+            size = os.stat(local_path).st_size
             with open(local_path, 'rb') as f:
                 for i in range(0, size, step):
                     script = (
@@ -388,10 +377,9 @@ class VirtualMachine(object):
                             remote_path
                         )
                     )
-                    result = winrm_session.run_ps(script)
-                    code = result.status_code
-                    stdout = result.std_out.decode('ascii')
-                    stderr = result.std_err.decode('ascii')
+                    code, stdout, stderr = self._run_winrm_ps(
+                        winrm_session, script
+                    )
                     if code != 0:
                         raise WinRmError(script, code, stdout, stderr)
                     transferred = i + step
@@ -523,6 +511,23 @@ class VirtualMachine(object):
             )
         )
 
+    def _open_winrm_session(self, username, password, winrm_kwargs):
+        """
+        Open a WinRM session
+        :param username: The winrm username
+        :param password: The winrm password
+        :param winrm_kwargs: The pywinrm Protocol class kwargs
+
+        :return: Return the winrm session
+        """
+        return winrm.Session(
+            target=self.ip(),
+            auth=(username, password),
+            read_timeout_sec=self.timeout+1,
+            operation_timeout_sec=self.timeout,
+            **winrm_kwargs
+        )
+
     def _wait_for_ssh_service(self, username, password):
         """
         Wait until ssh service is ready
@@ -572,6 +577,22 @@ class VirtualMachine(object):
                 cls._get_snapshots_by_name(snapshot.childSnapshotList, name)
             )
         return found_snapshots
+
+    @staticmethod
+    def _run_winrm_ps(pywinrm_session, script):
+        """
+        Run a powershell script
+        :param pywinrm_session: The WinRM session
+        :param script: The script to be run
+
+        :return: A tuple with the status, stdout and stderr
+        """
+        result = pywinrm_session.run_ps(script)
+        return (
+            result.status_code,
+            result.std_out.decode('ascii'),
+            result.std_err.decode('ascii')
+        )
 
     def __str__(self):
         return str(self.name)
