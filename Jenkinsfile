@@ -32,6 +32,12 @@ pipeline {
         cron(CRON_STRING)
     }
 
+    options {
+        buildDiscarder(logRotator(numToKeepStr: '20'))
+        disableConcurrentBuilds()
+        timeout(time: 2, unit: 'HOURS')
+    }
+
     environment {
         vcdriver_test_unix_template = 'Ubuntu-14.04-32bit'
         vcdriver_test_windows_template = 'Windows-Server-2012'
