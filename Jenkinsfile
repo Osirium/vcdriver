@@ -1,5 +1,6 @@
 PYTHON_2_7_ENVIRONMENT_PATH = '/home/osiriumbot/.vcdriver-pyenv2/'
 PYTHON_3_5_ENVIRONMENT_PATH = '/home/osiriumbot/.vcdriver-pyenv3/'
+CRON_STRING = env.BRANCH_NAME == 'master' ? "0 0 * * *" : ""
 
 def withPythonEnvironment(path, command) {
     sh '. ' + path + 'bin/activate && ' + command
@@ -28,7 +29,7 @@ pipeline {
     }
 
     triggers {
-        cron("0 0 * * *")
+        cron(CRON_STRING)
     }
 
     environment {
