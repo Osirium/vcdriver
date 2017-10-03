@@ -224,7 +224,7 @@ class VirtualMachine(object):
                 else:
                     result = run(command)
                 if result.failed:
-                    raise SshError(command, result.return_code)
+                    raise SshError(command, result.return_code, result.stdout)
                 return result
 
     @configurable([
@@ -342,7 +342,7 @@ class VirtualMachine(object):
             styled_print(Fore.GREEN)(stdout)
             if status != 0:
                 styled_print(Fore.RED)(stderr)
-                raise WinRmError(script, status)
+                raise WinRmError(script, status, stdout, stderr)
             else:
                 return status, stdout, stderr
 
@@ -389,9 +389,11 @@ class VirtualMachine(object):
                         )
                     )
                     result = winrm_session.run_ps(script)
-                    status_code = result.status_code
-                    if status_code != 0:
-                        raise WinRmError(script, status_code)
+                    code = result.status_code
+                    stdout = result.std_out.decode('ascii')
+                    stderr = result.std_err.decode('ascii')
+                    if code != 0:
+                        raise WinRmError(script, code, stdout, stderr)
                     transferred = i + step
                     if transferred > size:
                         transferred = size
