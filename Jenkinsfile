@@ -88,7 +88,7 @@ pipeline {
                         allowMissing: true,
                         alwaysLinkToLastBuild: false,
                         keepAll: true,
-                        reportDir: 'testing/unit/Python2.7/htmlcov',
+                        reportDir: 'test/unit/Python2.7/htmlcov',
                         reportFiles: 'index.html',
                         reportName: 'UT Coverage'
                     ]
@@ -129,7 +129,7 @@ pipeline {
                         allowMissing: true,
                         alwaysLinkToLastBuild: false,
                         keepAll: true,
-                        reportDir: 'testing/integration/Python2.7/htmlcov',
+                        reportDir: 'test/integration/Python2.7/htmlcov',
                         reportFiles: 'index.html',
                         reportName: 'IT Coverage'
                     ]
