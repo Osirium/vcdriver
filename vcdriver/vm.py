@@ -1,5 +1,10 @@
+from __future__ import print_function
+
+import base64
 import contextlib
 import os
+import sys
+import time
 import uuid
 
 from colorama import Style, Fore
@@ -16,7 +21,8 @@ from vcdriver.exceptions import (
     DownloadError,
     NoObjectFound,
     TooManyObjectsFound,
-    NotEnoughDiskSpace
+    NotEnoughDiskSpace,
+    TimeoutError
 )
 from vcdriver.helpers import (
     get_all_vcenter_objects,
@@ -27,14 +33,14 @@ from vcdriver.helpers import (
     wait_for_vcenter_task,
     fabric_context,
     check_ssh_service,
-    check_winrm_service
+    check_winrm_service,
 )
 
 
 class VirtualMachine(object):
     def __init__(
             self,
-            name=str(uuid.uuid4()),
+            name=None,
             template=None,
             timeout=3600
     ):
@@ -45,7 +51,7 @@ class VirtualMachine(object):
 
         _vm_object: An internal instance of the vcenter vm object
         """
-        self.name = name
+        self.name = name or str(uuid.uuid4())
         self.template = template
         self.timeout = timeout
         self._vm_object = None
@@ -220,7 +226,7 @@ class VirtualMachine(object):
                 else:
                     result = run(command)
                 if result.failed:
-                    raise SshError(command, result.return_code)
+                    raise SshError(command, result.return_code, result.stdout)
                 return result
 
     @configurable([
@@ -319,28 +325,97 @@ class VirtualMachine(object):
                 kwargs['vcdriver_vm_winrm_password'],
                 **winrm_kwargs
             )
+            winrm_session = self._open_winrm_session(
+                kwargs['vcdriver_vm_winrm_username'],
+                kwargs['vcdriver_vm_winrm_password'],
+                winrm_kwargs
+            )
             print('Executing remotely on {} ...'.format(self.ip()))
             styled_print(Style.DIM)(script)
-            result = winrm.Session(
-                target=self.ip(),
-                auth=(
-                    kwargs['vcdriver_vm_winrm_username'],
-                    kwargs['vcdriver_vm_winrm_password'],
-                ),
-                read_timeout_sec=self.timeout+1,
-                operation_timeout_sec=self.timeout,
-                **winrm_kwargs
-            ).run_ps(script)
-            status = result.status_code
-            stdout = result.std_out.decode('ascii')
-            stderr = result.std_err.decode('ascii')
+            status, stdout, stderr = self._run_winrm_ps(winrm_session, script)
             styled_print(Style.BRIGHT)('CODE: {}'.format(status))
             styled_print(Fore.GREEN)(stdout)
             if status != 0:
                 styled_print(Fore.RED)(stderr)
-                raise WinRmError(script, status)
+                raise WinRmError(script, status, stdout, stderr)
             else:
                 return status, stdout, stderr
+
+    @configurable([
+        ('Virtual Machine Remote Management', 'vcdriver_vm_winrm_username'),
+        ('Virtual Machine Remote Management', 'vcdriver_vm_winrm_password')
+    ])
+    def winrm_upload(
+            self, remote_path, local_path, step=1024, winrm_kwargs=dict(),
+            **kwargs
+    ):
+        """
+        Copy a file through winrm
+        :param remote_path: The remote location
+        :param local_path: The local local
+        :param step: Number of bytes to send in each chunk
+        :param winrm_kwargs: The pywinrm Protocol class kwargs
+
+        :return: A tuple with the status code, the stdout and the stderr
+        """
+        if self._vm_object:
+            winrm_session = self._open_winrm_session(
+                kwargs['vcdriver_vm_winrm_username'],
+                kwargs['vcdriver_vm_winrm_password'],
+                winrm_kwargs
+            )
+            self._run_winrm_ps(
+                winrm_session,
+                'if (Test-Path {0}) {{ Remove-Item {0} }}'.format(remote_path)
+            )
+            size = os.stat(local_path).st_size
+            start = time.time()
+            with open(local_path, 'rb') as f:
+                for i in range(0, size, step):
+                    script = (
+                        'add-content -value '
+                        '$([System.Convert]::FromBase64String("{}")) '
+                        '-encoding byte -path {}'.format(
+                            base64.b64encode(f.read(step)),
+                            remote_path
+                        )
+                    )
+                    while True:
+                        code, stdout, stderr = self._run_winrm_ps(
+                            winrm_session, script
+                        )
+                        if time.time() - start >= self.timeout:
+                            raise TimeoutError(
+                                'WinRM upload file transfer', self.timeout
+                            )
+                        if code == 0:
+                            break
+                        elif code == 1 and 'used by another process' in stderr:
+                            # Small delay so previous write can settle down
+                            time.sleep(0.1)
+                        else:
+                            raise WinRmError(script, code, stdout, stderr)
+                    transferred = i + step
+                    if transferred > size:
+                        transferred = size
+                    progress_blocks = transferred * 30 // size
+                    percentage_string = str((100 * transferred) // size) + ' %'
+                    percentage_string = (
+                        ' ' * (5 - len(percentage_string)) + percentage_string
+                    )
+                    print(
+                        '\r{} ... [{}{}] {}'.format(
+                            'Copying "{}" to "{}"'.format(
+                                local_path, remote_path
+                            ),
+                            '=' * progress_blocks,
+                            ' ' * (30 - progress_blocks),
+                            percentage_string
+                        ),
+                        end=''
+                    )
+                    sys.stdout.flush()
+            print('')
 
     def find_snapshot(self, name):
         """
@@ -449,6 +524,23 @@ class VirtualMachine(object):
             )
         )
 
+    def _open_winrm_session(self, username, password, winrm_kwargs):
+        """
+        Open a WinRM session
+        :param username: The winrm username
+        :param password: The winrm password
+        :param winrm_kwargs: The pywinrm Protocol class kwargs
+
+        :return: Return the winrm session
+        """
+        return winrm.Session(
+            target=self.ip(),
+            auth=(username, password),
+            read_timeout_sec=self.timeout+1,
+            operation_timeout_sec=self.timeout,
+            **winrm_kwargs
+        )
+
     def _wait_for_ssh_service(self, username, password):
         """
         Wait until ssh service is ready
@@ -498,6 +590,22 @@ class VirtualMachine(object):
                 cls._get_snapshots_by_name(snapshot.childSnapshotList, name)
             )
         return found_snapshots
+
+    @staticmethod
+    def _run_winrm_ps(pywinrm_session, script):
+        """
+        Run a powershell script
+        :param pywinrm_session: The WinRM session
+        :param script: The script to be run
+
+        :return: A tuple with the status, stdout and stderr
+        """
+        result = pywinrm_session.run_ps(script)
+        return (
+            result.status_code,
+            result.std_out.decode('ascii'),
+            result.std_err.decode('ascii')
+        )
 
     def __str__(self):
         return str(self.name)
