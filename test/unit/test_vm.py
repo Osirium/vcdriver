@@ -275,6 +275,7 @@ def test_virtual_machine_ssh_success(helpers_run, vm_run, sudo, connection):
     sudo.return_value = result_mock
     assert vm.ssh('whatever', use_sudo=False).return_code == 3
     assert vm.ssh('whatever', use_sudo=True).return_code == 3
+    assert vm.ssh('whatever', quiet=True).return_code == 3
 
 
 @mock.patch('vcdriver.vm.connection')
@@ -314,26 +315,29 @@ def test_virtual_machine_ssh_timeout(helpers_run, vm_run, connection):
 @mock.patch('vcdriver.vm.put')
 @mock.patch('vcdriver.vm.run')
 @mock.patch('vcdriver.helpers.run')
-def test_virtual_machine_upload_success(helpers_run, vm_run, put, connection):
+def test_virtual_machine_ssh_upload_success(
+        helpers_run, vm_run, put, connection
+):
     os.environ['vcdriver_vm_ssh_username'] = 'user'
     os.environ['vcdriver_vm_ssh_password'] = 'pass'
     load()
     vm = VirtualMachine()
-    assert vm.upload('from', 'to') is None
+    assert vm.ssh_upload('from', 'to') is None
     vm_object_mock = mock.MagicMock()
     vm_object_mock.summary.guest.ipAddress = '127.0.0.1'
     vm.__setattr__('_vm_object', vm_object_mock)
     result_mock = mock.MagicMock()
     result_mock.failed = False
     put.return_value = result_mock
-    assert vm.upload('from', 'to') == result_mock
+    assert vm.ssh_upload('from', 'to') == result_mock
+    assert vm.ssh_upload('from', 'to', quiet=True) == result_mock
 
 
 @mock.patch('vcdriver.vm.connection')
 @mock.patch('vcdriver.vm.put')
 @mock.patch('vcdriver.vm.run')
 @mock.patch('vcdriver.helpers.run')
-def test_virtual_machine_upload_fail(helpers_run, vm_run, put, connection):
+def test_virtual_machine_ssh_upload_fail(helpers_run, vm_run, put, connection):
     os.environ['vcdriver_vm_ssh_username'] = 'user'
     os.environ['vcdriver_vm_ssh_password'] = 'pass'
     load()
@@ -342,33 +346,36 @@ def test_virtual_machine_upload_fail(helpers_run, vm_run, put, connection):
     vm_object_mock.summary.guest.ipAddress = '127.0.0.1'
     vm.__setattr__('_vm_object', vm_object_mock)
     with pytest.raises(UploadError):
-        vm.upload('from', 'to')
+        vm.ssh_upload('from', 'to')
 
 
 @mock.patch('vcdriver.vm.connection')
 @mock.patch('vcdriver.vm.get')
 @mock.patch('vcdriver.vm.run')
 @mock.patch('vcdriver.helpers.run')
-def test_virtual_machine_download_success(helpers_run, vm_run, get, session):
+def test_virtual_machine_ssh_download_success(
+        helpers_run, vm_run, get, session
+):
     os.environ['vcdriver_vm_ssh_username'] = 'user'
     os.environ['vcdriver_vm_ssh_password'] = 'pass'
     load()
     vm = VirtualMachine()
-    assert vm.download('from', 'to') is None
+    assert vm.ssh_download('from', 'to') is None
     vm_object_mock = mock.MagicMock()
     vm_object_mock.summary.guest.ipAddress = '127.0.0.1'
     vm.__setattr__('_vm_object', vm_object_mock)
     result_mock = mock.MagicMock()
     result_mock.failed = False
     get.return_value = result_mock
-    assert vm.download('from', 'to') == result_mock
+    assert vm.ssh_download('from', 'to') == result_mock
+    assert vm.ssh_download('from', 'to', quiet=True) == result_mock
 
 
 @mock.patch('vcdriver.vm.connection')
 @mock.patch('vcdriver.vm.get')
 @mock.patch('vcdriver.vm.run')
 @mock.patch('vcdriver.helpers.run')
-def test_virtual_machine_download_fail(helpers_run, vm_run, get, session):
+def test_virtual_machine_ssh_download_fail(helpers_run, vm_run, get, session):
     os.environ['vcdriver_vm_ssh_username'] = 'user'
     os.environ['vcdriver_vm_ssh_password'] = 'pass'
     load()
@@ -377,7 +384,7 @@ def test_virtual_machine_download_fail(helpers_run, vm_run, get, session):
     vm_object_mock.summary.guest.ipAddress = '127.0.0.1'
     vm.__setattr__('_vm_object', vm_object_mock)
     with pytest.raises(DownloadError):
-        vm.download('from', 'to')
+        vm.ssh_download('from', 'to')
 
 
 @mock.patch('vcdriver.vm.connection')
@@ -393,8 +400,9 @@ def test_virtual_machine_winrm_success(run_ps, connection):
     vm.__setattr__('_vm_object', vm_object_mock)
     run_ps.return_value.status_code = 0
     vm.winrm('script', dict())
+    vm.winrm('script', dict(), quiet=True)
     run_ps.assert_called_with('script')
-    assert run_ps.call_count == 2
+    assert run_ps.call_count == 4
 
 
 @mock.patch('vcdriver.vm.connection')
@@ -410,6 +418,8 @@ def test_virtual_machine_winrm_fail(run_ps, connection):
     run_ps.return_value.status_code = 1
     with pytest.raises(WinRmError):
         vm.winrm('script', dict())
+    with pytest.raises(WinRmError):
+        vm.winrm('script', dict(), quiet=True)
 
 
 @mock.patch('vcdriver.vm.connection')
@@ -453,6 +463,7 @@ def test_virtual_machine_winrm_upload_success(
     vm_object_mock.summary.guest.ipAddress = '127.0.0.1'
     vm.__setattr__('_vm_object', vm_object_mock)
     assert vm.winrm_upload('whatever', 'whatever', step=2) is None
+    assert vm.winrm_upload('whatever', 'whatever', step=2, quiet=True) is None
 
 
 @mock.patch('vcdriver.vm.os.stat')

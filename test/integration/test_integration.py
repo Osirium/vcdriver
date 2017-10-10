@@ -87,26 +87,34 @@ def test_ssh(vms):
         vms['unix'].ssh('wrong-command-seriously')
 
 
-def test_ssh_upload_and_download(files, vms):
+def test_ssh_upload_and_ssh_download(files, vms):
     assert len(
-        vms['unix'].upload(local_path='file-0', remote_path='file-0')
+        vms['unix'].ssh_upload(local_path='file-0', remote_path='file-0')
     ) == 1
-    assert len(vms['unix'].upload(local_path='file-0', remote_path='.')) == 1
-    assert len(vms['unix'].upload(local_path='dir-0', remote_path='.')) == 3
+    assert len(vms['unix'].ssh_upload(
+        local_path='file-0', remote_path='.')
+    ) == 1
+    assert len(vms['unix'].ssh_upload(
+        local_path='dir-0', remote_path='.')
+    ) == 3
     os.remove('file-0')
     shutil.rmtree('dir-0')
     assert len(
-        vms['unix'].download(local_path='file-0', remote_path='file-0')
+        vms['unix'].ssh_download(local_path='file-0', remote_path='file-0')
     ) == 1
-    assert len(vms['unix'].download(local_path='.', remote_path='file-0')) == 1
+    assert len(vms['unix'].ssh_download(
+        local_path='.', remote_path='file-0')
+    ) == 1
     assert len(
-        vms['unix'].download(local_path='dir-0', remote_path='dir-0')
+        vms['unix'].ssh_download(local_path='dir-0', remote_path='dir-0')
     ) == 3
-    assert len(vms['unix'].download(local_path='.', remote_path='dir-0')) == 3
+    assert len(vms['unix'].ssh_download(
+        local_path='.', remote_path='dir-0')
+    ) == 3
     with pytest.raises(DownloadError):
-        vms['unix'].download(local_path='file-0', remote_path='wrong-path')
+        vms['unix'].ssh_download(local_path='file-0', remote_path='wrong-path')
     with pytest.raises(UploadError):
-        vms['unix'].upload(local_path='dir-0', remote_path='wrong-path')
+        vms['unix'].ssh_upload(local_path='dir-0', remote_path='wrong-path')
 
 
 def test_winrm(vms):

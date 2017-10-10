@@ -8,7 +8,7 @@ import time
 import uuid
 
 from colorama import Style, Fore
-from fabric.api import sudo, run, get, put
+from fabric.api import sudo, run, get, put, hide
 from pyVmomi import vim
 import winrm
 
@@ -201,11 +201,12 @@ class VirtualMachine(object):
         ('Virtual Machine Remote Management', 'vcdriver_vm_ssh_username'),
         ('Virtual Machine Remote Management', 'vcdriver_vm_ssh_password')
     ])
-    def ssh(self, command, use_sudo=False, **kwargs):
+    def ssh(self, command, use_sudo=False, quiet=False, **kwargs):
         """
         Executes a shell command through ssh
         :param command: The command to be executed
         :param use_sudo: If True, it runs as sudo
+        :param quiet: Whether to hide the stdout/stderr output or not
 
         :return: The fabric equivalent of run and sudo
 
@@ -222,9 +223,14 @@ class VirtualMachine(object):
                     kwargs['vcdriver_vm_ssh_password']
             ):
                 if use_sudo:
-                    result = sudo(command)
+                    runner = sudo
                 else:
-                    result = run(command)
+                    runner = run
+                if quiet:
+                    with hide('everything'):
+                        result = runner(command)
+                else:
+                    result = runner(command)
                 if result.failed:
                     raise SshError(command, result.return_code, result.stdout)
                 return result
@@ -233,12 +239,20 @@ class VirtualMachine(object):
         ('Virtual Machine Remote Management', 'vcdriver_vm_ssh_username'),
         ('Virtual Machine Remote Management', 'vcdriver_vm_ssh_password')
     ])
-    def upload(self, remote_path, local_path, use_sudo=False, **kwargs):
+    def ssh_upload(
+            self,
+            remote_path,
+            local_path,
+            use_sudo=False,
+            quiet=False,
+            **kwargs
+    ):
         """
         Upload a file or directory to the virtual machine
         :param remote_path: The remote location
         :param local_path: The local local
         :param use_sudo: If True, it runs as sudo
+        :param quiet: Whether to hide the stdout/stderr output or not
 
         :return: The list of uploaded files
 
@@ -254,11 +268,13 @@ class VirtualMachine(object):
                     kwargs['vcdriver_vm_ssh_username'],
                     kwargs['vcdriver_vm_ssh_password']
             ):
-                result = put(
-                    remote_path=remote_path,
-                    local_path=local_path,
-                    use_sudo=use_sudo
-                )
+                if quiet:
+                    with hide('everything'):
+                        result = put(
+                            local_path, remote_path, use_sudo=use_sudo
+                        )
+                else:
+                    result = put(local_path, remote_path, use_sudo=use_sudo)
                 if result.failed:
                     raise UploadError(
                         local_path=local_path,
@@ -271,12 +287,20 @@ class VirtualMachine(object):
         ('Virtual Machine Remote Management', 'vcdriver_vm_ssh_username'),
         ('Virtual Machine Remote Management', 'vcdriver_vm_ssh_password')
     ])
-    def download(self, remote_path, local_path, use_sudo=False, **kwargs):
+    def ssh_download(
+            self,
+            remote_path,
+            local_path,
+            use_sudo=False,
+            quiet=False,
+            **kwargs
+    ):
         """
         Download a file or directory from the virtual machine
         :param remote_path: The remote location
         :param local_path: The local local
         :param use_sudo: If True, it runs as sudo
+        :param quiet: Whether to hide the stdout/stderr output or not
 
         :return: The list of downloaded files
 
@@ -292,11 +316,13 @@ class VirtualMachine(object):
                     kwargs['vcdriver_vm_ssh_username'],
                     kwargs['vcdriver_vm_ssh_password']
             ):
-                result = get(
-                    remote_path=remote_path,
-                    local_path=local_path,
-                    use_sudo=use_sudo
-                )
+                if quiet:
+                    with hide('everything'):
+                        result = get(
+                            remote_path, local_path, use_sudo=use_sudo
+                        )
+                else:
+                    result = get(remote_path, local_path, use_sudo=use_sudo)
                 if result.failed:
                     raise DownloadError(
                         local_path=local_path,
@@ -309,11 +335,12 @@ class VirtualMachine(object):
         ('Virtual Machine Remote Management', 'vcdriver_vm_winrm_username'),
         ('Virtual Machine Remote Management', 'vcdriver_vm_winrm_password')
     ])
-    def winrm(self, script, winrm_kwargs=dict(), **kwargs):
+    def winrm(self, script, winrm_kwargs=dict(), quiet=False, **kwargs):
         """
         Executes a remote windows powershell script
         :param script: A string with the powershell script
         :param winrm_kwargs: The pywinrm Protocol class kwargs
+        :param quiet: Whether to hide the stdout/stderr output or not
 
         :return: A tuple with the status code, the stdout and the stderr
 
@@ -330,13 +357,16 @@ class VirtualMachine(object):
                 kwargs['vcdriver_vm_winrm_password'],
                 winrm_kwargs
             )
-            print('Executing remotely on {} ...'.format(self.ip()))
-            styled_print(Style.DIM)(script)
+            if not quiet:
+                print('Executing remotely on {} ...'.format(self.ip()))
+                styled_print(Style.DIM)(script)
             status, stdout, stderr = self._run_winrm_ps(winrm_session, script)
-            styled_print(Style.BRIGHT)('CODE: {}'.format(status))
-            styled_print(Fore.GREEN)(stdout)
+            if not quiet:
+                styled_print(Style.BRIGHT)('CODE: {}'.format(status))
+                styled_print(Fore.GREEN)(stdout)
             if status != 0:
-                styled_print(Fore.RED)(stderr)
+                if not quiet:
+                    styled_print(Fore.RED)(stderr)
                 raise WinRmError(script, status, stdout, stderr)
             else:
                 return status, stdout, stderr
@@ -346,7 +376,12 @@ class VirtualMachine(object):
         ('Virtual Machine Remote Management', 'vcdriver_vm_winrm_password')
     ])
     def winrm_upload(
-            self, remote_path, local_path, step=1024, winrm_kwargs=dict(),
+            self,
+            remote_path,
+            local_path,
+            step=1024,
+            winrm_kwargs=dict(),
+            quiet=False,
             **kwargs
     ):
         """
@@ -355,6 +390,7 @@ class VirtualMachine(object):
         :param local_path: The local local
         :param step: Number of bytes to send in each chunk
         :param winrm_kwargs: The pywinrm Protocol class kwargs
+        :param quiet: Whether to hide the stdout/stderr output or not
 
         :return: A tuple with the status code, the stdout and the stderr
         """
@@ -395,27 +431,32 @@ class VirtualMachine(object):
                             time.sleep(0.1)
                         else:
                             raise WinRmError(script, code, stdout, stderr)
-                    transferred = i + step
-                    if transferred > size:
-                        transferred = size
-                    progress_blocks = transferred * 30 // size
-                    percentage_string = str((100 * transferred) // size) + ' %'
-                    percentage_string = (
-                        ' ' * (5 - len(percentage_string)) + percentage_string
-                    )
-                    print(
-                        '\r{} ... [{}{}] {}'.format(
-                            'Copying "{}" to "{}"'.format(
-                                local_path, remote_path
-                            ),
-                            '=' * progress_blocks,
-                            ' ' * (30 - progress_blocks),
+                    if not quiet:
+                        transferred = i + step
+                        if transferred > size:
+                            transferred = size
+                        progress_blocks = transferred * 30 // size
+                        percentage_string = str(
+                            (100 * transferred) // size
+                        ) + ' %'
+                        percentage_string = (
+                            ' ' * (5 - len(percentage_string)) +
                             percentage_string
-                        ),
-                        end=''
-                    )
-                    sys.stdout.flush()
-            print('')
+                        )
+                        print(
+                            '\r{} ... [{}{}] {}'.format(
+                                'Copying "{}" to "{}"'.format(
+                                    local_path, remote_path
+                                ),
+                                '=' * progress_blocks,
+                                ' ' * (30 - progress_blocks),
+                                percentage_string
+                            ),
+                            end=''
+                        )
+                        sys.stdout.flush()
+            if not quiet:
+                print('')
 
     def find_snapshot(self, name):
         """
