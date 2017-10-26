@@ -139,6 +139,16 @@ pipeline {
             }
         }
 
+        stage('Build') {
+            steps {
+                // This relies on the ~/.pypirc config file that setups the repository
+                withPythonEnvironment(
+                    PYTHON_2_7_ENVIRONMENT_PATH,
+                    'python setup.py sdist upload -r local'
+                )
+            }
+        }
+
     }
 
 }
