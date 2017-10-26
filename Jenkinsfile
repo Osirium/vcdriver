@@ -25,7 +25,7 @@ def withVcdriverConfig(body) {
 pipeline {
 
     agent {
-        node 'ubuntu'
+        node 'xenial'
     }
 
     triggers {
