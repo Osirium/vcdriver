@@ -1,3 +1,4 @@
+import datetime
 import hashlib
 import os
 import shutil
@@ -226,3 +227,8 @@ def test_snapshots(vms):
         vm.revert_snapshot(snapshot_name)
         with snapshot(vm):
             pass
+
+
+def test_created_at(vms):
+    for vm in vms.values():
+        assert type(vm.created_at) == datetime.datetime

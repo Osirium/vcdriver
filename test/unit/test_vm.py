@@ -1,3 +1,4 @@
+import datetime
 import mock
 import os
 
@@ -655,3 +656,12 @@ def test_get_all_virtual_machines(get_all_vcenter_objects, connection):
     obj2 = mock.MagicMock()
     get_all_vcenter_objects.return_value = [obj1, obj2]
     assert len(get_all_virtual_machines()) == 2
+
+
+@mock.patch('vcdriver.vm.connection')
+def test_created_at(connection):
+    vm = VirtualMachine()
+    vm_object_mock = mock.MagicMock()
+    vm_object_mock.config.changeVersion = '2018-06-13T15:12:43.700814Z'
+    vm.__setattr__('_vm_object', vm_object_mock)
+    assert vm.created_at == datetime.datetime(2018, 6, 13, 15, 12, 43, 700814)
