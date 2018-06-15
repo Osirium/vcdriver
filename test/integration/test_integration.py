@@ -231,4 +231,4 @@ def test_snapshots(vms):
 
 def test_created_at(vms):
     for vm in vms.values():
-        assert type(vm.created_at) == datetime.datetime
+        assert isinstance(vm.created_at, datetime.datetime)
