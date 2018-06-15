@@ -2,6 +2,7 @@ from __future__ import print_function
 
 import base64
 import contextlib
+import datetime
 import os
 import sys
 import time
@@ -196,6 +197,17 @@ class VirtualMachine(object):
             ip = self._vm_object.summary.guest.ipAddress
             validate_ip(ip)
             return ip
+
+    @property
+    def created_at(self):
+        """
+        Get the created at timestamp
+
+        :return: The datetime object
+        """
+        return datetime.datetime.strptime(
+            self._vm_object.config.changeVersion, '%Y-%m-%dT%H:%M:%S.%fZ'
+        )
 
     @configurable([
         ('Virtual Machine Remote Management', 'vcdriver_vm_ssh_username'),
