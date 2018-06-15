@@ -11,7 +11,7 @@ install:
 before_script:
   - cd test
 script:
-  - flake8 .
+  - flake8 . --ignore=E722
   - pytest -v --cov=vcdriver --cov-fail-under 100 unit
 after_script: bash <(curl -s https://codecov.io/bash)
 deploy:
