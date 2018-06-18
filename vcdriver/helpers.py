@@ -240,7 +240,7 @@ def check_ssh_service(host, username, password):
             with fabric_context(host, username, password):
                 run('')
             return True
-    except:
+    except Exception:
         return False
 
 
@@ -256,5 +256,5 @@ def check_winrm_service(host, username, password, **kwargs):
         with hide_std():
             winrm.Session(host, (username, password), **kwargs).run_ps('ls')
         return True
-    except:
+    except Exception:
         return False

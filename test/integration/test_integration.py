@@ -68,7 +68,7 @@ def files():
     for func, arg in ((shutil.rmtree, 'dir-0'), (os.remove, 'file-0')):
         try:
             func(arg)
-        except:
+        except Exception:
             pass
 
 

@@ -589,7 +589,7 @@ class VirtualMachine(object):
         return winrm.Session(
             target=self.ip(),
             auth=(username, password),
-            read_timeout_sec=self.timeout+1,
+            read_timeout_sec=self.timeout + 1,
             operation_timeout_sec=self.timeout,
             **winrm_kwargs
         )

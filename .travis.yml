@@ -7,16 +7,14 @@ python:
 install:
   - pip install -e .
   - pip install pytest pytest-cov mock flake8 --upgrade
-before_script:
-  - cd test
 script:
-  - flake8 . --ignore=E722
-  - pytest -v --cov=vcdriver --cov-fail-under 100 unit
-after_script: bash <(curl -s https://codecov.io/bash)
+  - (cd test; pytest -v --cov=vcdriver --cov-fail-under 100 unit)
+after_script:
+  - bash <(curl -s https://codecov.io/bash)
 deploy:
   provider: pypi
   user: lantero
   password:
-    secure: jd/w5zpF8pX+yzEbuCtFU4L15Qsgkr2Uwo6k65P5LEmmsjbU24Ni7W8CNa6nQKGmaKsCOon5ArhvtD866xIiUT2teF5VwikWi3ZEfsqZeWwbK7t8fWCWiSqa0LYXdIwKnPu961/5i1uUyKzJZgsuwTkxh6lCEdTY7+MD7MzTPErRAD0hZvkeUlKp5JzCv9sYgUfschI5+SZCfBKTPmQwhLtCcJQ1BwMBUVyhF71pIO6/ESTiBRao5a6dLceKBKB+BWSeHHEj2T/+4HKKCn2cZZhU2tjA+XRH7T6hmw4PVD6w9u+ZpGeuv7RH/XQpadByA+4vc0l4pWRuihTvfx57kMJXkzABlZDK2bYHNQkmfmZn/euWz4W7/LsRKHITGdl85xQJLsGpBrZLKXCRxneCKOlXAs//s+rZ+6kIoGtTuLMeZMLRAV0r4qWPsU0HFYUsBs9YLAMYkKBVBQQCPY3eX1MWrbOTUWtyCPACT9ADv8suhjwTwhV1Fnb7tYP6lEjTfqgIlJpz50BW5tH383PZe+nJ/tqtxXfxZIx3EwgQNL3KttNHnQUEewTk+JRQBboOWY+v9/CnkpJ0p3VJxEo0wLzNE2wCWt8tCh4egdNtMnlqZ84Cy+A9vT4LwbfqgpnkrJlY/U5p7hJip8MquKP3KudtHL/8Xa2whTpb5d4yzQQ=
+    secure: af5RS1+gNnrTbOJ7agvtlVoeRxoqfmFA3FBFQsgsZpoITe/Dx2xBcmSs0nSx65cjSHIGGq5uBPQLVjOD6hmu8yC6qfFPqtIgzmhpkcGL65yTvlOirdxOuGmi+LKZmbEgmGo2NWIYbh4yca/4pktnI8WI2Ox5NH4RXtdCdXxJIaPpZFF0ejNB35GcPrj2aBJKZSUiLSM2SA1KsiXv1UexmI1Plh3yf5ljKg2rf2xux+jo+qI9y91NGbkvCiOaL61fMl3RKp/Bo2LM+NcnzomhOaROx8pwCqmnVKJKmM4FrJdy1V8uiySoS1TACKJVqJ/U7+vyJB7x064k6UTSdpl54FeeEg0BVFuTGsb7fbtNlDw9i8DdKr0MRLee5JXJPWQ2IKtnoWvToy4DEGC1qbACya4Lz+5TR1A00OzESFWXSuLFlByGOGm17uUO+tHmALA9KFlpMLH4HtskaDM+9N/JUV0d5BVyf2SCTmh2QdXZDzJKKWp6QY55ga+5CIDiB97xXc4vf944AaQlvNnKU5ygmUu4BXYVS3UiW/VTaBuOaY/X2OgDlaXrNjxu55MQF7HbEcDVsb9c5DYQUO9DkpUvqgIFXi+47fXv3EMwOvXvMlZulWfnhjPac0L110jlpRyQvDJIw6ZlwLO+b0fpkjr6SUYCnbECElGxTvxMzrLMu7o=
   on:
     tags: true
