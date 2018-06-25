@@ -13,6 +13,7 @@ after_script:
   - bash <(curl -s https://codecov.io/bash)
 deploy:
   provider: pypi
+  skip_existing: true
   user: lantero
   password:
     secure: af5RS1+gNnrTbOJ7agvtlVoeRxoqfmFA3FBFQsgsZpoITe/Dx2xBcmSs0nSx65cjSHIGGq5uBPQLVjOD6hmu8yC6qfFPqtIgzmhpkcGL65yTvlOirdxOuGmi+LKZmbEgmGo2NWIYbh4yca/4pktnI8WI2Ox5NH4RXtdCdXxJIaPpZFF0ejNB35GcPrj2aBJKZSUiLSM2SA1KsiXv1UexmI1Plh3yf5ljKg2rf2xux+jo+qI9y91NGbkvCiOaL61fMl3RKp/Bo2LM+NcnzomhOaROx8pwCqmnVKJKmM4FrJdy1V8uiySoS1TACKJVqJ/U7+vyJB7x064k6UTSdpl54FeeEg0BVFuTGsb7fbtNlDw9i8DdKr0MRLee5JXJPWQ2IKtnoWvToy4DEGC1qbACya4Lz+5TR1A00OzESFWXSuLFlByGOGm17uUO+tHmALA9KFlpMLH4HtskaDM+9N/JUV0d5BVyf2SCTmh2QdXZDzJKKWp6QY55ga+5CIDiB97xXc4vf944AaQlvNnKU5ygmUu4BXYVS3UiW/VTaBuOaY/X2OgDlaXrNjxu55MQF7HbEcDVsb9c5DYQUO9DkpUvqgIFXi+47fXv3EMwOvXvMlZulWfnhjPac0L110jlpRyQvDJIw6ZlwLO+b0fpkjr6SUYCnbECElGxTvxMzrLMu7o=
