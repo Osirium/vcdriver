@@ -205,6 +205,7 @@ class VirtualMachine(object):
 
         :return: The datetime object
         """
+        # TODO: https://www.virtuallyghetto.com/2018/04/vm-creation-date-now-available-in-vsphere-6-7.html # noqa
         return datetime.datetime.strptime(
             self._vm_object.config.changeVersion, '%Y-%m-%dT%H:%M:%S.%fZ'
         )
