@@ -112,6 +112,7 @@ def timeout_loop(
 
     :raise: TimeoutError: If the timeout is reached
     """
+    error = None
     if not quiet:
         print('Waiting for [{}] ... '.format(description), end='')
         sys.stdout.flush()
@@ -119,12 +120,17 @@ def timeout_loop(
     start = time.time()
     while countdown >= 0:
         callback_start = time.time()
-        if callback(*callback_args, **callback_kwargs):
-            break
+        try:
+            if callback(*callback_args, **callback_kwargs):
+                break
+        except Exception as e:
+            error = e
         callback_time = time.time() - callback_start
         time.sleep(seconds_until_retry)
         countdown = countdown - seconds_until_retry - callback_time
     if countdown <= 0:
+        if error:
+            description = '{}. {}'.format(description, str(error))
         raise TimeoutError(description, timeout)
     if not quiet:
         print(datetime.timedelta(seconds=time.time() - start))
@@ -235,13 +241,10 @@ def check_ssh_service(host, username, password):
     :param username: SSH username
     :param password: SSH password
     """
-    try:
-        with hide_std():
-            with fabric_context(host, username, password):
-                run('')
-            return True
-    except Exception:
-        return False
+    with hide_std():
+        with fabric_context(host, username, password):
+            run('')
+        return True
 
 
 def check_winrm_service(host, username, password, **kwargs):
@@ -252,9 +255,6 @@ def check_winrm_service(host, username, password, **kwargs):
     :param password: WinRM password
     :param kwargs: pywinrm Protocol kwargs
     """
-    try:
-        with hide_std():
-            winrm.Session(host, (username, password), **kwargs).run_ps('ls')
-        return True
-    except Exception:
-        return False
+    with hide_std():
+        winrm.Session(host, (username, password), **kwargs).run_ps('ls')
+    return True
