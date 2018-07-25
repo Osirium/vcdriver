@@ -409,7 +409,8 @@ class VirtualMachine(object):
             )
             self._run_winrm_ps(
                 winrm_session,
-                'if (Test-Path {0}) {{ Remove-Item {0} }}'.format(remote_path)
+                'if (Test-Path -path {0}) {{ Remove-Item -path {0} }}'.format(
+                    remote_path)
             )
             size = os.stat(local_path).st_size
             start = time.time()
@@ -419,7 +420,7 @@ class VirtualMachine(object):
                         'add-content -value '
                         '$([System.Convert]::FromBase64String("{}")) '
                         '-encoding byte -path {}'.format(
-                            base64.b64encode(f.read(step)),
+                            base64.b64encode(f.read(step)).decode(),
                             remote_path
                         )
                     )
