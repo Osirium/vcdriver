@@ -115,6 +115,15 @@ class VirtualMachine(object):
                 connection(), vim.VirtualMachine, self.name
             )
 
+    def refresh(self):
+        """ Close session and create a new session """
+        if self._vm_object:
+            close()
+            # Refresh object with updated data (connection id changed)
+            self._vm_object = get_vcenter_object_by_name(
+                connection(), vim.VirtualMachine, self.name
+                )
+
     def destroy(self):
         """ Destroy the virtual machine and set the vm object to None """
         self.power_off()
