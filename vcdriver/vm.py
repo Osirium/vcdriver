@@ -13,7 +13,6 @@ from fabric.api import sudo, run, get, put, hide
 from pyVmomi import vim
 import winrm
 
-from vcdriver.session import connection
 from vcdriver.config import configurable
 from vcdriver.exceptions import (
     SshError,
@@ -36,6 +35,10 @@ from vcdriver.helpers import (
     check_ssh_service,
     check_winrm_service,
 )
+from vcdriver.session import (
+    connection,
+    close,
+    )
 
 
 class VirtualMachine(object):
