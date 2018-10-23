@@ -229,7 +229,8 @@ def fabric_context(host, username, password):
             host_string="{}@{}".format(username, host),
             password=password,
             warn_only=True,
-            disable_known_hosts=True
+            disable_known_hosts=True,
+                command_timeout=10
     ):
         yield
 
