@@ -220,7 +220,7 @@ class VirtualMachine(object):
         ('Virtual Machine Remote Management', 'vcdriver_vm_ssh_username'),
         ('Virtual Machine Remote Management', 'vcdriver_vm_ssh_password')
     ])
-    def ssh(self, command, use_sudo=False, quiet=False, timeout=None, **kwargs):
+    def ssh(self, command, use_sudo=False, quiet=False, **kwargs):
         """
         Executes a shell command through ssh
         :param command: The command to be executed
@@ -231,12 +231,10 @@ class VirtualMachine(object):
 
         :raise: SshError: If the command fails
         """
-        if not timeout:  timeout = self.timeout
         if self._vm_object:
             self._wait_for_ssh_service(
                 kwargs['vcdriver_vm_ssh_username'],
-                kwargs['vcdriver_vm_ssh_password'],
-                timeout
+                kwargs['vcdriver_vm_ssh_password']
             )
             with fabric_context(
                     self.ip(),
@@ -604,15 +602,14 @@ class VirtualMachine(object):
             **winrm_kwargs
         )
 
-    def _wait_for_ssh_service(self, username, password, timeout=None):
+    def _wait_for_ssh_service(self, username, password):
         """
         Wait until ssh service is ready
         :param username: SSH username
         :param password: SSH password
         """
-        if not timeout:  timeout = self.timeout
         timeout_loop(
-            timeout, 'Check SSH service', 1, True,
+            self.timeout, 'Check SSH service', 1, True,
             check_ssh_service, self.ip(), username, password
         )
 
