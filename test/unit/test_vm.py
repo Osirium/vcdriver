@@ -109,6 +109,33 @@ def test_virtual_machine_find(get_vcenter_object_by_name, connection):
 
 
 @mock.patch('vcdriver.vm.connection')
+@mock.patch('vcdriver.vm.get_vcenter_object_by_name')
+@mock.patch('vcdriver.vm.close')
+def test_virtual_machine_refresh(close, get_vcenter_object_by_name, connection):
+    vm = VirtualMachine()
+    assert vm.__getattribute__('_vm_object') is None
+
+    # Test that refresh does nothing if no _vm_object
+    vm.refresh()
+    assert vm.__getattribute__('_vm_object') is None
+
+    # Test that refresh assigns a new _vm_object
+    vm.__setattr__('_vm_object', mock.Mock())
+
+    initial__vm_object = vm.__getattribute__('_vm_object')
+    assert initial__vm_object is not None
+    vm.refresh()
+
+    refreshed__vm_object = vm.__getattribute__('_vm_object')
+    assert refreshed__vm_object is not None
+
+    assert initial__vm_object != refreshed__vm_object
+
+    close.assert_called_once()
+    get_vcenter_object_by_name.assert_called_once()
+
+
+@mock.patch('vcdriver.vm.connection')
 def test_virtual_machine_reboot(connection):
     vm = VirtualMachine()
     vm_object_mock = mock.MagicMock()
