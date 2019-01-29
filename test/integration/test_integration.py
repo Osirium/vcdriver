@@ -40,7 +40,11 @@ def wait_for_power_state_or_die(vm_object, state):
 
 @pytest.fixture(scope='module')
 def vms():
-    os.environ['vcdriver_folder'] = os.getenv('vcdriver_test_folder')
+    test_folder = os.getenv('vcdriver_test_folder')
+    if test_folder is None:
+        pytest.skip('Vsphere not available')
+
+    os.environ['vcdriver_folder'] = test_folder
     load(os.getenv('vcdriver_test_config_file'))
     unix = VirtualMachine(template=os.getenv('vcdriver_test_unix_template'))
     windows = VirtualMachine(
