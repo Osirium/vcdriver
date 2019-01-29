@@ -212,6 +212,12 @@ class VirtualMachine(object):
 
     @property
     def created_at(self):
+        """
+        Get the created at timestamp
+
+        :return: The datetime object
+        """
+        # TODO: https://www.virtuallyghetto.com/2018/04/vm-creation-date-now-available-in-vsphere-6-7.html # noqa
         return datetime.datetime.strptime(
             self._vm_object.config.changeVersion, '%Y-%m-%dT%H:%M:%S.%fZ'
         )
@@ -597,7 +603,7 @@ class VirtualMachine(object):
         return winrm.Session(
             target=self.ip(),
             auth=(username, password),
-            read_timeout_sec=self.timeout+1,
+            read_timeout_sec=self.timeout + 1,
             operation_timeout_sec=self.timeout,
             **winrm_kwargs
         )

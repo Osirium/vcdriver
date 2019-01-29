@@ -1,3 +1,15 @@
+.. image:: https://badge.fury.io/py/vcdriver.svg
+  :target: https://badge.fury.io/py/vcdriver
+
+.. image:: https://travis-ci.org/Lantero/vcdriver.svg?branch=master
+  :target: https://travis-ci.org/Lantero/vcdriver
+
+.. image:: https://codecov.io/gh/Lantero/vcdriver/branch/master/graph/badge.svg
+  :target: https://codecov.io/gh/Lantero/vcdriver
+
+.. image:: https://img.shields.io/packagist/l/doctrine/orm.svg?style=flat
+  :target: https://github.com/Lantero/vcdriver
+
 *****
 About
 *****
@@ -24,7 +36,7 @@ How does it work underneath?
 - The virtual machines are manipulated with `Fabric3 <https://pypi.python.org/pypi/Fabric3>`_ and
   `pywinrm <https://pypi.python.org/pypi/pywinrm>`_.
 
-- It currently supports Python **2.7**, **3.3**, **3.4**, **3.5** and **3.6**.
+- It currently supports Python **2.7**, **3.4**, **3.5** and **3.6**.
 
 - It works with latest versions of Vsphere, **6.0** and **6.5**.
 

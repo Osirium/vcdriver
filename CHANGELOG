@@ -1,0 +1,157 @@
+# Change Log
+All notable changes to this project will be documented in this file.
+
+The format is based on [Keep a Changelog](http://keepachangelog.com/)
+and this project adheres to [Semantic Versioning](http://semver.org/).
+
+## [4.3.0] - 2018-07-06
+
+### Changed
+- Timeout loop function now displays last exception traceback when timing out
+
+## [4.2.0] - 2018-06-15
+
+### Added
+- Added created_at property to know when the vm was created
+
+## [4.0.0] - 2017-10-10
+
+### Changed
+- Upload and download functions renamed to ssh_upload and ssh_download
+
+### Added
+- Quiet mode for SSH and WinRM functions
+
+## [3.7.3] - 2017-10-03
+
+### Changed
+- Improve winrm_upload function
+- Better output in RemoteCommandError exceptions
+
+## [3.7.2] - 2017-10-02
+
+### Changed
+- Improve winrm_upload function
+
+## [3.7.1] - 2017-09-28
+
+### Changed
+- Improve integration tests
+- Fix vm default name
+
+## [3.7.0] - 2017-09-22
+
+### Changed
+- Fix several WinRM issues
+
+## [3.6.0] - 2017-09-22
+
+### Added
+- WinRM upload file function
+
+## [3.5.2] - 2017-09-04
+
+### Changed
+- Add default to winrm kwargs
+
+## [3.5.1] - 2017-08-31
+
+### Changed
+- Fix configuration defaults being deleted when loading configuration
+- Fix configuration input being repeatedly prompted to the user
+
+## [3.5.0] - 2017-08-25
+
+### Added
+- Autostart function for virtual machines
+
+## [3.4.0] - 2017-08-18
+
+### Changed
+- Fix python3 winrm function by decoding stdout and stderr
+
+## [3.3.5] - 2017-08-18
+
+### Changed
+- Fix python3 winrm function running empty script
+
+## [3.3.4] - 2017-08-17
+
+### Changed
+- Fix python3 compatibility issue with the hide std function
+
+## [3.3.3] - 2017-07-12
+
+### Changed
+- Call connection() only once per function
+
+## [3.3.2] - 2017-07-10
+
+### Changed
+- Fix waiting for a vsphere task for vcenter 6.5
+
+## [3.3.1] - 2017-07-4
+
+### Changed
+- Change raw_input to input for python2/3 portability
+
+## [3.3.0] - 2017-07-4
+
+### Changed
+- Input user instead of raising MissingConfigException
+
+## [3.2.2] - 2017-07-4
+
+### Changed
+- Reboot and shutdown now wait until vmware tools is ready or timeout
+- Reboot and shutdown are now both async for consistency
+- Fix integration tests
+
+## [3.2.1] - 2017-07-2
+
+### Changed
+- Reset function is now idempotent
+- Fix integration tests
+
+## [3.2.0] - 2017-06-30
+
+### Added
+- Power on function
+- Power off function
+- Shutdown function
+
+## [3.1.0] - 2017-06-22
+
+### Added
+- Disk space threshold check for cloning vms
+
+## [3.0.3] - 2017-06-21
+
+### Changed
+- Update MANIFEST.in
+
+## [3.0.2] - 2017-06-21
+
+### Changed
+- Tests have been migrated from unittest to pytest
+- README has been updated
+
+## [3.0.1] - 2017-06-21
+
+### Added
+- A read function for the configuration
+
+### Changed
+- Default config uses empty string instead of None to be consistent
+
+## [3.0.0] - 2017-06-19
+
+### Added
+- New configuration engine that allows the usage of INI files and environment
+
+### Changed
+- Service checks (SSH and WinRM) are now quiet and don't print anything
+- Retrieving objects from vcenter is also a quiet function now
+
+### Removed
+- MissingCredentialsError has been removed in favour of the new configuration
