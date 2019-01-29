@@ -11,7 +11,7 @@ paramiko==2.4.2
 pyasn1==0.4.4
 pycparser==2.19
 pyvmomi==6.7.1
-pywinrm==0.3.2.dev1,
+pywinrm2==0.0.0
 requests==2.20.1
 requests-ntlm==1.1.0
 six==1.11.0

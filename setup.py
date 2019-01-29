@@ -7,7 +7,7 @@ setup(
     description='A vcenter driver based on pyvmomi, fabric and pywinrm',
     url='https://github.com/Osirium/vcdriver',
     license='MIT',
-    install_requires=['colorama', 'Fabric3', 'pyvmomi', 'pywinrm', 'six'],
+    install_requires=['colorama', 'Fabric3', 'pyvmomi', 'pywinrm2', 'six'],
     packages=find_packages(),
     classifiers=[
         'Development Status :: 5 - Production/Stable',
