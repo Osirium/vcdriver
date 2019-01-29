@@ -244,7 +244,7 @@ def check_ssh_service(host, username, password):
     with hide_std():
         with fabric_context(host, username, password):
             run('')
-        return True
+    return True
 
 
 def check_winrm_service(host, username, password, **kwargs):

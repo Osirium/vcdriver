@@ -60,7 +60,7 @@ Installation
 Documentation
 *************
 
-Documentation and examples can be found on the `wiki <https://github.com/Lantero/vcdriver/wiki>`_.
+Documentation and examples can be found on the `wiki <https://github.com/Osirium/vcdriver/wiki>`_.
 
 *******
 Testing
@@ -87,7 +87,7 @@ You can run some integration tests to check it works fine for your Vsphere insta
      The ansible people have done a great job about this, and you can set it up with their script:
      `ConfigureRemotingForAnsible.ps1 <https://github.com/ansible/ansible/blob/devel/examples/scripts/ConfigureRemotingForAnsible.ps1>`_.
 
-#. Read through the `setup section <https://github.com/Lantero/vcdriver/wiki/Example-1>`_ and create your configuration file.
+#. Read through the `setup section <https://github.com/Osirium/vcdriver/wiki/Example-1>`_ and create your configuration file.
 
 #. Provide the following extra environment variables:
 

@@ -13,7 +13,6 @@ from fabric.api import sudo, run, get, put, hide
 from pyVmomi import vim
 import winrm
 
-from vcdriver.session import connection
 from vcdriver.config import configurable
 from vcdriver.exceptions import (
     SshError,
@@ -36,6 +35,10 @@ from vcdriver.helpers import (
     check_ssh_service,
     check_winrm_service,
 )
+from vcdriver.session import (
+    connection,
+    close,
+    )
 
 
 class VirtualMachine(object):
@@ -114,6 +117,15 @@ class VirtualMachine(object):
             self._vm_object = get_vcenter_object_by_name(
                 connection(), vim.VirtualMachine, self.name
             )
+
+    def refresh(self):
+        """ Close session and create a new session """
+        if self._vm_object:
+            close()
+            # Refresh object with updated data (connection id changed)
+            self._vm_object = get_vcenter_object_by_name(
+                connection(), vim.VirtualMachine, self.name
+                )
 
     def destroy(self):
         """ Destroy the virtual machine and set the vm object to None """
@@ -415,7 +427,8 @@ class VirtualMachine(object):
             )
             self._run_winrm_ps(
                 winrm_session,
-                'if (Test-Path {0}) {{ Remove-Item {0} }}'.format(remote_path)
+                'if (Test-Path -path {0}) {{ Remove-Item -path {0} }}'.format(
+                    remote_path)
             )
             size = os.stat(local_path).st_size
             start = time.time()
@@ -425,7 +438,7 @@ class VirtualMachine(object):
                         'add-content -value '
                         '$([System.Convert]::FromBase64String("{}")) '
                         '-encoding byte -path {}'.format(
-                            base64.b64encode(f.read(step)),
+                            base64.b64encode(f.read(step)).decode(),
                             remote_path
                         )
                     )

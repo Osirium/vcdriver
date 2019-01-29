@@ -2,14 +2,12 @@ from setuptools import setup, find_packages
 
 
 setup(
-    version='4.3.0',
+    version='0.0.0',
     name='vcdriver',
     description='A vcenter driver based on pyvmomi, fabric and pywinrm',
-    url='https://github.com/Lantero/vcdriver',
-    author='Carlos Ruiz Lantero',
-    author_email='carlos.ruiz.lantero@gmail.com',
+    url='https://github.com/Osirium/vcdriver',
     license='MIT',
-    install_requires=['colorama', 'Fabric3', 'pyvmomi', 'pywinrm', 'six'],
+    install_requires=['colorama', 'Fabric3', 'pyvmomi', 'pywinrm2', 'six'],
     packages=find_packages(),
     classifiers=[
         'Development Status :: 5 - Production/Stable',
