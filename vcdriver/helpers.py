@@ -9,7 +9,7 @@ import time
 from colorama import init, Style
 from fabric.api import run
 from fabric.context_managers import settings
-from pyVmomi import vim
+from pyVmomi import vim, vmodl
 import winrm
 
 from vcdriver.exceptions import (
@@ -60,9 +60,17 @@ def get_vcenter_object_by_name(connection, object_type, name):
     """
     content = connection.RetrieveContent()
     view = content.viewManager.CreateContainerView
+
+    def name_matches(obj):
+        try:
+            return obj.name == name
+        except (vmodl.fault.ManagedObjectNotFound, AttributeError):
+            pass
+        return False
+
     objects = [
         obj for obj in view(content.rootFolder, [object_type], True).view
-        if hasattr(obj, 'name') and obj.name == name
+        if name_matches(obj)
     ]
     count = len(objects)
     if count == 1:
