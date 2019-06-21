@@ -210,6 +210,20 @@ class VirtualMachine(object):
             validate_ip(ip)
             return ip
 
+    def vm_id(self):
+        """
+        Return the vcenter ID of this VM.
+
+        :return: Return a string in the following format: vm-<number> i.e: vm-4856 or
+            None in case the VirtualMachine data has not been retrieved from vCenter
+            i.e: find() has not been called yet
+        """
+
+        if self._vm_object:
+            # summary.vm has the following format: 'vim.VirtualMachine:vm-83288'
+            return str(self._vm_object.summary.vm).strip("'").split(":")[1]
+        return None
+
     @property
     def created_at(self):
         """
