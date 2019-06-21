@@ -218,10 +218,26 @@ def test_virtual_machine_power_on_wrong_power_state(
 @mock.patch('vcdriver.vm.wait_for_vcenter_task')
 def test_virtual_machine_power_off(wait_for_vcenter_task, connection):
     vm = VirtualMachine()
+    mock_schedule_vcenter_task_on_vm = mock.MagicMock()
+    vm.__setattr__('_schedule_vcenter_task_on_vm', mock_schedule_vcenter_task_on_vm)
     vm.power_off()
     vm.__setattr__('_vm_object', mock.MagicMock())
     vm.power_off()
     assert wait_for_vcenter_task.call_count == 1
+    assert mock_schedule_vcenter_task_on_vm.call_count == 0
+
+
+@mock.patch('vcdriver.vm.connection')
+@mock.patch('vcdriver.vm.wait_for_vcenter_task')
+def test_virtual_machine_power_off_with_delay(wait_for_vcenter_task, connection):
+    vm = VirtualMachine()
+    mock_schedule_vcenter_task_on_vm = mock.MagicMock()
+    vm.__setattr__('_schedule_vcenter_task_on_vm', mock_schedule_vcenter_task_on_vm)
+    vm.power_off(delay_by=datetime.timedelta(hours=1))
+    vm.__setattr__('_vm_object', mock.MagicMock())
+    vm.power_off(delay_by=datetime.timedelta(hours=1))
+    assert wait_for_vcenter_task.call_count == 0
+    assert mock_schedule_vcenter_task_on_vm.call_count == 1
 
 
 @mock.patch('vcdriver.vm.connection')
@@ -245,6 +261,21 @@ def test_virtual_machine_reset_wrong_power_state(
     vm.__setattr__('_vm_object', mock.MagicMock())
     vm.reset()
     assert wait_for_vcenter_task.call_count == 1
+
+
+def test_virtual_machine_vm_id_return_none():
+    vm = VirtualMachine()
+    vm_id = vm.vm_id()
+    assert vm_id is None
+
+
+def test_virtual_machine_vm_id():
+    vm = VirtualMachine()
+    vm_object_mock = mock.MagicMock()
+    vm_object_mock.summary.vm = "'vim.VirtualMachine:vm-83288'"
+    vm.__setattr__('_vm_object', vm_object_mock)
+    vm_id = vm.vm_id()
+    assert vm_id == 'vm-83288'
 
 
 @mock.patch('vcdriver.vm.connection')
@@ -692,3 +723,23 @@ def test_created_at(connection):
     vm_object_mock.config.changeVersion = '2018-06-13T15:12:43.700814Z'
     vm.__setattr__('_vm_object', vm_object_mock)
     assert vm.created_at == datetime.datetime(2018, 6, 13, 15, 12, 43, 700814)
+
+@mock.patch('vcdriver.vm.connection')
+def test_schedule_vcenter_task_on_vm_fail_on_bad_type(connection):
+    vm = VirtualMachine()
+    with pytest.raises(TypeError):
+        vm._schedule_vcenter_task_on_vm(
+            vim.VirtualMachine.PowerOff,
+            'Power off virtual machine "dummy"',
+            "Wrong type")
+
+@mock.patch('vcdriver.vm.connection')
+def test_schedule_vcenter_task_on_vm(connection):
+    mock_CreateScheduledTask = mock.MagicMock()
+    connection.return_value.content.scheduledTaskManager.CreateScheduledTask = mock_CreateScheduledTask
+    vm = VirtualMachine()
+    vm._schedule_vcenter_task_on_vm(
+        vim.VirtualMachine.PowerOff,
+        'Power off virtual machine "dummy"',
+        datetime.timedelta(hours=1))
+    assert mock_CreateScheduledTask.call_count == 1

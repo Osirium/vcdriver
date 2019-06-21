@@ -125,17 +125,8 @@ def test_ssh_upload_and_ssh_download(files, vms):
 
 def test_winrm(vms):
     vms['windows'].winrm('ipconfig /all')
-    # FIXME:
-    # Due to this pywinrm bug: https://github.com/diyan/pywinrm/issues/111
-    # We need to split the integration tests depending on the major version
-    # Python 2: Failed scripts throw WinRmError
-    # Python 3: Failed scripts throw TypeError
-    if sys.version_info[0] == 2:
-        with pytest.raises(WinRmError):
-            vms['windows'].winrm('ipconfig-wrong /wrong')
-    elif sys.version_info[0] == 3:
-        with pytest.raises(TypeError):
-            vms['windows'].winrm('ipconfig-wrong /wrong')
+    with pytest.raises(WinRmError):
+        vms['windows'].winrm('ipconfig-wrong /wrong')
 
 
 def test_winrm_upload(files, vms):
