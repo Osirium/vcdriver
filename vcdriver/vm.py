@@ -150,17 +150,29 @@ class VirtualMachine(object):
             except vim.fault.InvalidPowerState:
                 pass
 
-    def power_off(self):
-        """ Power off the virtual machine """
+    def power_off(self, delay_by=None):
+        """
+        Power off the virtual machine
+
+        :param delay_by: if specified, it has to be a timedelta that indicates
+            when in the future this task will be executed.
+        """
         if self._vm_object:
-            try:
-                wait_for_vcenter_task(
-                    self._vm_object.PowerOffVM_Task(),
+            if delay_by is None:
+                try:
+                    wait_for_vcenter_task(
+                        self._vm_object.PowerOffVM_Task(),
+                        'Power off virtual machine "{}"'.format(self.name),
+                        self.timeout
+                    )
+                except vim.fault.InvalidPowerState:
+                    pass
+            else:
+                self._schedule_vcenter_task_on_vm(
+                    vim.VirtualMachine.PowerOff,
                     'Power off virtual machine "{}"'.format(self.name),
-                    self.timeout
+                    delay_by
                 )
-            except vim.fault.InvalidPowerState:
-                pass
 
     def reset(self):
         """ Reset the virtual machine """
@@ -686,6 +698,36 @@ class VirtualMachine(object):
             result.status_code,
             result.std_out.decode('ascii'),
             result.std_err.decode('ascii')
+        )
+
+    def _schedule_vcenter_task_on_vm(self, task, task_name, delay_by):
+        """
+        :param task: A vcenter task method
+        :param task_description: The task description
+        :param delay_by: if specified, it has to be a timedelta that indicates
+            when in the future this task will be executed.
+        """
+
+        if not isinstance(delay_by, datetime.timedelta):
+            raise TypeError(
+                "Invalid type for delay_by. Expected datetime.timedelta."
+            )
+
+        spec = vim.scheduler.ScheduledTaskSpec()
+        spec.name = task_name
+        spec.description = ""
+        spec.scheduler = vim.scheduler.OnceTaskScheduler()
+        # it seems that CreateScheduledTask will add timezone without
+        # converting it, so if you use utcnow here you may end up to
+        # scheduling 1 hour in the past when BST is active
+        spec.scheduler.runAt = datetime.datetime.now() + delay_by
+        spec.action = vim.action.MethodAction()
+        spec.action.name = task
+        spec.enabled = True
+
+        conn = connection()
+        conn.content.scheduledTaskManager.CreateScheduledTask(
+            self._vm_object, spec
         )
 
     def __str__(self):
