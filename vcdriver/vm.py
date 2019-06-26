@@ -170,7 +170,8 @@ class VirtualMachine(object):
             else:
                 self._schedule_vcenter_task_on_vm(
                     vim.VirtualMachine.PowerOff,
-                    'Power off virtual machine',
+                    # task name can't be longer than 80 chars and as to be unique
+                    'Power off {}'.format(self.vm_id()),
                     delay_by
                 )
 
