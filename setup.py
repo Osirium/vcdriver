@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 
 setup(
-    version='5.1.0',
+    version='5.1.1',
     name='vcdriver',
     description='A vcenter driver based on pyvmomi, fabric and pywinrm',
     url='https://github.com/Osirium/vcdriver',
