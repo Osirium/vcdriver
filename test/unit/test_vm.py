@@ -234,7 +234,9 @@ def test_virtual_machine_power_off_with_delay(wait_for_vcenter_task, connection)
     mock_schedule_vcenter_task_on_vm = mock.MagicMock()
     vm.__setattr__('_schedule_vcenter_task_on_vm', mock_schedule_vcenter_task_on_vm)
     vm.power_off(delay_by=datetime.timedelta(hours=1))
-    vm.__setattr__('_vm_object', mock.MagicMock())
+    vm_object_mock = mock.MagicMock()
+    vm_object_mock.summary.vm = "'vim.VirtualMachine:vm-83288'"
+    vm.__setattr__('_vm_object', vm_object_mock)
     vm.power_off(delay_by=datetime.timedelta(hours=1))
     assert wait_for_vcenter_task.call_count == 0
     assert mock_schedule_vcenter_task_on_vm.call_count == 1
