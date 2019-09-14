@@ -103,6 +103,10 @@ class VirtualMachine(object):
             relospec.pool = resource_pool
 
             vmconf = vim.vm.ConfigSpec()
+            vmconf.numCPUs = kwargs.get('cpu_count', vmconf.numCPUs)
+            vmconf.memoryMB = kwargs.get('memory_mb', vmconf.memoryMB)
+            vmconf.cpuHotAddEnabled = True
+            vmconf.memoryHotAddEnabled = True
 
             folder = get_vcenter_object_by_name(
                 conn,
