@@ -102,11 +102,112 @@ class VirtualMachine(object):
             relospec.datastore = data_store
             relospec.pool = resource_pool
 
+            devices = []
+
+            # If a kwargs contains a 'nics' dictionary, iterate over all the
+            # NICs and add/edit them as required
+            #
+            if kwargs.get('nics', None) is not None:
+                for nic_label, nic_details in kwargs.get('nics').items():
+                    # Look for a vNIC in the current device hardware with a matching name
+                    def is_nic(dev):
+                        return isinstance(dev, vim.vm.device.VirtualEthernetCard)
+
+                    vnic = None
+                    vnic_spec = vim.vm.device.VirtualDeviceSpec()
+
+                    for dev in template_vm.config.hardware.device:
+                        if (is_nic(dev) and dev.deviceInfo.label == nic_label):
+                            vnic_spec.operation = vim.vm.device.VirtualDeviceSpec.Operation.edit
+                            vnic = dev
+                            break
+
+                    if vnic is None:
+                        # Didn't find an existing vNIC with a macthing name so let's create one
+                        vnic_spec.operation = vim.vm.device.VirtualDeviceSpec.Operation.add
+
+                        # Set the type of network adapter
+                        # Default to e1000
+                        model = nic_details.get('model', 'e1000')
+                        if model == "e1000":
+                            vnic = vim.vm.device.VirtualE1000()
+                        elif model == "e1000e":
+                            vnic = vim.vm.device.VirtualE1000e()
+                        elif model == "vmxnet":
+                            vnic = vim.vm.device.VirtualVmxnet()
+                        elif model == "vmxnet2":
+                            vnic = vim.vm.device.VirtualVmxnet2()
+                        elif model == "vmxnet3":
+                            vnic = vim.vm.device.VirtualVmxnet3()
+                        elif model == "pcnet32":
+                            vnic = vim.vm.device.VirtualPCNet32()
+                        elif model == "sriov":
+                            vnic = vim.vm.device.VirtualSriovEthernetCard()
+
+                        vnic.deviceInfo = vim.Description()
+                        vnic.deviceInfo.label = nic_label
+
+                        vnic.addressType = 'generated'  # Auto-generate MAC address
+                        vnic.backing = vim.vm.device.VirtualEthernetCard.NetworkBackingInfo()
+
+                        vnic.connectable = vim.vm.device.VirtualDevice.ConnectInfo()
+                        vnic.connectable.startConnected = True
+
+                        vnic.resourceAllocation = vim.vm.device.VirtualEthernetCard.ResourceAllocation()
+                        vnic.resourceAllocation.share = vim.SharesInfo()
+                        vnic.resourceAllocation.share.level = 'normal'
+
+                        vnic.slotInfo = vim.vm.device.VirtualDevice.PciBusSlotInfo()
+
+                    # Network
+                    network_name = nic_details.get('network', None)
+                    if network_name is not None:
+                        network = get_vcenter_object_by_name(
+                            conn,
+                            vim.Network,
+                            network_name
+                        )
+                        if network is None:
+                            raise RuntimeError('Network "{net}" not found'.format(
+                                net=network_name
+                            ))
+
+                        if isinstance(network, vim.dvs.DistributedVirtualPortgroup):
+                            def find_free_dv_ports(dvs, port_group_key):
+                                criteria = vim.dvs.PortCriteria()
+                                criteria.connected = False
+                                criteria.inside = True
+                                criteria.portgroupKey = port_group_key
+                                return dvs.FetchDVPorts(criteria)
+
+                            dvs = network.config.distributedVirtualSwitch
+
+                            ports = find_free_dv_ports(dvs, network.key)
+                            if len(ports) == 0:
+                                raise RuntimeError('No free ports with port group key {pgk}'.format(
+                                    pgk=network.key
+                                ))
+                            free_port = ports[0]
+
+                            vnic.backing = vim.vm.device.VirtualEthernetCard.DistributedVirtualPortBackingInfo()
+                            vnic.backing.port = vim.dvs.PortConnection()
+                            vnic.backing.port.portgroupKey = free_port.portgroupKey
+                            vnic.backing.port.switchUuid = free_port.dvsUuid
+                            vnic.backing.port.portKey = free_port.key
+                        else:
+                            vnic.backing = vim.vm.device.VirtualEthernetCard.NetworkBackingInfo()
+                            vnic.backing.network = network
+
+                    vnic_spec.device = vnic
+                    devices.append(vnic_spec)
+
             vmconf = vim.vm.ConfigSpec()
             vmconf.numCPUs = kwargs.get('cpu_count', vmconf.numCPUs)
             vmconf.memoryMB = kwargs.get('memory_mb', vmconf.memoryMB)
             vmconf.cpuHotAddEnabled = True
             vmconf.memoryHotAddEnabled = True
+
+            vmconf.deviceChange = devices
 
             folder = get_vcenter_object_by_name(
                 conn,
