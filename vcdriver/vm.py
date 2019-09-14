@@ -76,35 +76,54 @@ class VirtualMachine(object):
                 vim.Datastore,
                 data_store_name
             )
+            template_vm = get_vcenter_object_by_name(
+                conn,
+                vim.VirtualMachine,
+                self.template
+            )
+
             capacity = float(data_store.summary.capacity)
             free_space = float(data_store.summary.freeSpace)
             free_percentage = 100 * free_space / capacity
             threshold = kwargs['vcdriver_data_store_threshold']
+
             if free_percentage < float(threshold):
                 raise NotEnoughDiskSpace(
                     data_store_name, threshold, free_percentage
                 )
+
+            resource_pool = get_vcenter_object_by_name(
+                conn,
+                vim.ResourcePool,
+                kwargs['vcdriver_resource_pool']
+            )
+
+            relospec = vim.vm.RelocateSpec()
+            relospec.datastore = data_store
+            relospec.pool = resource_pool
+
+            vmconf = vim.vm.ConfigSpec()
+
+            folder = get_vcenter_object_by_name(
+                conn,
+                vim.Folder,
+                kwargs['vcdriver_folder']
+            )
+
+            clonespec = vim.vm.CloneSpec()
+            clonespec.location = relospec
+            clonespec.config = vmconf
+            clonespec.powerOn = True
+            clonespec.template = False
+
+            # Run the clone task
+            task = template_vm.CloneVM_Task(
+                folder=folder,
+                name=self.name,
+                spec=clonespec
+            )
             self._vm_object = wait_for_vcenter_task(
-                get_vcenter_object_by_name(
-                    conn, vim.VirtualMachine, self.template
-                ).CloneVM_Task(
-                    folder=get_vcenter_object_by_name(
-                        conn, vim.Folder, kwargs['vcdriver_folder']
-                    ),
-                    name=self.name,
-                    spec=vim.vm.CloneSpec(
-                        location=vim.vm.RelocateSpec(
-                            datastore=data_store,
-                            pool=get_vcenter_object_by_name(
-                                conn,
-                                vim.ResourcePool,
-                                kwargs['vcdriver_resource_pool']
-                            )
-                        ),
-                        powerOn=True,
-                        template=False
-                    )
-                ),
+                task,
                 'Create virtual machine "{}" from template "{}"'.format(
                     self.name, self.template
                 ),
