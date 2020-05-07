@@ -14,7 +14,7 @@ from vcdriver.exceptions import (
     UploadError,
     WinRmError,
     TimeoutError,
-    NotEnoughDiskSpace
+    NotEnoughDiskSpace,
 )
 from vcdriver.vm import (
     VirtualMachine,
@@ -716,6 +716,16 @@ def test_get_all_virtual_machines(get_all_vcenter_objects, connection):
     obj2 = mock.MagicMock()
     get_all_vcenter_objects.return_value = [obj1, obj2]
     assert len(get_all_virtual_machines()) == 2
+
+
+@mock.patch('vcdriver.vm.connection')
+@mock.patch('vcdriver.vm.get_all_vcenter_objects')
+def test_get_all_virtual_machines(get_all_vcenter_objects, connection):
+    obj1 = mock.MagicMock()
+    obj2 = mock.MagicMock()
+    type(obj2).summary = mock.PropertyMock(side_effect=vim.ManagedObjectNotFound)
+    get_all_vcenter_objects.return_value = [obj1, obj2]
+    assert len(get_all_virtual_machines()) == 1
 
 
 @mock.patch('vcdriver.vm.connection')

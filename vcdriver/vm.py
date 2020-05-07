@@ -775,10 +775,20 @@ def get_all_virtual_machines():
 
     :return: A list with all the VirtualMachine objects
     """
-    machines = []
-    for vm_object in get_all_vcenter_objects(connection(), vim.VirtualMachine):
-        machine = VirtualMachine()
-        machine.__setattr__('_vm_object', vm_object)
-        machine.name = vm_object.summary.config.name
-        machines.append(machine)
-    return machines
+
+    def process(vm_object):
+        try:
+            name = vm_object.summary.config.name
+        except vim.ManagedObjectNotFound:
+            return None
+
+        machine = VirtualMachine(name=name)
+        machine._vm_object = vm_object
+        return machine
+
+    return [
+        machine
+        for vm_object in get_all_vcenter_objects(connection(), vim.VirtualMachine)
+        for machine in (process(vm_object),)
+        if machine is not None
+    ]
