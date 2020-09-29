@@ -1,6 +1,6 @@
 pytest
 pytest-cov
-coverage>=5.3
+coverage[toml]>=5.3
 mock
 
 ./

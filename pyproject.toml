@@ -2,6 +2,19 @@
 requires = [ "setuptools >= 35.0.2", "wheel >= 0.29.0"]
 build-backend = "setuptools.build_meta"
 
+
+[tool.coverage.run]
+branch = true
+source_pkgs = ["vcdriver"]
+source = ["tests"]
+
+[tool.coverage.paths]
+source = [
+    ".",
+    ".tox/*/lib/*/site-packages/",
+    '.tox\\*\\Lib\\site-packages\\',
+]
+
 [tool.tox]
 legacy_tox_ini = """
 [tox]
@@ -15,7 +28,7 @@ envlist = py{27,34,35,36,37}, lint
 wheel = True
 wheel_pep517 = True
 wheel_build_env = build
-commands = py.test --cov-report=term-missing:skip-covered --cov={envsitepackagesdir}/vcdriver {posargs}
+commands = py.test --cov-report=term-missing:skip-covered --cov {posargs}
 deps =
     -rrequirements.txt
     -rtest_requirements.txt
@@ -38,5 +51,4 @@ commands =
     rm -rf {toxinidir}/dist
     cp -r {distdir} {toxinidir}/dist # copy the wheel built by tox-wheel
     {envpython} -m pep517.build --source --out-dir={toxinidir}/dist {toxinidir}
-
 """
