@@ -170,7 +170,8 @@ class VirtualMachine(object):
             else:
                 self._schedule_vcenter_task_on_vm(
                     vim.VirtualMachine.PowerOff,
-                    # task name can't be longer than 80 chars and as to be unique
+                    # task name can't be longer than 80 chars and as to be
+                    # unique
                     'Power off {}'.format(self.vm_id()),
                     delay_by
                 )
@@ -227,13 +228,14 @@ class VirtualMachine(object):
         """
         Return the vcenter ID of this VM.
 
-        :return: Return a string in the following format: vm-<number> i.e: vm-4856 or
-            None in case the VirtualMachine data has not been retrieved from vCenter
-            i.e: find() has not been called yet
+        :return: Return a string in the following format: vm-<number> i.e:
+            vm-4856 or None in case the VirtualMachine data has not been
+            retrieved from vCenter i.e: find() has not been called yet
         """
 
         if self._vm_object:
-            # summary.vm has the following format: 'vim.VirtualMachine:vm-83288'
+            # summary.vm has the following format:
+            # 'vim.VirtualMachine:vm-83288'
             return str(self._vm_object.summary.vm).strip("'").split(":")[1]
         return None
 
@@ -788,7 +790,9 @@ def get_all_virtual_machines():
 
     return [
         machine
-        for vm_object in get_all_vcenter_objects(connection(), vim.VirtualMachine)
+        for vm_object in get_all_vcenter_objects(
+            connection(), vim.VirtualMachine
+        )
         for machine in (process(vm_object),)
         if machine is not None
     ]
