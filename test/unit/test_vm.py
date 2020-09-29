@@ -111,7 +111,9 @@ def test_virtual_machine_find(get_vcenter_object_by_name, connection):
 @mock.patch('vcdriver.vm.connection')
 @mock.patch('vcdriver.vm.get_vcenter_object_by_name')
 @mock.patch('vcdriver.vm.close')
-def test_virtual_machine_refresh(close, get_vcenter_object_by_name, connection):
+def test_virtual_machine_refresh(
+    close, get_vcenter_object_by_name, connection
+):
     vm = VirtualMachine()
     assert vm.__getattribute__('_vm_object') is None
 
@@ -219,7 +221,9 @@ def test_virtual_machine_power_on_wrong_power_state(
 def test_virtual_machine_power_off(wait_for_vcenter_task, connection):
     vm = VirtualMachine()
     mock_schedule_vcenter_task_on_vm = mock.MagicMock()
-    vm.__setattr__('_schedule_vcenter_task_on_vm', mock_schedule_vcenter_task_on_vm)
+    vm.__setattr__(
+        '_schedule_vcenter_task_on_vm', mock_schedule_vcenter_task_on_vm
+    )
     vm.power_off()
     vm.__setattr__('_vm_object', mock.MagicMock())
     vm.power_off()
@@ -229,10 +233,14 @@ def test_virtual_machine_power_off(wait_for_vcenter_task, connection):
 
 @mock.patch('vcdriver.vm.connection')
 @mock.patch('vcdriver.vm.wait_for_vcenter_task')
-def test_virtual_machine_power_off_with_delay(wait_for_vcenter_task, connection):
+def test_virtual_machine_power_off_with_delay(
+    wait_for_vcenter_task, connection
+):
     vm = VirtualMachine()
     mock_schedule_vcenter_task_on_vm = mock.MagicMock()
-    vm.__setattr__('_schedule_vcenter_task_on_vm', mock_schedule_vcenter_task_on_vm)
+    vm.__setattr__(
+        '_schedule_vcenter_task_on_vm', mock_schedule_vcenter_task_on_vm
+    )
     vm.power_off(delay_by=datetime.timedelta(hours=1))
     vm_object_mock = mock.MagicMock()
     vm_object_mock.summary.vm = "'vim.VirtualMachine:vm-83288'"
@@ -720,10 +728,14 @@ def test_get_all_virtual_machines(get_all_vcenter_objects, connection):
 
 @mock.patch('vcdriver.vm.connection')
 @mock.patch('vcdriver.vm.get_all_vcenter_objects')
-def test_get_all_virtual_machines_not_found(get_all_vcenter_objects, connection):
+def test_get_all_virtual_machines_not_found(
+    get_all_vcenter_objects, connection
+):
     obj1 = mock.MagicMock()
     obj2 = mock.MagicMock()
-    type(obj2).summary = mock.PropertyMock(side_effect=vim.ManagedObjectNotFound)
+    type(obj2).summary = mock.PropertyMock(
+        side_effect=vim.ManagedObjectNotFound
+    )
     get_all_vcenter_objects.return_value = [obj1, obj2]
     assert len(get_all_virtual_machines()) == 1
 
@@ -736,6 +748,7 @@ def test_created_at(connection):
     vm.__setattr__('_vm_object', vm_object_mock)
     assert vm.created_at == datetime.datetime(2018, 6, 13, 15, 12, 43, 700814)
 
+
 @mock.patch('vcdriver.vm.connection')
 def test_schedule_vcenter_task_on_vm_fail_on_bad_type(connection):
     vm = VirtualMachine()
@@ -745,13 +758,20 @@ def test_schedule_vcenter_task_on_vm_fail_on_bad_type(connection):
             'Power off virtual machine "dummy"',
             "Wrong type")
 
+
 @mock.patch('vcdriver.vm.connection')
 def test_schedule_vcenter_task_on_vm(connection):
-    mock_CreateScheduledTask = mock.MagicMock()
-    connection.return_value.content.scheduledTaskManager.CreateScheduledTask = mock_CreateScheduledTask
     vm = VirtualMachine()
     vm._schedule_vcenter_task_on_vm(
         vim.VirtualMachine.PowerOff,
         'Power off virtual machine "dummy"',
         datetime.timedelta(hours=1))
-    assert mock_CreateScheduledTask.call_count == 1
+    assert (
+        connection
+        .return_value
+        .content
+        .scheduledTaskManager
+        .CreateScheduledTask
+        .call_count
+        == 1
+    )
