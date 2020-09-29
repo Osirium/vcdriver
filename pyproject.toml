@@ -36,8 +36,8 @@ commands = pytest {posargs}
 
 [testenv:lint]
 deps =
-    flake8==3.6.0
-commands=flake8 vcdriver tests
+    flake8~=3.8
+commands=flake8
 
 [testenv:build]
 # empty environment to build universal wheel once per tox invocation
