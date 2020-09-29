@@ -46,9 +46,9 @@ commands=flake8 vcdriver tests
 [testenv:publishcov]
 passenv = GITHUB_*
 deps =
-  coveralls
+  codecov
   coverage[toml]>=5.3
-commands = coveralls
+commands = codecov
 
 [testenv:release]
 deps = pep517
