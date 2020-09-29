@@ -1,0 +1,42 @@
+[build-system]
+requires = [ "setuptools >= 35.0.2", "wheel >= 0.29.0"]
+build-backend = "setuptools.build_meta"
+
+[tool.tox]
+legacy_tox_ini = """
+[tox]
+minversion=3.20.0
+requires=
+    virtualenv >= 20.0.31
+    tox-wheel >= 0.5.0
+envlist = py{27,34,35,36,37}, lint
+
+[testenv]
+wheel = True
+wheel_pep517 = True
+wheel_build_env = build
+commands = py.test --cov-report=term-missing:skip-covered --cov={envsitepackagesdir}/vcdriver {posargs}
+deps =
+    -rrequirements.txt
+    -rtest_requirements.txt
+
+[testenv:lint]
+deps =
+    flake8==3.6.0
+commands=flake8 vcdriver tests
+
+[testenv:build]
+# empty environment to build universal wheel once per tox invocation
+# https://github.com/ionelmc/tox-wheel#build-configuration
+
+[testenv:release]
+deps = pep517
+whitelist_externals =
+    cp
+    rm
+commands =
+    rm -rf {toxinidir}/dist
+    cp -r {distdir} {toxinidir}/dist # copy the wheel built by tox-wheel
+    {envpython} -m pep517.build --source --out-dir={toxinidir}/dist {toxinidir}
+
+"""
