@@ -720,7 +720,7 @@ def test_get_all_virtual_machines(get_all_vcenter_objects, connection):
 
 @mock.patch('vcdriver.vm.connection')
 @mock.patch('vcdriver.vm.get_all_vcenter_objects')
-def test_get_all_virtual_machines(get_all_vcenter_objects, connection):
+def test_get_all_virtual_machines_not_found(get_all_vcenter_objects, connection):
     obj1 = mock.MagicMock()
     obj2 = mock.MagicMock()
     type(obj2).summary = mock.PropertyMock(side_effect=vim.ManagedObjectNotFound)

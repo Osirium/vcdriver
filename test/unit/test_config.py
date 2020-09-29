@@ -28,7 +28,7 @@ def require_username_and_password(
 
 @configurable([('Bad', 'Wrong')])
 def require_bad_section(**kwargs):
-    pass
+    assert False  # pragma: no cover
 
 
 def config_file(path, prepopulated_data=None):
