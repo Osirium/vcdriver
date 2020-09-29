@@ -42,6 +42,13 @@ commands=flake8 vcdriver tests
 # empty environment to build universal wheel once per tox invocation
 # https://github.com/ionelmc/tox-wheel#build-configuration
 
+[testenv:publishcov]
+passenv = GITHUB_*
+deps =
+  coveralls
+  coverage[toml]>=5.3
+commands = coveralls
+
 [testenv:release]
 deps = pep517
 whitelist_externals =
