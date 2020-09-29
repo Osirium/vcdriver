@@ -28,10 +28,8 @@ envlist = py{27,34,35,36,37}, lint
 wheel = True
 wheel_pep517 = True
 wheel_build_env = build
-commands = py.test --cov-report=term-missing:skip-covered --cov {posargs}
-deps =
-    -rrequirements.txt
-    -rtest_requirements.txt
+extras=test
+commands = pytest {posargs}
 
 [testenv:lint]
 deps =
