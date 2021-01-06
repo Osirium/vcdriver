@@ -38,6 +38,7 @@ def config_file(path, prepopulated_data=None):
     config.set('Vsphere Session', 'vcdriver_port', '443')
     config.set('Vsphere Session', 'vcdriver_username', '')
     config.set('Vsphere Session', 'vcdriver_password', '')
+    config.set('Vsphere Session', 'vcdriver_idle_timeout', '7200')
     config.add_section('Virtual Machine Deployment')
     config.set(
         'Virtual Machine Deployment',
@@ -102,7 +103,8 @@ def test_read(config_files):
             'vcdriver_host': '',
             'vcdriver_port': '443',
             'vcdriver_username': '',
-            'vcdriver_password': ''
+            'vcdriver_password': '',
+            'vcdriver_idle_timeout': '7200'
         },
         'Virtual Machine Deployment': {
             'vcdriver_resource_pool': '',
@@ -123,7 +125,8 @@ def test_read(config_files):
             'vcdriver_host': '',
             'vcdriver_port': '443',
             'vcdriver_username': '',
-            'vcdriver_password': 'myway'
+            'vcdriver_password': 'myway',
+            'vcdriver_idle_timeout': '7200'
         },
         'Virtual Machine Deployment': {
             'vcdriver_resource_pool': '',
