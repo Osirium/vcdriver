@@ -7,7 +7,7 @@ The format is based on `Keep a Changelog <http://keepachangelog.com/>`__
 and this project adheres to `Semantic
 Versioning <http://semver.org/>`__.
 
-5.1.2rc1 (unreleased)
+5.1.2rc1 (2021-01-06)
 ---------------------
 
 - Added vcdriver_idle_timeout option to "Vsphere Session" section of INI config file.
