@@ -10,7 +10,8 @@ Versioning <http://semver.org/>`__.
 5.1.2rc1 (unreleased)
 ---------------------
 
-- Nothing changed yet.
+- Added vcdriver_idle_timeout option to "Vsphere Session" section of INI config file.
+  The default is 7200 seconds and can now be changed via INI config file.
 
 
 [4.3.0] - 2018-07-06

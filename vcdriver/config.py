@@ -15,7 +15,8 @@ _CONFIG = {
         'vcdriver_host': '',
         'vcdriver_port': _DEFAULTS['vcdriver_port'],
         'vcdriver_username': '',
-        'vcdriver_password': ''
+        'vcdriver_password': '',
+        'vcdriver_idle_timeout': '7200'
     },
     'Virtual Machine Deployment': {
         'vcdriver_resource_pool': '',

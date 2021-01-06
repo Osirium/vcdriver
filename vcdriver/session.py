@@ -25,6 +25,7 @@ def close():
     ('Vsphere Session', 'vcdriver_port'),
     ('Vsphere Session', 'vcdriver_username'),
     ('Vsphere Session', 'vcdriver_password'),
+    ('Vsphere Session', 'vcdriver_idle_timeout'),
 ])
 def connection(**kwargs):
     """ Open the session if it does not exist and return the connection """
@@ -37,6 +38,7 @@ def connection(**kwargs):
             port=kwargs['vcdriver_port'],
             user=kwargs['vcdriver_username'],
             pwd=kwargs['vcdriver_password'],
+            connectionPoolTimeout=int(kwargs['vcdriver_idle_timeout']),
             sslContext=context
         )
         _session_id = _connection_obj.content.sessionManager.currentSession.key
