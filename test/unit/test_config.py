@@ -98,6 +98,7 @@ def config_files():
 
 
 def test_read(config_files):
+    reset()
     assert read() == {
         'Vsphere Session': {
             'vcdriver_host': '',
